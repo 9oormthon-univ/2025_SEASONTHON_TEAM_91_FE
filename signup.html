@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>회원가입 – ProofTicket</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --bgTop:#1F2125; --bgBottom:#141414;
+      --text:#E5E7EB; --muted:#A8AFBD; --ok:#06C270;
+      --card:#181a1f; --cardBorder:#2a2d35;
+      --inputBorder:#3a3f49; --inputFocus:#8fb3ff;
+      --btn:#ffffff; --btnText:#031859;
+      --danger:#ff5761; --accent:#FFF3B6;
+    }
+    *{ box-sizing:border-box }
+    html,body{
+      height:100%; margin:0; color:var(--text);
+      font-family:Roboto, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif;
+      background:linear-gradient(180deg,var(--bgTop) 0%, var(--bgBottom) 100%);
+    }
+
+    /* Layout */
+    .page{
+      min-height:100vh; display:grid; place-items:center; padding:32px 16px;
+    }
+    .logo{
+      position:fixed; left:56px; top:40px; width:90px; z-index:10;
+    }
+    .card{
+      width:min(760px, 92vw);
+      background:var(--card);
+      border:1px solid var(--cardBorder);
+      border-radius:24px;
+      padding:32px 28px 28px;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    .title{
+      margin:8px 0 4px;
+      font:700 40px/1.2 Roboto, sans-serif;
+      text-align:center;
+      letter-spacing:.5px;
+    }
+    .subtitle{
+      margin:0 0 24px;
+      color:var(--muted);
+      text-align:center;
+      font-size:16px;
+    }
+
+    /* Form */
+    form{ display:grid; grid-template-columns:1fr 1fr; gap:16px 18px; }
+    .full{ grid-column:1 / -1; }
+
+    .field{ position:relative; }
+    .label{ display:block; font-weight:700; font-size:14px; margin:2px 0 8px; }
+    .input{
+      width:100%;
+      height:48px;
+      padding:12px 44px 12px 44px;
+      color:#fff; background:transparent;
+      border:1px solid var(--inputBorder);
+      border-radius:20px; outline:none;
+      transition:border-color .15s, box-shadow .15s, background .15s;
+    }
+    .input::placeholder{ color:#9097a6; }
+    .input:focus{
+      border-color:var(--inputFocus);
+      box-shadow:0 0 0 3px rgba(143,179,255,.18);
+      background:rgba(255,255,255,.02);
+    }
+    .icon{
+      position:absolute; left:12px; top:50%; transform:translateY(-50%);
+      width:20px; height:20px; opacity:.9; pointer-events:none;
+    }
+    .right-btn{
+      position:absolute; right:10px; top:50%; transform:translateY(-50%);
+      height:32px; min-width:32px; padding:0 8px;
+      border:0; border-radius:10px; background:#262a32;
+      color:#fff; cursor:pointer;
+    }
+
+    .error{ margin-top:6px; color:var(--danger); font-size:12px; }
+    .hint{ margin-top:6px; color:#9fb3ff; font-size:12px; }
+
+    /* Actions */
+    .actions{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      margin-top:6px;
+    }
+    .agree{ display:flex; align-items:center; gap:8px; color:#cfd3dc; font-size:14px; }
+    .agree a{ color:#cfd3dc; text-decoration:underline; }
+
+    .submit{
+      height:56px; padding:0 22px; border:0; border-radius:20px;
+      background:var(--btn); color:var(--btnText);
+      font:700 18px/1 'Inter', Roboto, sans-serif; letter-spacing:.8px;
+      cursor:pointer; min-width:180px;
+    }
+    .submit[disabled]{ opacity:.5; cursor:not-allowed; }
+
+    /* Social */
+    .social{
+      margin-top:16px;
+      display:flex; gap:16px; align-items:center; justify-content:center;
+    }
+    .social .btn{
+      width:48px; height:48px; border-radius:50%; border:0; cursor:pointer;
+      background-size:cover; background-position:center;
+    }
+    .btn.google{ background:#fff url('public/images/google-icon.svg') center/60% no-repeat; }
+    .btn.kakao { background:#FEE500 url('public/images/kakao-icon.svg')  center/60% no-repeat; }
+
+    .foot{
+      margin-top:12px; text-align:center; color:#c9ced9; font-size:14px;
+    }
+    .foot a{ color:#fff; text-decoration:underline; }
+
+    /* Responsive */
+    @media (max-width:720px){
+      form{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Logo -->
+  <img class="logo" src="public/images/logo.svg" alt="ProofTicket" />
+
+  <main class="page">
+    <section class="card" aria-labelledby="title">
+      <h1 id="title" class="title">회원가입</h1>
+      <p class="subtitle">ProofTicket에서 창작물을 안전하게 증명하고 관리하세요.</p>
+
+      <form id="signupForm" novalidate>
+        <!-- 이름 -->
+        <div class="field">
+          <label class="label" for="name">이름</label>
+          <!-- inline user icon -->
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.6"/>
+            <path d="M5 20c1.8-3.2 5-5 7-5s5.2 1.8 7 5" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <input id="name" class="input" type="text" placeholder="홍길동" autocomplete="name" />
+        </div>
+
+        <!-- 이메일 -->
+        <div class="field">
+          <label class="label" for="email">이메일</label>
+          <img class="icon" src="public/images/mail.svg" alt="" aria-hidden="true" />
+          <input id="email" class="input" type="email" placeholder="you@example.com" autocomplete="email" required />
+          <div id="emailErr" class="error" hidden>올바른 이메일 형식을 입력해주세요.</div>
+        </div>
+
+        <!-- 비밀번호 -->
+        <div class="field">
+          <label class="label" for="pw">비밀번호</label>
+          <img class="icon" src="public/images/lock.svg" alt="" aria-hidden="true" />
+          <input id="pw" class="input" type="password" placeholder="8자 이상, 영문/숫자 조합 권장" autocomplete="new-password" required />
+          <button type="button" class="right-btn" id="togglePw">보기</button>
+          <div id="pwHint" class="hint">영문/숫자 조합 8자 이상을 권장합니다.</div>
+          <div id="pwErr" class="error" hidden>비밀번호는 8자 이상이어야 합니다.</div>
+        </div>
+
+        <!-- 비밀번호 확인 -->
+        <div class="field">
+          <label class="label" for="pw2">비밀번호 확인</label>
+          <img class="icon" src="public/images/lock.svg" alt="" aria-hidden="true" />
+          <input id="pw2" class="input" type="password" placeholder="비밀번호 재입력" autocomplete="new-password" required />
+          <button type="button" class="right-btn" id="togglePw2">보기</button>
+          <div id="pw2Err" class="error" hidden>비밀번호가 일치하지 않습니다.</div>
+        </div>
+
+        <!-- 약관 -->
+        <div class="full actions">
+          <button id="submitBtn" class="submit" type="submit" disabled>회원가입</button>
+        </div>
+
+        <!-- 소셜 -->
+        <div class="full social" aria-label="간편 가입">
+          <button type="button" class="btn google" title="Google로 가입"></button>
+          <button type="button" class="btn kakao"  title="Kakao로 가입"></button>
+        </div>
+
+        <p class="full foot">이미 계정이 있으신가요? <a href="main.html#section-3">로그인</a></p>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    // Elements
+    const form      = document.getElementById('signupForm');
+    const nameEl    = document.getElementById('name');
+    const emailEl   = document.getElementById('email');
+    const pwEl      = document.getElementById('pw');
+    const pw2El     = document.getElementById('pw2');
+    const agreeEl   = document.getElementById('agree');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const emailErr = document.getElementById('emailErr');
+    const pwErr    = document.getElementById('pwErr');
+    const pw2Err   = document.getElementById('pw2Err');
+
+    // Show/Hide password
+    const togglePw  = document.getElementById('togglePw');
+    const togglePw2 = document.getElementById('togglePw2');
+    togglePw.addEventListener('click', () => {
+      pwEl.type = pwEl.type === 'password' ? 'text' : 'password';
+      togglePw.textContent = pwEl.type === 'password' ? '보기' : '숨김';
+    });
+    togglePw2.addEventListener('click', () => {
+      pw2El.type = pw2El.type === 'password' ? 'text' : 'password';
+      togglePw2.textContent = pw2El.type === 'password' ? '보기' : '숨김';
+    });
+
+    // Validators
+    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function validateEmail(){
+      const ok = emailRx.test(emailEl.value.trim());
+      emailErr.hidden = ok || emailEl.value.trim()==="";
+      emailEl.setAttribute('aria-invalid', !ok);
+      return ok;
+    }
+    function validatePw(){
+      const ok = pwEl.value.length >= 8;
+      pwErr.hidden = ok || pwEl.value==="";
+      pwEl.setAttribute('aria-invalid', !ok);
+      return ok;
+    }
+    function validatePwMatch(){
+      const ok = pwEl.value !== "" && pwEl.value === pw2El.value;
+      pw2Err.hidden = ok || pw2El.value==="";
+      pw2El.setAttribute('aria-invalid', !ok);
+      return ok;
+    }
+    function updateSubmitState(){
+      const ready = validateEmail() && validatePw() && validatePwMatch() && agreeEl.checked;
+      submitBtn.disabled = !ready;
+    }
+
+    [emailEl, pwEl, pw2El, agreeEl, nameEl].forEach(el=>{
+      el.addEventListener('input', updateSubmitState);
+      el.addEventListener('blur', updateSubmitState);
+    });
+
+    // Submit (demo)
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      updateSubmitState();
+      if (submitBtn.abled) return;
+
+      // 실제 환경에서는 여기서 서버에 요청 보내면 됩니다.
+      alert('회원가입이 완료되었습니다! 이제 로그인해 주세요.');
+      window.location.href = 'main.html#section-3';
+    });
+
+    // First render
+    updateSubmitState();
+  </script>
+</body>
+</html>
