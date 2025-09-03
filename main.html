@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProofTicket 메인페이지</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #1F2125 0%, #141414 100%);
+    }
+    .container {
+      height: 100%;
+      width: 100%;
+      scroll-snap-type: y mandatory;
+      overflow-y: scroll;
+      /* 부드럽게 스크롤 */
+      scroll-behavior: smooth;
+    }
+    section {
+      height: 100vh;
+      width: 100%;
+      scroll-snap-align: start;
+      position: relative;
+      color: white;
+      overflow: hidden;
+      /* 3D 회전 느낌을 위한 원근 */
+      perspective: 1000px;
+    }
+
+    /* Section2 업로드 */
+    .upload-box {
+      width: 500px;
+      height: 250px;
+      border: 2px dashed #ccc;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    .upload-box input {
+      display: none;
+    }
+    .file-btn {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: white;
+      color: #031859;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* Section3 로그인 */
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 400px;
+      margin: 0 auto;
+    }
+    .login-form input {
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      background: transparent;
+      color: #fff;
+    }
+    .login-btn {
+      padding: 20px;
+      background: #ffffff;
+      color: #031859;
+      font-weight: bold;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    }
+
+    .input-wrapper .input-icon {
+    position: absolute;
+    left: 12px;
+    width: 20px;
+    height: 20px;
+    pointer-events: none; /* 아이콘 클릭 방지 */
+    }
+
+    .input-wrapper input {
+    width: 100%;
+    padding: 12px 12px 12px 40px; /* 왼쪽에 아이콘 공간 확보 */
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background: transparent;
+    color: #fff;
+    }
+    .social-login {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .social-login button {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background-size: cover;
+      background-position: center;
+    }
+    .google { background-image: url("public/images/google-icon.svg"); background-color: white; }
+    .kakao  { background-image: url("public/images/kakao-icon.svg");  background-color: #FEE500; position: relative; }
+
+    /* ✨ Ticket 애니메이션용 공통 스타일 */
+    .ticket {
+      position: absolute;
+      will-change: transform, opacity;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+      /* 부드럽게 보이도록 약간의 필터 */
+      filter: drop-shadow(0 8px 24px rgba(0,0,0,.35));
+    }
+    /* 시작 배치 그대로 유지 (요청하신 좌표) */
+    .ticket1-pos { bottom: 0%; left: 11%; }
+    .ticket2-pos { top: -2%; left: 10%; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Section 1 -->
+    <section>
+      <div style="width:100%; height:100%; position:relative; overflow:hidden;">
+        <!-- 경로 구분자 / 로 수정 -->
+        <img src="public/images/logo.svg" style="position:absolute; left:100px; top:100px;" />
+        <img src="public/images/section1_tickets.svg" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);" />
+        <img src="public/images/section1_titleticket.svg" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);" />
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center;">
+          <h1 style="font-size:64px;">창작의 순간을 증명하다,</h1>
+          <h1 style="font-size:64px; color:#FFF3B6;">ProofTicket</h1>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2 (파일 업로드) -->
+    <section id="section-2">
+      <!-- ✨ Ticket1: 애니메이션을 위해 id/class 부여 & 초기 transform 제거 -->
+      <img id="ticket1" class="ticket ticket1-pos" src="public/images/Ticket1.svg"/>
+
+      <div style="position:absolute; top: 50%; left: 60%; transform: translate(-50%, -50%); text-align:center; margin:auto;">
+        <h1>티켓 검증하기</h1>
+        <p style="color:#C7C9D9;">당신의 작품을 ProofTicket으로 검증해보세요.</p>
+
+        <label class="upload-box">
+          <img src="public/images/upload.svg" alt="" />
+          <span>파일을 끌어다 놓거나 눌러서 선택해주세요.</span>
+          <input type="file" id="fileInput" />
+
+          <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+            <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px;">PDF</span>
+            <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px;">DOCX</span>
+            <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px;">MP3</span>
+            <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px;">MP4</span>
+          </div>
+
+          <p style="color:#bbb; margin-top:10px;">파일은 저장되지 않으니 안심하세요!</p>
+        </label>
+
+        <button class="file-btn">확인</button>
+      </div>
+    </section>
+
+    <!-- Section 3 (로그인) -->
+    <section id="section-3">
+    <!-- Ticket2 -->
+    <img id="ticket2" class="ticket ticket2-pos" src="public/images/Ticket2.svg" />
+
+    <div style="text-align:center; margin:auto; position:absolute; top: 50%; left: 60%; transform: translate(-50%, -50%);">
+        <h1>로그인</h1>
+        <p style="color:#C7C9D9;">당신의 저작권을 ProofTicket에서 관리하세요.</p>
+
+        <form class="login-form">
+
+        <!-- 이메일 입력 -->
+        <div class="input-wrapper">
+            <img src="public/images/mail.svg" class="input-icon" alt="이메일 아이콘" />
+            <input type="email" placeholder="Email" required />
+        </div>
+
+        <!-- 비밀번호 입력 -->
+        <div class="input-wrapper">
+            <img src="public/images/lock.svg" class="input-icon" alt="비밀번호 아이콘" />
+            <input type="password" placeholder="Password" required />
+        </div>
+
+        <button type="submit" class="login-btn">로그인</button>
+        </form>
+
+        <p style="margin-top:10px; color:#bbb;">회원이 아니신가요?</p>
+
+        <div style="width: 100%; height: 100%; justify-content: space-between; align-items: center; display: inline-flex">
+        <div style="width: 130px; height: 0px; outline: 0.78px white solid; outline-offset: -0.39px"></div>
+        <div style="text-align: center; color: white; font-size: 15px; font-family: Pretendard; font-weight: 500; line-height: 15.70px; word-wrap: break-word">간편 로그인</div>
+        <div style="width: 130px; height: 0px; outline: 0.78px white solid; outline-offset: -0.39px"></div>
+        </div>
+        
+        <div class="social-login">
+        <button class="google" title="구글 로그인"></button>
+        <button class="kakao" title="카카오 로그인"></button>
+        </div>
+    </div>
+    </section>
+
+
+  </div>
+
+  <!-- ✨ 스크롤 진행도 기반 애니메이션 스크립트 -->
+  <script>
+    (function() {
+      const container = document.querySelector('.container');
+      const sections = document.querySelectorAll('section');
+      const sec2 = document.getElementById('section-2');
+      const sec3 = document.getElementById('section-3');
+      const t1 = document.getElementById('ticket1');
+      const t2 = document.getElementById('ticket2');
+
+      // 초기 상태: Ticket1 보임, Ticket2 뒤집힌 채 숨김
+      function setInitial() {
+        t1.style.opacity = '1';
+        t1.style.transform = 'rotateY(180deg)';
+
+        t2.style.opacity = '0';
+        t2.style.transform = 'rotateY(-180deg)'; // 뒤집힌 상태에서 시작
+      }
+      setInitial();
+
+      // 섹션2 시작지점 ~ 섹션3 시작지점 사이의 스크롤 비율 p(0~1) 계산
+      function getProgress() {
+        const y = container.scrollTop;
+        const sec2Top = sec2.offsetTop;
+        const sec3Top = sec3.offsetTop;
+        const dist = sec3Top - sec2Top;
+        if (dist <= 0) return 0;
+        let p = (y - sec2Top) / dist;
+        if (p < 0) p = 0;
+        if (p > 1) p = 1;
+        return p;
+      }
+
+      let ticking = false;
+      function onScroll() {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const p = getProgress();
+
+          // Ticket1: 0deg -> 180deg 로 뒤집히며 사라짐
+          t1.style.transform = `rotateY(${p * 180}deg)`;
+          t1.style.opacity = String(1 - p);
+
+          // Ticket2: -180deg -> 0deg 로 돌아오며 나타남
+          t2.style.transform = `rotateY(${-180 + p * 180}deg)`;
+          t2.style.opacity = String(p);
+
+          ticking = false;
+        });
+      }
+
+      // 스크롤 시 애니메이션 업데이트
+      container.addEventListener('scroll', onScroll, { passive: true });
+
+      // 리사이즈/로드 시에도 한 번 계산
+      window.addEventListener('load', onScroll);
+      window.addEventListener('resize', onScroll);
+    })();
+  </script>
+</body>
+</html>
