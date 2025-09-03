@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ProofTicket – 티켓 검증 완료</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- html2canvas & jsPDF (UMD) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #141414;
+      --text: #E5E7EB;
+      --muted: #979797;
+      --ok: #06C270;
+      --btnText: #141414;
+      --cardBorder: #979797;
+      --accent: #FFF3B6;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Roboto, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif;
+    }
+    .page {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 24px 96px;
+      position: relative;
+    }
+    .title {
+      margin: 96px auto 8px;
+      text-align: center;
+      color: var(--ok);
+      font-size: 48px;
+      font-weight: 700;
+      font-family: Roboto, sans-serif;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 400;
+      margin-bottom: 32px;
+    }
+    .result-card {
+      position: relative;
+      border: 2px solid var(--cardBorder);
+      border-radius: 12px;
+      padding: 24px 24px 16px;
+      overflow: hidden;
+      backdrop-filter: blur(1px);
+    }
+    .ticket-stack {
+      position: absolute;
+      right: -40px;
+      top: -20px;
+      width: 420px;
+      height: 520px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .ticket {
+      position: absolute;
+      inset: auto;
+      width: 300px;
+      height: 480px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      transform-origin: center;
+      background: linear-gradient(180deg, #E5E7EB 0%, #87A3D9 100%);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+    .ticket.t1 {
+      left: 120px;
+      top: 40px;
+      transform: rotate(19deg);
+    }
+    .ticket.t2 {
+      left: 0;
+      top: 100px;
+      transform: rotate(-19deg);
+      background: linear-gradient(180deg, #E5E7EB 0%, #cfd8e3 100%);
+    }
+    .table {
+      position: relative;
+      width: 100%;
+      border-collapse: collapse;
+      z-index: 1;
+    }
+    .table thead th {
+      text-align: left;
+      padding: 14px 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid var(--muted);
+      white-space: nowrap;
+    }
+    .table tbody td {
+      padding: 14px 12px;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text);
+      border-bottom: 1px solid var(--muted);
+    }
+    .btn-small {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      min-width: 170px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #fff;
+      color: var(--btnText);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .cta {
+      margin: 36px auto 0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      padding: 18px 28px;
+      border-radius: 20px;
+      border: 1px solid var(--text);
+      color: var(--text);
+      font-family: Inter, Roboto, sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: transparent;
+      cursor: pointer;
+    }
+    .cta .ico {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background-image: url("./public/images/external.svg");
+    }
+    .ticket-modal::backdrop {
+      background: rgba(0, 0, 0, 0.6);
+    }
+    .ticket-modal {
+      border: 0;
+      padding: 0;
+      background: transparent;
+    }
+    .modal-box {
+      position: relative;
+      background: #0c0c0c;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 28px 28px 24px;
+      max-width: 960px;
+      width: calc(100vw - 40px);
+      overflow: hidden;
+      margin: auto;
+    }
+    .modal-box .close {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      cursor: pointer;
+    }
+    .tickets {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 36px;
+    }
+    .pdf-btn {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto 0;
+      height: 48px;
+      padding: 0 22px;
+      border-radius: 999px;
+      border: 1px solid #fff;
+      color: #fff;
+      background: transparent;
+      cursor: pointer;
+      font: 700 16px/1 Inter, sans-serif;
+    }
+    .pdf-btn .ico {
+      width: 20px;
+      height: 20px;
+      background: url("./public/images/download.svg") center/contain no-repeat;
+    }
+    @media (max-width: 860px) {
+      .tickets {
+        flex-direction: column;
+        gap: 24px;
+        align-items: center;
+      }
+    }
+    @media (max-width: 900px) {
+      .ticket-stack {
+        display: none;
+      }
+      .table thead th:nth-child(3),
+      .table tbody td:nth-child(3),
+      .table thead th:nth-child(4),
+      .table tbody td:nth-child(4) {
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ticket modal -->
+  <dialog id="ticketModal" class="ticket-modal">
+    <div class="modal-box">
+      <button type="button" class="close" aria-label="닫기">✕</button>
+
+      <div class="tickets">
+        <div class="ticketContainer" style="position: relative; width: 460px; height: 787px;">
+          <div class="lightOverlay" style="
+            position: absolute; inset: 0;
+            pointer-events: none;
+            mix-blend-mode: color-dodge;
+            background: linear-gradient(105deg, transparent 40%, rgba(255,219,112,0.8) 45%, rgba(132,50,255,0.6) 50%, transparent 54%);
+            filter: brightness(1.2) opacity(0.8);
+            background-size: 300% 300%;
+            background-position: 100%;
+            border-radius: 14px;
+            z-index: 2;
+          "></div>
+          <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82" style="position: relative; z-index: 1;"></proof-ticket>
+        </div>
+
+        <div class="ticketContainer" style="position: relative; width: 460px; height: 787px;">
+          <div class="lightOverlay" style="
+            position: absolute; inset: 0;
+            pointer-events: none;
+            mix-blend-mode: color-dodge;
+            background: linear-gradient(105deg, transparent 40%, rgba(255,219,112,0.8) 45%, rgba(132,50,255,0.6) 50%, transparent 54%);
+            filter: brightness(1.2) opacity(0.8);
+            background-size: 300% 300%;
+            background-position: 100%;
+            border-radius: 14px;
+            z-index: 2;
+          "></div>
+          <proof-ticket id="tBack" shape-src="./public/images/ticket-shape.svg" side="back" scale="0.82" style="position: relative; z-index: 1;"></proof-ticket>
+        </div>
+      </div>
+
+      <button id="pdfDownload" class="pdf-btn" type="button">
+        <span class="ico" aria-hidden="true"></span> PDF 다운로드
+      </button>
+    </div>
+  </dialog>
+
+  <main class="page">
+    <a href="main.html">
+      <img src="./public/images/logo.svg" style="position:fixed; left:100px; top:100px;" alt="Logo" />
+    </a>
+
+    <h1 class="title">티켓 검증 완료</h1>
+    <p class="subtitle">총 2개 공모전에서 이력이 있습니다.</p>
+
+    <section class="result-card" aria-label="검증 결과 리스트">
+      <div class="ticket-stack" aria-hidden="true">
+        <div class="ticket t1"></div>
+        <div class="ticket t2"></div>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">공모전</th>
+            <th scope="col">파일 이름</th>
+            <th scope="col">증명 코드</th>
+            <th scope="col">타임스탬프</th>
+            <th scope="col">나의 Proof ticket</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>어쩌구 시나리오 2023</td>
+            <td>김아무개_어쩌구_docx</td>
+            <td>빛나는 장면 -217</td>
+            <td>2023-10-01 14:32</td>
+            <td>
+              <button class="btn-small open-ticket"
+                data-front-image="./posters/poster8.png"
+                data-title="2025 Creative Hackaton - Drama Track"
+                data-proof-code="빛나는 장면-217"
+                data-timestamp="2025-09-05 13:42:11 (KST)"
+                data-hash="83af9e9d4b12fa...(64 characters)"
+                data-file-name="베이비드라이버_공모전제출_김아무개.pdf"
+                data-owner="김아무개">
+                티켓 보기
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td>어쩌구 스토리텔링 2024</td>
+            <td>김아무개_어쩌구냥_pdf</td>
+            <td>흥겨운 이야기 - 368</td>
+            <td>2024-09-15 09:30</td>
+            <td>
+              <button class="btn-small open-ticket"
+                data-front-image="./posters/poster8.png"
+                data-title="2025 Creative Hackaton - Drama Track"
+                data-proof-code="빛나는 장면-217"
+                data-timestamp="2025-09-05 13:42:11 (KST)"
+                data-hash="83af9e9d4b12fa...(64 characters)"
+                data-file-name="베이비드라이버_공모전제출_김아무개.pdf"
+                data-owner="김아무개">
+                티켓 보기
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <button class="cta" type="button" onclick="location.href='register.html'">
+      <span class="ico" aria-hidden="true"></span>
+      다른 작품 검증하러 가기
+    </button>
+  </main>
+
+  <!-- ticket.js 모듈 import -->
+  <script type="module" src="./ticket.js"></script>
+
+  <script type="module">
+    // 모달 및 티켓 데이터 적용
+    const dlg = document.getElementById('ticketModal');
+    const tFront = document.getElementById('tFront');
+    const tBack = document.getElementById('tBack');
+    const openButtons = document.querySelectorAll('.open-ticket');
+
+    await customElements.whenDefined('proof-ticket');
+
+    const applyDataToTicket = (el, data) => {
+      const dateRight = (data.timestamp?.split(' ')[0] || '').replaceAll('-', '/');
+
+      el.setAttribute('front-image', data.frontImage || './posters/poster7.png');
+      el.setAttribute('title', data.title || '');
+      el.setAttribute('proof-code', data.proofCode || '');
+      el.setAttribute('timestamp', data.timestamp || '');
+      el.setAttribute('hash', data.hash || '');
+      el.setAttribute('file-name', data.fileName || '');
+      el.setAttribute('owner', data.owner || '');
+      el.setAttribute('date-right', dateRight || '');
+    };
+
+    openButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dataset = btn.dataset;
+        const data = {
+          frontImage: dataset.frontImage,
+          title: dataset.title,
+          proofCode: dataset.proofCode,
+          timestamp: dataset.timestamp,
+          hash: dataset.hash,
+          fileName: dataset.fileName,
+          owner: dataset.owner,
+        };
+        applyDataToTicket(tFront, data);
+        applyDataToTicket(tBack, data);
+        tFront.setAttribute('side', 'front');
+        tBack.setAttribute('side', 'back');
+        if (typeof dlg.showModal === 'function') {
+          dlg.showModal();
+        } else {
+          dlg.setAttribute('open', '');
+        }
+      });
+    });
+
+    dlg.querySelector('.close').addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', e => {
+      const box = dlg.querySelector('.modal-box');
+      if (!box.contains(e.target)) dlg.close();
+    });
+
+    // --- 3D 회전 및 빛 반짝임 개별 적용 시작 ---
+    function setupCard3D(container) {
+      const overlay = container.querySelector('.lightOverlay');
+
+      container.style.transformStyle = 'preserve-3d';
+      container.style.willChange = 'transform';
+
+      container.addEventListener('mousemove', (e) => {
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rotateY = (0.05) * x;
+        const rotateX = (0.05) * y;
+
+        container.style.transform = `
+          perspective(1000px)
+          rotateX(${rotateX}deg)
+          rotateY(${rotateY}deg)
+        `;
+
+        overlay.style.backgroundPosition = `${x / 5}% ${y / 5}%`;
+      });
+
+      container.addEventListener('mouseleave', () => {
+        container.style.transform = '';
+        overlay.style.backgroundPosition = '80%';
+      });
+    }
+
+    document.querySelectorAll('.ticketContainer').forEach(setupCard3D);
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "ProofTicket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ticket.js",
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "typescript": "^5.9.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/9oormthon-univ/2025_SEASONTHON_TEAM_91_FE.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/9oormthon-univ/2025_SEASONTHON_TEAM_91_FE/issues"
+  },
+  "type": "module",
+  "homepage": "https://github.com/9oormthon-univ/2025_SEASONTHON_TEAM_91_FE#readme"
+}

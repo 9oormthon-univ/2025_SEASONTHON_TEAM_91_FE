@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>검증 완료</title>
+  <!-- 위에서 만든 ticket.js 를 먼저 로드 -->
+  <script src="./ticket.js"></script>
+  <style>
+    body{margin:0; background:#000; color:#E5E7EB; font-family:Roboto, sans-serif;}
+    .grid{
+      min-height:100vh; display:grid; place-items:center;
+      padding:40px;
+    }
+    .controls{ margin-top:16px; text-align:center; }
+    .btn{ padding:10px 16px; border-radius:8px; border:none; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <!-- ✅ 재사용 가능한 ‘티켓’ -->
+    <proof-ticket
+      front-image="posters/poster8.png"
+      id="myTicket"
+      title="2025 9oormthon Univ - Seasonthon"
+      proof-code="빛나는 장면 -217"
+      timestamp="2025-09-05 13:42:11 (KST)"
+      hash="83af9e9d4b12fa... (64)"
+      file-name="Markers_ProofTicket_91.pdf"
+      owner="KIM MARKER"
+      date="2025/09/05"
+      side="front"
+      scale="0.8"
+    ></proof-ticket>
+
+    <div class="controls">
+      <button class="btn" onclick="document.getElementById('myTicket').flip()">Flip</button>
+      <button class="btn" onclick="document.getElementById('myTicket').setAttribute('side','front')">Front</button>
+      <button class="btn" onclick="document.getElementById('myTicket').setAttribute('side','back')">Back</button>
+    </div>
+  </div>
+</body>
+</html>

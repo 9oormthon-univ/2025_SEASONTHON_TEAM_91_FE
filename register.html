@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공모전 지원작 등록하기 - ProofTicket</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0; padding: 0; min-height: 100vh;
+      overflow: hidden;
+      background: #141414;
+      font-family: 'Roboto', 'Inter', system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif;
+      color: #fff;
+      box-sizing: border-box;
+    }
+    .content {
+      margin: 0 auto;
+      z-index: 2;
+      max-width: 680px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .title {
+      text-align: center;
+      margin-top: 50px;
+      width: 100%;
+      font-size: 48px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 14px;
+      font-family: 'Roboto', sans-serif;
+    }
+    .subtitle {
+      text-align: center;
+      width: 100%;
+      font-size: 20px;
+      color: #C7C9D9;
+      margin-bottom: 48px;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 400;
+    }
+    .search-bar-wrap {
+      width: 100%;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .search-bar {
+      width: 100%;
+      border: none;
+      border-bottom: 2px solid #36383A;
+      padding: 12px 42px 12px 0;
+      font-size: 18px;
+      color: #fff;
+      background: transparent;
+      outline: none;
+      font-family: 'Roboto', sans-serif;
+    }
+    .search-icon {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      width: 28px;
+      height: 28px;
+      pointer-events: none;
+      fill: #C7C9D9;
+    }
+    .upload-area {
+      width: 100%;
+      height: 230px;
+      background: rgba(255,255,255,0.04);
+      border: 2px dashed #686868;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      transition: border 0.2s, background 0.2s;
+      text-align: center;
+      position: relative;
+    }
+    .upload-area input {
+      display: none;
+    }
+    .upload-icon {
+      font-size: 44px;
+      margin-bottom: 10px;
+    }
+    .upload-area label, .upload-area span {
+      color: #ededed;
+      font-size: 18px;
+      font-weight: 500;
+      opacity: 1;
+      cursor: pointer;
+    }
+    .ext-wrap {
+      margin: 18px 0 0 0;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .file-type {
+      background: rgba(255,255,255,0.10);
+      color: #bbb;
+      padding: 6px 13px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .info-row {
+      display: flex;
+      align-items: center;
+      font-size: 15px;
+      color: #aaa;
+      margin-bottom: 18px;
+      margin-top: 4px;
+      font-family: 'Roboto', sans-serif;
+    }
+    .info-row input[type=checkbox] {
+      accent-color: #C7C9D9;
+      margin-right: 7px;
+      transform: translateY(1px);
+    }
+    .btn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 480px;
+      margin-top: 25px;
+    }
+    .main-btn, .sec-btn {
+      font-size: 20px;
+      font-weight: 700;
+      border-radius: 100px;
+      padding: 18px 0;
+      width: 100%;
+      border: 2px solid #fff;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      transition: background .15s, color .15s;
+      background: #fff;
+      color: #141414;
+      letter-spacing: 1px;
+    }
+    .sec-btn {
+      color: #fff;
+      background: #232323;
+      border: 2px solid #36383A;
+    }
+    .btn-icon {
+      margin-right: 12px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* 티켓 이미지 영역 (우측) */
+    .ticket-bg {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      width: 480px;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+    /* 티켓 이미지들 공통 스타일 */
+    .ticket-bg .ticket {
+      position: absolute;
+      width: 320px;
+      opacity: 0.96;
+      filter: drop-shadow(0px 8px 36px #000a);
+      transition: all 0.3s;
+    }
+    .ticket1 {
+      top: 0;
+      right: 0px;
+      z-index: 1;
+    }
+    .ticket2 {
+      top: 220px;
+      right: 0px;
+      z-index: 2;
+    }
+    .ticket3 {
+      bottom: -30px;
+      right: 0px;
+      z-index: 0;
+    }
+    @media (max-width: 1280px) {
+      .ticket-bg { display: none; }
+      .content { padding: 60px 24px 0 24px; }
+    }
+    @media (max-width: 650px) {
+      .content, .btn-list { width: 100%; max-width: unset; }
+      .upload-area { width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-wrap">
+    <div class="content">
+      <img src="public/images/logo.svg" style="position:absolute; left:100px; top:100px;" />
+
+      <div class="title">공모전 지원작 등록하기</div>
+      <div class="subtitle">
+        참여한 공모전을 선택하고 작품을 등록하면 Proof Ticket이 발급됩니다.
+      </div>
+
+      <div class="search-bar-wrap">
+        <input class="search-bar" type="text" placeholder="공모전 이름을 검색하세요" />
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">
+          <circle cx="13" cy="13" r="9" stroke="#C7C9D9" stroke-width="2" fill="none"/>
+          <line x1="20" y1="20" x2="26" y2="26" stroke="#C7C9D9" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <label class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" onchange="handleFileUpload()" />
+        <div class="upload-icon">
+            <img src="public/images/register.svg" alt="Upload icon" />
+        </div>
+        <span id="fileLabel">파일을 끌어다 놓거나 눌러서 선택해주세요.</span>
+        <div class="ext-wrap" id="fileTypeList">
+          <div class="file-type">PDF</div>
+          <div class="file-type">DOCX</div>
+          <div class="file-type">MP3</div>
+          <div class="file-type">MP4</div>
+        </div>
+      </label>
+
+      <div class="info-row">
+        <input type="checkbox" checked readOnly />
+        Proof Ticket은 원본 파일과 연결되어 있습니다. 추후 검증을 위해 제출 당시의 파일을 보관해 주세요.
+      </div>
+
+      <div class="btn-list">
+        <button class="main-btn" onclick="location.href='protectcompleted.html'">
+          <span class="btn-icon">
+            <img src="public/images/haveticket-icon.svg" alt="Ticket icon" />
+          </span>
+          PROOF TICKET 발급받기
+        </button>
+        <button class="sec-btn" onclick="location.href='myproofticket.html'">
+          <span class="btn-icon">
+            <img src="public/images/map.svg" alt="Map icon" />
+          </span>
+          나의 PROOF TICKET 확인하기
+        </button>
+      </div>
+    </div>
+    <div class="ticket-bg">
+      <img src="public/images/Group.svg" alt="Ticket 1" class="ticket ticket1" />
+      <img src="public/images/Group-1.svg" alt="Ticket 2" class="ticket ticket2" />
+      <img src="public/images/Group-2.svg" alt="Ticket 3" class="ticket ticket3" />
+    </div>
+  </div>
+  <script>
+    function handleFileUpload() {
+      const fileInput = document.getElementById('fileInput');
+      const fileLabel = document.getElementById('fileLabel');
+      const fileTypeList = document.getElementById('fileTypeList');
+      uploadArea.style.background = 'linear-gradient(360deg, #596E99 0%, #94B8FF 100%)';
+      if (fileInput.files && fileInput.files[0]) {
+        fileLabel.textContent = fileInput.files[0].name;
+        fileTypeList.style.display = 'none';
+      } else {
+        fileLabel.textContent = '파일을 끌어다 놓거나 눌러서 선택해주세요.';
+        fileTypeList.style.display = 'flex';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -4,13 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ProofTicket 메인페이지</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
-      font-family: Arial, sans-serif;
+      font-family:Roboto, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif;
       background: linear-gradient(180deg, #1F2125 0%, #141414 100%);
     }
     .container {
@@ -165,10 +168,10 @@
         <h1>티켓 검증하기</h1>
         <p style="color:#C7C9D9;">당신의 작품을 ProofTicket으로 검증해보세요.</p>
 
-        <label class="upload-box">
+        <label class="upload-box" id="uploadBox">
           <img src="public/images/upload.svg" alt="" />
           <span>파일을 끌어다 놓거나 눌러서 선택해주세요.</span>
-          <input type="file" id="fileInput" />
+          <input type="file" id="fileInput" onchange="handleFileUpload()" />
 
           <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
             <span style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px;">PDF</span>
@@ -180,7 +183,23 @@
           <p style="color:#bbb; margin-top:10px;">파일은 저장되지 않으니 안심하세요!</p>
         </label>
 
-        <button class="file-btn">확인</button>
+        <script>
+          function handleFileUpload() {
+            const uploadBox = document.getElementById('uploadBox');
+            const fileInput = document.getElementById('fileInput');
+            const fileName = fileInput.files[0]?.name || '파일을 끌어다 놓거나 눌러서 선택해주세요.';
+            const span = uploadBox.querySelector('span');
+            
+            span.textContent = fileName;
+
+            uploadBox.style.background = 'linear-gradient(360deg, #596E99 0%, #94B8FF 100%)';
+            uploadBox.style.border = '2px dashed #979797';
+            uploadBox.style.boxShadow = '0px 0px 0px rgba(0, 0, 0, 0.08)';
+            uploadBox.style.borderRadius = '20px';
+          }
+        </script>
+
+        <button class="file-btn" onclick="location.href='proofcomplete.html'">확인</button>
       </div>
     </section>
 
@@ -217,7 +236,7 @@
         <div style="text-align: center; color: white; font-size: 15px; font-family: Pretendard; font-weight: 500; line-height: 15.70px; word-wrap: break-word">간편 로그인</div>
         <div style="width: 130px; height: 0px; outline: 0.78px white solid; outline-offset: -0.39px"></div>
         </div>
-        
+
         <div class="social-login">
         <button class="google" title="구글 로그인"></button>
         <button class="kakao" title="카카오 로그인"></button>
