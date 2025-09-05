@@ -202,7 +202,7 @@
       justify-content: center;
       align-items: flex-start;
       gap: clamp(16px, 4vw, 40px);
-      margin: 0px auto 0;
+      margin: 10px auto 0;
       user-select: none;
       -webkit-user-drag: none;
       -webkit-touch-callout: none;
@@ -240,41 +240,45 @@
       z-index: 2;
       pointer-events: none;
     }
-    .lightOverlay {
-      position: absolute;
+.lightOverlay{
+  position:absolute; inset:0; z-index:3; pointer-events:none; border-radius:14px;
+  margin-left: 6%;
+  mix-blend-mode: color-dodge;
+  background: linear-gradient(105deg,
+              transparent 40%,
+              rgba(255,219,112,0.8) 45%,
+              rgba(132,50,255,0.6) 50%,
+              transparent 54%);
+  filter: brightness(1.4) opacity(0.9);
+  background-size:250% 250%;
+  background-position:50%;
+  transition: background-position .1s;
 
-      inset: 0;
-      border-radius: 14px;
-      z-index: 3;
-      pointer-events: none;
-      background: linear-gradient(105deg,
-        transparent 40%,
-        rgba(255,219,112,0.8) 45%,
-        rgba(132,50,255,0.6) 50%,
-        transparent 54%);
-      filter: brightness(1.35) opacity(0.9);
-      background-size: 250% 250%;
-      background-position: 50%;
-      transition: background-position 0.12s;
-      mix-blend-mode: color-dodge;
+  --fade-start: 78%;
+  --fade-end: 97%;
 
-      /* 라디얼 페더 (모서리로 갈수록 옅어짐) */
-      --fade-start: 78%;
-      --fade-end: 97%;
-
-      -webkit-mask-image: radial-gradient(circle at 50% 50%,
-                                            rgba(0,0,0,1) var(--fade-start),
-                                            rgba(0,0,0,0) var(--fade-end));
-      mask-image:          radial-gradient(circle at 50% 50%,
-                                            rgba(0,0,0,1) var(--fade-start),
-                                            rgba(0,0,0,0) var(--fade-end));
-      -webkit-mask-size:   100% 100%;
-      mask-size:           100% 100%;
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat:         no-repeat;
-      -webkit-mask-position: center;
-      mask-position:       center;
-    }
+  /* 티켓 모양 마스크 */
+  -webkit-mask-image: url('public/images/ticket-shape.svg'),
+                      radial-gradient(
+    circle at 50% 50%,
+    rgba(0,0,0,1) var(--fade-start),
+    rgba(0,0,0,0) var(--fade-end)
+  );
+  mask-image:         url('public/images/ticket-shape.svg'),
+                      radial-gradient(
+    circle at 50% 50%,
+    rgba(0,0,0,1) var(--fade-start),
+    rgba(0,0,0,0) var(--fade-end)
+  );
+  -webkit-mask-composite: intersect; /* WebKit */
+  mask-composite: intersect;         /* 표준 */
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-size: 70% 50%, cover; /* 첫 번째는 티켓, 두 번째는 radial */
+  mask-size:         94% 85%, cover;
+}
     .ticketContainer.is-front .lightOverlay { --fade-start: 75%; --fade-end: 98%; }
     .ticketContainer.is-back  .lightOverlay { --fade-start: 82%; --fade-end: 97%; filter: brightness(1.2) opacity(0.85); }
     

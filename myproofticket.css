@@ -159,7 +159,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  margin-top: 7%;
+  margin-top: 10%;
   gap: clamp(20px, 4vw, 48px);
   position: relative;
   z-index: 1;
