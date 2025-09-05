@@ -15,7 +15,7 @@
     :root{
       --bg:#141414; --text:#E5E7EB; --accent:#06C270;
       --btn-bg:#232323; --btn-text:#fff; --btn-border:#fff;
-      /* JS가 자동으로 조정하는 티켓 스케일 */
+      /* 티켓 스케일 */
       --ticket-scale: 0.82;
     }
     *{box-sizing:border-box}
@@ -77,20 +77,47 @@
       position:relative;
     }
 
-    /* 반짝임 오버레이 */
-    .lightOverlay{
-      position:absolute; inset:0; z-index:2; pointer-events:none; border-radius:14px;
-      mix-blend-mode: color-dodge;
-      background: linear-gradient(105deg,
-                  transparent 40%,
-                  rgba(255,219,112,0.8) 45%,
-                  rgba(132,50,255,0.6) 50%,
-                  transparent 54%);
-      filter: brightness(1.2) opacity(0.8);
-      background-size:250% 250%;
-      background-position:50%;
-      transition: background-position .1s;
-    }
+    /* 홀로그램 오버레이 */
+.lightOverlay{
+  position:absolute; inset:0; z-index:3; pointer-events:none; border-radius:14px;
+  mix-blend-mode: color-dodge;
+  background: linear-gradient(105deg,
+              transparent 40%,
+              rgba(255,219,112,0.8) 45%,
+              rgba(132,50,255,0.6) 50%,
+              transparent 54%);
+  filter: brightness(1.4) opacity(0.9);
+  background-size:250% 250%;
+  background-position:52%;
+  transition: background-position .1s;
+
+  --fade-start: 78%;
+  --fade-end: 97%;
+
+  /* 티켓 모양 마스크 */
+  -webkit-mask-image: url('public/images/ticket-shape.svg'),
+                      radial-gradient(
+    circle at 50% 50%,
+    rgba(0,0,0,1) var(--fade-start),
+    rgba(0,0,0,0) var(--fade-end)
+  );
+  mask-image:         url('public/images/ticket-shape.svg'),
+                      radial-gradient(
+    circle at 50% 50%,
+    rgba(0,0,0,1) var(--fade-start),
+    rgba(0,0,0,0) var(--fade-end)
+  );
+  -webkit-mask-composite: intersect; /* WebKit */
+  mask-composite: intersect;         /* 표준 */
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-size: 82% 82%, cover; /* 첫 번째는 티켓, 두 번째는 radial */
+  mask-size:         80% 82%, cover;
+}
+
+
 
     .buttons{
       display:flex; gap:36px; justify-content:center;
@@ -115,7 +142,9 @@
   </style>
 </head>
 <body>
-  <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo"/>
+  <a href="main.html" class="logo-link" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
+    <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" />
+  </a>
 
   <div class="container">
     <h1>작품 보호 완료</h1>

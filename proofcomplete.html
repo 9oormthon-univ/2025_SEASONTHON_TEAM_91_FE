@@ -27,14 +27,16 @@
     }
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    html,
-    body {
+    html, body {
       height: 100%;
       margin: 0;
       background: var(--bg);
       color: var(--text);
       font-family: Roboto, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif;
+      overflow: hidden;
     }
     .page {
       width: 100%;
@@ -163,6 +165,9 @@
       background: rgba(0, 0, 0, 0.6);
     }
     .ticket-modal {
+      top: 3%;
+      overflow: hidden;
+      justify-self: center;
       border: 0;
       padding: 0;
       background: transparent;
@@ -190,11 +195,98 @@
       color: #fff;
       cursor: pointer;
     }
+
+    /* 모달 안의 두 장 티켓 공통 */
     .tickets {
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      gap: 36px;
+      gap: clamp(16px, 4vw, 40px);
+      margin: 0px auto 0;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+      position: relative;
+      z-index: 1;
+    }
+    .ticketContainer {
+      --scale: 1;
+      width: calc(460px * var(--scale));
+      height: calc(787px * var(--scale));
+      position: relative;
+      transform-style: preserve-3d;
+      will-change: transform;
+      border-radius: 0px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+
+      -webkit-mask-image: url('public/images/ticket-shape.svg');
+      mask-image:          url('public/images/ticket-shape.svg');
+      -webkit-mask-size:   100% 100%;
+      mask-size:           100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat:         no-repeat;
+      -webkit-mask-position: center;
+      mask-position:       center;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    proof-ticket {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .lightOverlay {
+      position: absolute;
+
+      inset: 0;
+      border-radius: 14px;
+      z-index: 3;
+      pointer-events: none;
+      background: linear-gradient(105deg,
+        transparent 40%,
+        rgba(255,219,112,0.8) 45%,
+        rgba(132,50,255,0.6) 50%,
+        transparent 54%);
+      filter: brightness(1.35) opacity(0.9);
+      background-size: 250% 250%;
+      background-position: 50%;
+      transition: background-position 0.12s;
+      mix-blend-mode: color-dodge;
+
+      /* 라디얼 페더 (모서리로 갈수록 옅어짐) */
+      --fade-start: 78%;
+      --fade-end: 97%;
+
+      -webkit-mask-image: radial-gradient(circle at 50% 50%,
+                                            rgba(0,0,0,1) var(--fade-start),
+                                            rgba(0,0,0,0) var(--fade-end));
+      mask-image:          radial-gradient(circle at 50% 50%,
+                                            rgba(0,0,0,1) var(--fade-start),
+                                            rgba(0,0,0,0) var(--fade-end));
+      -webkit-mask-size:   100% 100%;
+      mask-size:           100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat:         no-repeat;
+      -webkit-mask-position: center;
+      mask-position:       center;
+    }
+    .ticketContainer.is-front .lightOverlay { --fade-start: 75%; --fade-end: 98%; }
+    .ticketContainer.is-back  .lightOverlay { --fade-start: 82%; --fade-end: 97%; filter: brightness(1.2) opacity(0.85); }
+    
+    @media (max-width: 860px) {
+      .tickets {
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .ticketContainer {
+        --scale: 0.7;
+      }
     }
     .pdf-btn {
       display: flex;
@@ -216,13 +308,6 @@
       height: 20px;
       background: url("./public/images/download.svg") center/contain no-repeat;
     }
-    @media (max-width: 860px) {
-      .tickets {
-        flex-direction: column;
-        gap: 24px;
-        align-items: center;
-      }
-    }
     @media (max-width: 900px) {
       .ticket-stack {
         display: none;
@@ -237,40 +322,21 @@
   </style>
 </head>
 <body>
+
   <!-- Ticket modal -->
   <dialog id="ticketModal" class="ticket-modal">
     <div class="modal-box">
       <button type="button" class="close" aria-label="닫기">✕</button>
 
       <div class="tickets">
-        <div class="ticketContainer" style="position: relative; width: 460px; height: 787px;">
-          <div class="lightOverlay" style="
-            position: absolute; inset: 0;
-            pointer-events: none;
-            mix-blend-mode: color-dodge;
-            background: linear-gradient(105deg, transparent 40%, rgba(255,219,112,0.8) 45%, rgba(132,50,255,0.6) 50%, transparent 54%);
-            filter: brightness(1.2) opacity(0.8);
-            background-size: 300% 300%;
-            background-position: 100%;
-            border-radius: 14px;
-            z-index: 2;
-          "></div>
-          <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82" style="position: relative; z-index: 1;"></proof-ticket>
+        <div class="ticketContainer is-front">
+          <div class="lightOverlay"></div>
+          <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82"></proof-ticket>
         </div>
 
-        <div class="ticketContainer" style="position: relative; width: 460px; height: 787px;">
-          <div class="lightOverlay" style="
-            position: absolute; inset: 0;
-            pointer-events: none;
-            mix-blend-mode: color-dodge;
-            background: linear-gradient(105deg, transparent 40%, rgba(255,219,112,0.8) 45%, rgba(132,50,255,0.6) 50%, transparent 54%);
-            filter: brightness(1.2) opacity(0.8);
-            background-size: 300% 300%;
-            background-position: 100%;
-            border-radius: 14px;
-            z-index: 2;
-          "></div>
-          <proof-ticket id="tBack" shape-src="./public/images/ticket-shape.svg" side="back" scale="0.82" style="position: relative; z-index: 1;"></proof-ticket>
+        <div class="ticketContainer is-back">
+          <div class="lightOverlay"></div>
+          <proof-ticket id="tBack" shape-src="./public/images/ticket-shape.svg" side="back" scale="0.82"></proof-ticket>
         </div>
       </div>
 
@@ -281,8 +347,8 @@
   </dialog>
 
   <main class="page">
-    <a href="main.html">
-      <img src="./public/images/logo.svg" style="position:fixed; left:100px; top:100px;" alt="Logo" />
+    <a href="main.html" class="logo-link" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
+      <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" />
     </a>
 
     <h1 class="title">티켓 검증 완료</h1>
@@ -351,11 +417,11 @@
     </button>
   </main>
 
-  <!-- ticket.js 모듈 import -->
+
   <script type="module" src="./ticket.js"></script>
 
   <script type="module">
-    // 모달 및 티켓 데이터 적용
+    // === 모달 및 티켓 바인딩 ===
     const dlg = document.getElementById('ticketModal');
     const tFront = document.getElementById('tFront');
     const tBack = document.getElementById('tBack');
@@ -406,37 +472,38 @@
       if (!box.contains(e.target)) dlg.close();
     });
 
-    // --- 3D 회전 및 빛 반짝임 개별 적용 시작 ---
-    function setupCard3D(container) {
+    // === 티켓 3D 및 홀로그램 효과 ===
+    document.querySelectorAll('.ticketContainer').forEach(container => {
       const overlay = container.querySelector('.lightOverlay');
 
-      container.style.transformStyle = 'preserve-3d';
-      container.style.willChange = 'transform';
+      function trackOverlay(x, y, rect) {
+        const nx = (x / rect.width) * 2 - 1;
+        const ny = (y / rect.height) * 2 - 1;
+        const rotY = nx * 10;
+        const rotX = -ny * 10;
+        container.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        overlay.style.backgroundPosition = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
+      }
 
-      container.addEventListener('mousemove', (e) => {
-        const rect = container.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const rotateY = (0.05) * x;
-        const rotateX = (0.05) * y;
-
-        container.style.transform = `
-          perspective(1000px)
-          rotateX(${rotateX}deg)
-          rotateY(${rotateY}deg)
-        `;
-
-        overlay.style.backgroundPosition = `${x / 5}% ${y / 5}%`;
+      container.addEventListener('mousemove', e => {
+        const r = container.getBoundingClientRect();
+        trackOverlay(e.clientX - r.left, e.clientY - r.top, r);
       });
 
       container.addEventListener('mouseleave', () => {
         container.style.transform = '';
-        overlay.style.backgroundPosition = '80%';
+        overlay.style.backgroundPosition = '80% 80%';
       });
-    }
 
-    document.querySelectorAll('.ticketContainer').forEach(setupCard3D);
+      container.addEventListener('touchmove', e => {
+        const t = e.touches[0];
+        if (!t) return;
+        const r = container.getBoundingClientRect();
+        trackOverlay(t.clientX - r.left, t.clientY - r.top, r);
+        e.preventDefault();
+      }, { passive: false });
+    });
   </script>
+
 </body>
 </html>

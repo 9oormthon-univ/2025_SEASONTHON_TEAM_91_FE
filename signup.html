@@ -53,7 +53,7 @@
     }
 
     /* Form */
-    form{ display:grid; grid-template-columns:1fr 1fr; gap:16px 18px; }
+    form{ display:grid; grid-template-columns:1fr 1fr; gap:16px 18px;}
     .full{ grid-column:1 / -1; }
 
     .field{ position:relative; }
@@ -88,15 +88,12 @@
     .hint{ margin-top:6px; color:#9fb3ff; font-size:12px; }
 
     /* Actions */
-    .actions{
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
-      margin-top:6px;
-    }
+
     .agree{ display:flex; align-items:center; gap:8px; color:#cfd3dc; font-size:14px; }
     .agree a{ color:#cfd3dc; text-decoration:underline; }
 
     .submit{
-      height:56px; padding:0 22px; border:0; border-radius:20px;
+      height:56px; margin-left: 250px; padding:0 22px; border:0; border-radius:20px;
       background:var(--btn); color:var(--btnText);
       font:700 18px/1 'Inter', Roboto, sans-serif; letter-spacing:.8px;
       cursor:pointer; min-width:180px;
@@ -138,19 +135,15 @@
       <form id="signupForm" novalidate>
         <!-- 이름 -->
         <div class="field">
+          <img class="icon" src="public/images/user.svg" alt="" aria-hidden="true" style="top:65%;"/>
           <label class="label" for="name">이름</label>
-          <!-- inline user icon -->
-          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.6"/>
-            <path d="M5 20c1.8-3.2 5-5 7-5s5.2 1.8 7 5" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
-          </svg>
           <input id="name" class="input" type="text" placeholder="홍길동" autocomplete="name" />
         </div>
 
         <!-- 이메일 -->
         <div class="field">
+          <img class="icon" src="public/images/mail.svg" alt="" aria-hidden="true" style="top:68%;"/>
           <label class="label" for="email">이메일</label>
-          <img class="icon" src="public/images/mail.svg" alt="" aria-hidden="true" />
           <input id="email" class="input" type="email" placeholder="you@example.com" autocomplete="email" required />
           <div id="emailErr" class="error" hidden>올바른 이메일 형식을 입력해주세요.</div>
         </div>
@@ -174,7 +167,12 @@
           <div id="pw2Err" class="error" hidden>비밀번호가 일치하지 않습니다.</div>
         </div>
 
-        <!-- 약관 -->
+        <div class="full">
+          <label class="agree">
+            <input type="checkbox" id="agree" />
+            이용약관 및 개인정보 처리방침에 동의합니다.
+          </label>
+        </div>
         <div class="full actions">
           <button id="submitBtn" class="submit" type="submit" disabled>회원가입</button>
         </div>

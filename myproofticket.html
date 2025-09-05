@@ -4,297 +4,48 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>홍길동님의 Proof Tickets</title>
-
   <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-
-  <style>
-    :root{ --bg:#141414; --text:#E5E7EB; --ok:#06C270; --accent:#FFF3B6; }
-    *{ box-sizing:border-box }
-    html,body{ height:100%; margin:0; background:var(--bg); color:var(--text); font-family:Roboto, Inter, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif; overflow:hidden; }
-
-    .page{ width:100%; max-width:1080px; margin:0 auto; padding:48px 24px 96px; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
-    .logo{ position:fixed; left:56px; top:40px; width:90px; z-index:10; }
-    .title{ margin:70px 0 0; text-align:center; color:#fff; font:700 56px/1 'Roboto',sans-serif; letter-spacing:1.5px; }
-
-    /* ===== 반원 휠 ===== */
-    .wheel-wrap{ position:relative; width: 1400px; height:560px; margin:0px auto 0; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
-    .wheel-arc{
-      position:absolute; left:50%; bottom:-190px; transform:translateX(-50%);
-      width:900px; max-width:96vw; aspect-ratio:1/1; border-radius:50%;
-      background:radial-gradient(closest-side,#3a3a3a 0%,#222 60%,transparent 61%);
-      filter:drop-shadow(0 20px 60px rgba(0,0,0,.68));
-      pointer-events:none; z-index:0;
-    }
-    .wheel{ position:absolute; inset:0; cursor:grab; }
-    .wheel.dragging{ cursor:grabbing; }
-
-    .card{
-      position:absolute; left:0; bottom:0; width:230px; height:394px; transform-origin:center bottom;
-      appearance:none; border:0; padding:0; background: var(--src) center/cover no-repeat;
-
-      /* 티켓 모양 마스크 */
-      -webkit-mask: url('./public/images/ticket-shape.svg') center/100% 100% no-repeat;
-              mask: url('./public/images/ticket-shape.svg') center/100% 100% no-repeat;
-
-      /* 깊이감 */
-      box-shadow:0 10px 20px rgba(0,0,0,.35);
-
-      cursor:pointer; transition:filter .15s;
-    }
-    .card:is(:hover,:focus-visible){ filter:brightness(1.07); }
-
-    /* 외곽 스트로크 링 */
-    .card::before{
-      content:""; position:absolute; inset:0; pointer-events:none; background: var(--accent);
-      --w: 3px;
-      -webkit-mask:
-        url('./public/images/ticket-shape.svg') 0 0/100% 100% no-repeat,
-        url('./public/images/ticket-shape.svg') center/
-          calc(100% - (var(--w)*2)) calc(100% - (var(--w)*2)) no-repeat;
-              mask:
-        url('./public/images/ticket-shape.svg') 0 0/100% 100% no-repeat,
-        url('./public/images/ticket-shape.svg') center/
-          calc(100% - (var(--w)*2.5)) calc(100% - (var(--w)*2.5)) no-repeat;
-      -webkit-mask-composite:xor; mask-composite:exclude; opacity:.95;
-    }
-    /* 내부 프레임(세부선) */
-    .card::after{
-      content:""; position:absolute; inset:3px; pointer-events:none;
-      background: url('./public/images/ticket-innerframe.svg') center/contain no-repeat;
-      mix-blend-mode:screen; opacity:.9;
-    }
-
-    /* 버튼 바(선택) */
-    .wheel-btn-bar{ position:absolute; left:50%; bottom:62px; transform:translateX(-50%); z-index:10; width:360px; }
-    .wheel-btn{
-      width:100%; height:52px; border-radius:16px; border:1.5px solid #fff; background:#232323; color:#fff;
-      font:700 20px/1 'Inter',sans-serif; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
-    }
-
-    @media (max-width:640px){
-      .card{ width:160px; height:274px; }
-      .wheel-wrap{ height:480px; }
-    }
-  </style>
+  <link rel="stylesheet" href="myproofticket.css" />
 </head>
 <body>
-  <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" onclick="location.href='main.html'"/>
+  <canvas id="bg-canvas"></canvas>
+  <a href="main.html" class="logo-link" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
+    <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" />
+  </a>
 
   <main class="page">
     <h1 class="title">홍길동님의 Proof Tickets</h1>
-
+    <div class="sort-icon" style="position: fixed; left: 40px; top: 150px; z-index: 100;">
+      <img class="sort-icon" src="public/images/sortlinear.svg" alt="Proof Ticket Logo" />
+    </div>
     <section class="wheel-wrap">
       <div id="wheel" class="wheel"></div>
-
       <div class="wheel-btn-bar">
-        <button class="wheel-btn" onclick="location.href='register.html'">
-            <img src="public/images/haveticket-white-icon.svg" style="color: #fff;">
-            새로운 PROOF TICKET 발급받기
+        <button class="wheel-btn" id="newTicketBtn">
+          <img src="public/images/haveticket-white-icon.svg" alt="">
+          새로운 PROOF TICKET 발급받기
         </button>
       </div>
     </section>
   </main>
-
-  <!-- 미리보기 모달 -->
   <dialog id="ticketModal" class="ticket-modal">
     <div class="modal-box">
       <button type="button" class="close" aria-label="닫기">✕</button>
       <div class="tickets">
-        <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82"></proof-ticket>
-        <proof-ticket id="tBack"  shape-src="./public/images/ticket-shape.svg" side="back"  scale="0.82"></proof-ticket>
+        <div class="ticketContainer is-front">
+          <div class="lightOverlay"></div>
+          <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82"></proof-ticket>
+        </div>
+        <div class="ticketContainer is-back">
+          <div class="lightOverlay"></div>
+          <proof-ticket id="tBack" shape-src="./public/images/ticket-shape.svg" side="back" scale="0.82"></proof-ticket>
+        </div>
       </div>
     </div>
   </dialog>
-
-  <!-- 커스텀 엘리먼트 -->
   <script type="module" src="./ticket.js"></script>
-
-  <!-- 페이지 스크립트 -->
-  <script type="module">
-    await customElements.whenDefined('proof-ticket');
-
-    /* ===== 데이터 & 슬롯 각도 ===== */
-    const TICKETS = [
-      {src:'posters/poster1.png'}, {src:'posters/poster2.png'}, {src:'posters/poster3.jpg'},
-      {src:'posters/poster4.png'}, {src:'posters/poster5.jpg'}, {src:'posters/poster6.png'},
-      {src:'posters/poster7.png'}
-    ];
-    const SLOT_ANGLES = [0,25, 50, 75, 90, -25, -50]; // 표시 슬롯(요구 각도)
-    const STEP = 25;  // 한 칸(이미지 교대) 기준 각도
-
-    const wheel = document.getElementById('wheel');
-    // 슬롯 개수만큼 원소 생성(이미지는 매 프레임 순환 매핑)
-    wheel.innerHTML = SLOT_ANGLES.map((_,i)=>`<button class="card" data-slot="${i}" aria-label="티켓 ${i+1}"></button>`).join('');
-    const slots = [...wheel.querySelectorAll('.card')];
-
-    
-
-    /* ===== 레이아웃 파라미터(반응형) ===== */
-    let radius=300, cx=0, cy=0, cardW=230, cardH=394;
-const calcGeom = () => {
-  const rect = wheel.getBoundingClientRect();
-  cx = -400;
-  cy = rect.height*1.5;
-  const anyCard = slots[0];
-  cardW = anyCard.offsetWidth || 230;
-  cardH = anyCard.offsetHeight || 394;
-  radius = Math.min(460, Math.max(360, rect.width * 0.45));
-
-  // 확인용 콘솔로그
-  console.log('wheel rect:', rect);
-  console.log('cx:', cx, 'cy:', cy, 'cardW:', cardW, 'cardH:', cardH, 'radius:', radius); // 값 찍기
-};
-
-
-    /* ===== 무한 회전(꼬리잡기) : phase + residual ===== */
-    let offset = 0;      // 누적 드래그 각도(deg)
-    let phase  = 0;      // STEP 기준 얼마나 넘겼는지(정수)
-    let residual = 0;    // STEP 내 남은 각도(-12.5~+12.5 정도)
-
-    const mapIdx = (i) => { // 슬롯 i에 어떤 이미지를 보여줄지
-      const N = TICKETS.length;
-      // 드래그로 오른쪽(+deg) 이동하면 보이는 이미지는 왼쪽으로 한 칸씩 밀려난다 → (i - phase)
-      const k = i - phase;
-      return ( (k % N) + N ) % N;
-    };
-
-    function layout(){
-      // phase / residual 분해
-      phase    = Math.round(offset / STEP);
-      residual = offset - phase * STEP;
-
-      slots.forEach((el, i) => {
-        // 1) 위치(반원 좌표)
-        const angle = SLOT_ANGLES[i] + residual;
-        const rad   = angle * Math.PI/180;
-        const x     = cx + radius * Math.sin(rad) - cardW/2;
-        const y     = cy - radius * Math.cos(rad) - cardH;
-        el.style.left = x + 'px';
-        el.style.top  = y + 'px';
-        el.style.transform = `rotate(${angle}deg)`;
-
-        // 2) 깊이(z-index): 90°에 가까울수록 위
-        const dist = Math.abs( ((angle%360)+360)%360 - 90 );
-        el.style.zIndex = String(1000 - Math.round(dist*10));
-
-        // 3) 이미지 순환 매핑(무한 꼬리잡기)
-        const idx = mapIdx(i);
-        el.style.setProperty('--src', `url('${TICKETS[idx].src}')`);
-      });
-    }
-
-    /* ===== 드래그 + 관성 + 스냅 ===== */
-    let dragging=false, startX=0, startOffset=0, moved=0, vel=0, rafId=0, snapPlanned=false;
-    const TARGET = 90;        // 스냅 기준각
-    const sensitivity = 0.1; // px → deg
-
-    function shortestDelta(target, current){
-      let d = target - current; d = ((d + 180) % 360) - 180; return d;
-    }
-
-    function tick(){
-      if(Math.abs(vel) > 0.001){
-        offset += vel; vel *= 0.95; layout();
-        rafId = requestAnimationFrame(tick);
-      }else{
-        cancelAnimationFrame(rafId); rafId=0;
-        if(!snapPlanned){ snapPlanned = true; snapToNearest(); }
-      }
-    }
-
-    function snapToNearest(duration=260){
-      // residual 기준으로 “가장 위에 가까운 슬롯” 찾기
-      let best = 0, bestAbs = 1e9;
-      SLOT_ANGLES.forEach((a,i)=>{
-        const curr = a + residual;
-        const d = Math.abs(shortestDelta(TARGET, ((curr%360)+360)%360));
-        if(d < bestAbs){ bestAbs = d; best = i; }
-      });
-      // 그 슬롯이 정확히 TARGET에 오도록 residual만 보정(phase는 유지)
-      const currentAngle = ((SLOT_ANGLES[best] + residual)%360 + 360) % 360;
-      const delta = shortestDelta(TARGET, currentAngle);
-      if(Math.abs(delta) < 0.1){ snapPlanned=false; return; }
-
-      const start = residual, end = residual + delta;
-      const t0 = performance.now();
-      const ease = t => 1 - Math.pow(1 - t, 3);
-      const animate = now => {
-        const p = Math.min(1, (now - t0) / duration);
-        residual = start + (end - start) * ease(p);
-        // residual이 커지거나 작아지면 offset을 동기화(phase 유지)
-        offset = phase * STEP + residual;
-        layout();
-        if(p < 1) requestAnimationFrame(animate); else snapPlanned=false;
-      };
-      requestAnimationFrame(animate);
-    }
-
-    const onDown = e => {
-      dragging=true; moved=0; vel=0; snapPlanned=false;
-      wheel.classList.add('dragging');
-      startX = (e.touches ? e.touches[0].clientX : e.clientX);
-      startOffset = offset;
-      if(rafId){ cancelAnimationFrame(rafId); rafId=0; }
-    };
-    const onMove = e => {
-      if(!dragging) return;
-      const x = (e.touches ? e.touches[0].clientX : e.clientX);
-      const dx = x - startX;
-      moved = Math.max(moved, Math.abs(dx));
-      const next = startOffset + dx * sensitivity;
-      vel = next - offset; offset = next; layout();
-      e.preventDefault();
-    };
-    const onUp = () => {
-      if(!dragging) return; dragging=false;
-      wheel.classList.remove('dragging');
-      if(!rafId) rafId = requestAnimationFrame(tick);
-    };
-
-    wheel.addEventListener('mousedown', onDown);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    wheel.addEventListener('touchstart', onDown, {passive:false});
-    window.addEventListener('touchmove', onMove, {passive:false});
-    window.addEventListener('touchend', onUp);
-
-    /* ===== 모달(카드 클릭) ===== */
-    const dlg   = document.getElementById('ticketModal');
-    const tFront= document.getElementById('tFront');
-    const tBack = document.getElementById('tBack');
-
-    function bindTicket(el, imgSrc){
-      el.setAttribute('front-image', imgSrc);
-      el.setAttribute('title','2025 Creative Hackaton - Drama Track');
-      el.setAttribute('proof-code','빛나는 장면-217');
-      el.setAttribute('timestamp','2025-09-05 13:42:11 (KST)');
-      el.setAttribute('hash','83af9e9d4b12fa...(64 characters)');
-      el.setAttribute('file-name','베이비드라이버_공모전제출_김아무개.pdf');
-      el.setAttribute('owner','김아무개');
-      el.setAttribute('date-right','2025/09/05');
-    }
-
-    slots.forEach((btn, i)=>{
-      btn.addEventListener('click', ()=>{
-        if(dragging || moved > 8) return;
-        const idx = ((i - phase) % TICKETS.length + TICKETS.length) % TICKETS.length;
-        const src = TICKETS[idx].src;
-        bindTicket(tFront, src);
-        bindTicket(tBack , src);
-        dlg.showModal();
-      });
-    });
-    dlg.querySelector('.close').addEventListener('click', ()=>dlg.close());
-    dlg.addEventListener('click', e=>{
-      const box = dlg.querySelector('.modal-box');
-      if(!box.contains(e.target)) dlg.close();
-    });
-
-    /* ===== 최초/리사이즈 ===== */
-    const onResize = () => { calcGeom(); layout(); snapToNearest(0); };
-    window.addEventListener('resize', onResize, {passive:true});
-    onResize(); // 초기 실행
-  </script>
+  <script type="module" src="./bg-rotator.js"></script>
+  <script type="module" src="./myproofticket.js"></script>
 </body>
 </html>
