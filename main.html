@@ -37,7 +37,7 @@
           <input type="file" id="fileInput" accept=".pdf,.docx,.mp3,.mp4" />
 
           <div class="file-hints">
-            <span>PDF</span><span>DOCX</span><span>MP3</span><span>MP4</span>
+            <span>PDF</span><span>DOCX</span><span>MP3</span><span>MP4</span><span>최대 1GB</span>
           </div>
 
           <p class="subtle">파일은 저장되지 않으니 안심하세요!</p>
@@ -84,21 +84,6 @@
       </div>
     </section>
   </div>
-  <script>
-    window.__USE_MSW__ = true;   // 배포에서 끄면 실제 서버로 전환됨
-  </script>
-
-  <!-- 1) MSW 먼저 -->
-  <script type="module">
-    if (window.__USE_MSW__) {
-      const { worker } = await import('./msw/browser.js');
-      await worker.start({
-        serviceWorker: { url: './mockServiceWorker.js' }, // 루트에 만들었으면 이 경로
-        onUnhandledRequest: 'bypass',
-      });
-      console.log('[MSW] worker started');
-    }
-  </script>
 
   <!-- 2) 앱 스크립트 -->
   <script type="module" src="./main.js"></script>

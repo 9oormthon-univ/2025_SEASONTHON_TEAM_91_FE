@@ -154,8 +154,8 @@
           <img class="icon" src="public/images/lock.svg" alt="" aria-hidden="true" />
           <input id="pw" class="input" type="password" placeholder="8자 이상, 영문/숫자 조합 권장" autocomplete="new-password" required />
           <button type="button" class="right-btn" id="togglePw">보기</button>
-          <div id="pwHint" class="hint">영문/숫자 조합 8자 이상을 권장합니다.</div>
-          <div id="pwErr" class="error" hidden>비밀번호는 8자 이상이어야 합니다.</div>
+          <div id="pwHint" class="hint">영문/숫자 조합 4자 이상을 권장합니다.</div>
+          <div id="pwErr" class="error" hidden>비밀번호는 4자 이상이어야 합니다.</div>
         </div>
 
         <!-- 비밀번호 확인 -->
@@ -187,77 +187,97 @@
       </form>
     </section>
   </main>
+<script type="module">
+  import { registerUser, loginUser, USE_MOCK } from './js/apiClient.js';
 
-  <script>
-    // Elements
-    const form      = document.getElementById('signupForm');
-    const nameEl    = document.getElementById('name');
-    const emailEl   = document.getElementById('email');
-    const pwEl      = document.getElementById('pw');
-    const pw2El     = document.getElementById('pw2');
-    const agreeEl   = document.getElementById('agree');
-    const submitBtn = document.getElementById('submitBtn');
+  // DOM
+  const form      = document.getElementById('signupForm');
+  const nameEl    = document.getElementById('name');
+  const emailEl   = document.getElementById('email');
+  const pwEl      = document.getElementById('pw');
+  const pw2El     = document.getElementById('pw2');
+  const agreeEl   = document.getElementById('agree');
+  const submitBtn = document.getElementById('submitBtn');
 
-    const emailErr = document.getElementById('emailErr');
-    const pwErr    = document.getElementById('pwErr');
-    const pw2Err   = document.getElementById('pw2Err');
+  const emailErr = document.getElementById('emailErr');
+  const pwErr    = document.getElementById('pwErr');
+  const pw2Err   = document.getElementById('pw2Err');
 
-    // Show/Hide password
-    const togglePw  = document.getElementById('togglePw');
-    const togglePw2 = document.getElementById('togglePw2');
-    togglePw.addEventListener('click', () => {
-      pwEl.type = pwEl.type === 'password' ? 'text' : 'password';
-      togglePw.textContent = pwEl.type === 'password' ? '보기' : '숨김';
-    });
-    togglePw2.addEventListener('click', () => {
-      pw2El.type = pw2El.type === 'password' ? 'text' : 'password';
-      togglePw2.textContent = pw2El.type === 'password' ? '보기' : '숨김';
-    });
+  // 비밀번호 보기
+  const togglePw  = document.getElementById('togglePw');
+  const togglePw2 = document.getElementById('togglePw2');
+  togglePw.addEventListener('click', () => {
+    pwEl.type = pwEl.type === 'password' ? 'text' : 'password';
+    togglePw.textContent = pwEl.type === 'password' ? '보기' : '숨김';
+  });
+  togglePw2.addEventListener('click', () => {
+    pw2El.type = pw2El.type === 'password' ? 'text' : 'password';
+    togglePw2.textContent = pw2El.type === 'password' ? '보기' : '숨김';
+  });
 
-    // Validators
-    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // 검증
+  const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function validateEmail(){
+    const ok = emailRx.test(emailEl.value.trim());
+    emailErr.hidden = ok || emailEl.value.trim()==="";
+    return ok;
+  }
+  function validatePw(){
+    const ok = pwEl.value.length >= 4;
+    pwErr.hidden = ok || pwEl.value==="";
+    return ok;
+  }
+  function validatePwMatch(){
+    const ok = pwEl.value !== "" && pwEl.value === pw2El.value;
+    pw2Err.hidden = ok || pw2El.value==="";
+    return ok;
+  }
+  function updateSubmitState(){
+    submitBtn.disabled = !(validateEmail() && validatePw() && validatePwMatch() && agreeEl.checked);
+  }
+  [emailEl, pwEl, pw2El, agreeEl, nameEl].forEach(el=>{
+    el.addEventListener('input', updateSubmitState);
+    el.addEventListener('blur', updateSubmitState);
+  });
+  updateSubmitState();
 
-    function validateEmail(){
-      const ok = emailRx.test(emailEl.value.trim());
-      emailErr.hidden = ok || emailEl.value.trim()==="";
-      emailEl.setAttribute('aria-invalid', !ok);
-      return ok;
-    }
-    function validatePw(){
-      const ok = pwEl.value.length >= 8;
-      pwErr.hidden = ok || pwEl.value==="";
-      pwEl.setAttribute('aria-invalid', !ok);
-      return ok;
-    }
-    function validatePwMatch(){
-      const ok = pwEl.value !== "" && pwEl.value === pw2El.value;
-      pw2Err.hidden = ok || pw2El.value==="";
-      pw2El.setAttribute('aria-invalid', !ok);
-      return ok;
-    }
-    function updateSubmitState(){
-      const ready = validateEmail() && validatePw() && validatePwMatch() && agreeEl.checked;
-      submitBtn.disabled = !ready;
-    }
-
-    [emailEl, pwEl, pw2El, agreeEl, nameEl].forEach(el=>{
-      el.addEventListener('input', updateSubmitState);
-      el.addEventListener('blur', updateSubmitState);
-    });
-
-    // Submit (demo)
-    form.addEventListener('submit', (e)=>{
-      e.preventDefault();
-      updateSubmitState();
-      if (submitBtn.abled) return;
-
-      // 실제 환경에서는 여기서 서버에 요청 보내면 됩니다.
-      alert('회원가입이 완료되었습니다! 이제 로그인해 주세요.');
-      window.location.href = 'main.html#section-3';
-    });
-
-    // First render
+  // 제출
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
     updateSubmitState();
-  </script>
+    if (submitBtn.disabled) return;
+
+    const name  = nameEl.value.trim();
+    const email = emailEl.value.trim();
+    const pw    = pwEl.value;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '처리 중...';
+
+    try {
+      const reg = await registerUser({ name, email, password: pw });
+      console.log('[REGISTER RESPONSE]', reg);
+
+      const login = await loginUser({ email, password: pw });
+      console.log('[LOGIN RESPONSE]', login);
+
+      const token = login?.result?.accessToken;
+      if (!token) throw new Error('토큰이 응답에 없습니다.');
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('me', JSON.stringify(login?.result?.me || {}));
+
+      alert(`회원가입${USE_MOCK ? ' (MOCK)' : ''} 및 로그인 완료!`);
+      window.location.href = 'register.html';
+    } catch (err) {
+      alert(err.message || '회원가입/로그인 중 오류가 발생했습니다.');
+    } finally {
+      submitBtn.textContent = '회원가입';
+      updateSubmitState();
+    }
+  });
+</script>
+
+
+
 </body>
 </html>

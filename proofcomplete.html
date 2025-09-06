@@ -36,7 +36,6 @@
       background: var(--bg);
       color: var(--text);
       font-family: Roboto, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif;
-      overflow: hidden;
     }
     .page {
       width: 100%;
@@ -356,7 +355,7 @@
     </a>
 
     <h1 class="title">티켓 검증 완료</h1>
-    <p class="subtitle">총 2개 공모전에서 이력이 있습니다.</p>
+    <p class="subtitle" id="resultSubtitle">검증 결과를 불러오는 중...</p>
 
     <section class="result-card" aria-label="검증 결과 리스트">
       <div class="ticket-stack" aria-hidden="true">
@@ -374,43 +373,7 @@
             <th scope="col">나의 Proof ticket</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>어쩌구 시나리오 2023</td>
-            <td>김아무개_어쩌구_docx</td>
-            <td>빛나는 장면 -217</td>
-            <td>2023-10-01 14:32</td>
-            <td>
-              <button class="btn-small open-ticket"
-                data-front-image="./posters/poster8.png"
-                data-title="2025 Creative Hackaton - Drama Track"
-                data-proof-code="빛나는 장면-217"
-                data-timestamp="2025-09-05 13:42:11 (KST)"
-                data-hash="83af9e9d4b12fa...(64 characters)"
-                data-file-name="베이비드라이버_공모전제출_김아무개.pdf"
-                data-owner="김아무개">
-                티켓 보기
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>어쩌구 스토리텔링 2024</td>
-            <td>김아무개_어쩌구냥_pdf</td>
-            <td>흥겨운 이야기 - 368</td>
-            <td>2024-09-15 09:30</td>
-            <td>
-              <button class="btn-small open-ticket"
-                data-front-image="./posters/poster8.png"
-                data-title="2025 Creative Hackaton - Drama Track"
-                data-proof-code="빛나는 장면-217"
-                data-timestamp="2025-09-05 13:42:11 (KST)"
-                data-hash="83af9e9d4b12fa...(64 characters)"
-                data-file-name="베이비드라이버_공모전제출_김아무개.pdf"
-                data-owner="김아무개">
-                티켓 보기
-              </button>
-            </td>
-          </tr>
+        <tbody id="resultBody">
         </tbody>
       </table>
     </section>
@@ -423,13 +386,61 @@
 
 
   <script type="module" src="./ticket.js"></script>
+  
 
   <script type="module">
+    import { getVerifyDetail, USE_MOCK } from './js/apiClient.js';
+    const API_BASE = 'http://127.0.0.1:8080/api';
+
     // === 모달 및 티켓 바인딩 ===
     const dlg = document.getElementById('ticketModal');
     const tFront = document.getElementById('tFront');
     const tBack = document.getElementById('tBack');
     const openButtons = document.querySelectorAll('.open-ticket');
+
+/** 다른 스크립트에서 모달을 열 수 있도록 전역 공개 */
+window.openTicketWithData = (data) => {
+  const dateRight = (data.timestamp?.split(' ')[0] || '').replaceAll('-', '/');
+  const patch = (el) => {
+    el.setAttribute('front-image', data.frontImage || './posters/poster7.png');
+    el.setAttribute('title',       data.title      || '');
+    el.setAttribute('proof-code',  data.proofCode  || '');
+    el.setAttribute('timestamp',   data.timestamp  || '');
+    el.setAttribute('hash',        data.hash       || '');
+    el.setAttribute('file-name',   data.fileName   || '');
+    el.setAttribute('owner',       data.owner      || '');
+    el.setAttribute('date-right',  dateRight       || '');
+  };
+  patch(tFront);
+  patch(tBack);
+  tFront.setAttribute('side', 'front');
+  tBack.setAttribute('side',  'back');
+  if (typeof dlg.showModal === 'function') dlg.showModal();
+  else dlg.setAttribute('open', '');
+};
+
+/** ticketId로 상세 조회 후 모달 열기 (비로그인 상세 API) */
+window.openTicketById = async (ticketId) => {
+  try {
+    // 배포 전: USE_MOCK=true 이면 apiClient가 목업 응답을 반환 (네트워크 X)
+    // 배포 후: USE_MOCK=false 이면 실제 서버로 요청
+    const data = await getVerifyDetail(ticketId);
+    const r = data?.result || {};
+    window.openTicketWithData({
+      frontImage: r?.contest?.imageUrl || './posters/poster7.png',
+      title:      r?.contest?.name     || '',
+      proofCode:  r?.humanCode         || '',
+      timestamp:  r?.issuedAt          || '',
+      hash:       r?.sha256            || '',
+      fileName:   r?.fileNameSubmitted || '',
+      owner:      r?.owner?.name       || '',
+    });
+  } catch (e) {
+    alert(e?.message || '티켓 상세 조회 실패');
+
+  }
+};
+
 
     await customElements.whenDefined('proof-ticket');
 
@@ -508,6 +519,50 @@
       }, { passive: false });
     });
   </script>
+
+  <script type="module">
+  const subtitle = document.getElementById('resultSubtitle');
+  const tbody    = document.getElementById('resultBody');
+
+  const saved = sessionStorage.getItem('verifyResult'); // main.js에서 저장한 것
+  if (!saved) {
+    subtitle.textContent = '검증할 파일이 없습니다. 메인에서 파일을 선택해 주세요.';
+    // 필요하면 자동 이동: location.href = 'main.html#section-2';
+  } else {
+    const { count, tickets } = JSON.parse(saved);
+    subtitle.textContent = count > 0
+      ? `총 ${count}개 공모전에서 이력이 있습니다.`
+      : '해당 파일로 등록된 티켓이 없습니다.';
+
+    // 표 렌더링
+    tbody.innerHTML = (tickets || []).map(t => `
+      <tr>
+        <td>${esc(t.contestName)}</td>
+        <td>${esc(t.fileNameSubmitted)}</td>
+        <td>${esc(t.humanCode)}</td>
+        <td>${fmt(t.issuedAt)}</td>
+        <td>
+          <button class="btn-small" data-ticket-id="${t.ticketId}">티켓 보기</button>
+        </td>
+      </tr>
+    `).join('');
+
+    // 버튼 → 상세조회 → 기존 모달 오픈
+    tbody.querySelectorAll('[data-ticket-id]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.ticketId);
+        window.openTicketById?.(id);
+      });
+    });
+  }
+
+  // helpers
+  function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
+  function fmt(iso=''){ if(!iso) return ''; const d=new Date(iso); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+</script>
+
+
+  
 
 </body>
 </html>

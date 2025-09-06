@@ -6,6 +6,11 @@
   <title>공모전 지원작 등록하기 - ProofTicket</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    .hidden { display:none; }
+    #acList .ac-item { padding:10px 14px; cursor:pointer; }
+    #acList .ac-item:hover { background:#232323; }
+    #acList { display:none; } /* 기본은 숨김, JS에서 결과 있으면 표시 */
+
     html, body {
       margin: 0; padding: 0; min-height: 100vh;
       overflow: hidden;
@@ -216,17 +221,29 @@
       </div>
 
       <div class="search-bar-wrap">
-        <input class="search-bar" type="text" placeholder="공모전 이름을 검색하세요" />
+        <input id="contestSearch" class="search-bar" type="text" placeholder="공모전 이름을 검색하세요" />
         <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">
           <circle cx="13" cy="13" r="9" stroke="#C7C9D9" stroke-width="2" fill="none"/>
           <line x1="20" y1="20" x2="26" y2="26" stroke="#C7C9D9" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </div>
 
+      <!-- 자동완성 리스트 -->
+      <div id="acList" style="width:100%;max-height:220px;overflow:auto;border:1px solid #36383A;border-radius:12px;margin:-6px 0 12px 0;display:none;background:#1b1b1b"></div>
+
+      <!-- 직접 추가 모드: 장르/포스터 -->
+      <div id="genreRow" class="info-row hidden" style="gap:12px;">
+        <span>장르 선택:</span>
+        <select id="genreSelect" style="background:#232323;color:#fff;border:1px solid #36383A;border-radius:10px;padding:6px 10px;">
+          <option value="">로딩중...</option>
+        </select>
+      </div>
+
       <label class="upload-area" id="uploadArea">
-        <input type="file" id="fileInput" onchange="handleFileUpload()" />
+        <input type="file" id="fileInput"  accept=".pdf,.docx,.mp3,.mp4" onchange="handleFileUpload()" />
         <div class="upload-icon">
             <img src="public/images/register.svg" alt="Upload icon" />
+            
         </div>
         <span id="fileLabel">파일을 끌어다 놓거나 눌러서 선택해주세요.</span>
         <div class="ext-wrap" id="fileTypeList">
@@ -234,6 +251,7 @@
           <div class="file-type">DOCX</div>
           <div class="file-type">MP3</div>
           <div class="file-type">MP4</div>
+          <div class="file-type">최대 1GB</div>
         </div>
       </label>
 
@@ -243,7 +261,7 @@
       </div>
 
       <div class="btn-list">
-        <button class="main-btn" onclick="location.href='protectcompleted.html'">
+        <button id="issueBtn" class="main-btn">
           <span class="btn-icon">
             <img src="public/images/haveticket-icon.svg" alt="Ticket icon" />
           </span>
@@ -263,20 +281,130 @@
       <img src="public/images/Group-2.svg" alt="Ticket 3" class="ticket ticket3" />
     </div>
   </div>
-  <script>
-    function handleFileUpload() {
-      const fileInput = document.getElementById('fileInput');
-      const fileLabel = document.getElementById('fileLabel');
-      const fileTypeList = document.getElementById('fileTypeList');
-      uploadArea.style.background = 'linear-gradient(360deg, #596E99 0%, #94B8FF 100%)';
-      if (fileInput.files && fileInput.files[0]) {
-        fileLabel.textContent = fileInput.files[0].name;
-        fileTypeList.style.display = 'none';
-      } else {
-        fileLabel.textContent = '파일을 끌어다 놓거나 눌러서 선택해주세요.';
-        fileTypeList.style.display = 'flex';
-      }
+<script type="module">
+  import {
+    USE_MOCK,
+    searchContests,
+    getGenres,
+    createContest,
+    issueTicket,
+  } from './js/apiClient.js';
+
+  // (여기부터는 기존 DOM 로직만 남기고, API는 위 함수들을 호출)
+  const el = {
+    search: document.getElementById('contestSearch'),
+    acList: document.getElementById('acList'),
+    genre:  document.getElementById('genreSelect'),
+    poster: document.getElementById('posterInput'),
+    work:   document.getElementById('fileInput'),
+    issue:  document.getElementById('issueBtn'),
+  };
+
+  let selectedContest = null;
+  let genresCache = null;
+
+  if (el.search && el.acList) {
+    let t;
+    el.search.addEventListener('input', () => {
+      selectedContest = null;
+      if (t) clearTimeout(t);
+      t = setTimeout(async () => {
+        const q = el.search.value.trim();
+        const items = await searchContests(q, 10); // ← apiClient 사용
+        renderAC(items, q);
+      }, 200);
+    });
+  }
+
+  function renderAC(items, q) {
+    el.acList.innerHTML = '';
+    if (!q) { el.acList.style.display = 'none'; return; }
+
+    items.forEach(it => {
+      const li = document.createElement('div');
+      li.textContent = it.name;
+      li.className = 'ac-item';
+      li.onclick = () => {
+        selectedContest = { contestId: it.contest_id, name: it.name };
+        el.search.value = it.name;
+        el.acList.innerHTML = '';
+        el.acList.style.display = 'none';
+        hideGenreRow();
+      };
+      el.acList.appendChild(li);
+    });
+
+    const add = document.createElement('div');
+    add.className = 'ac-item add';
+    add.textContent = `“${q}” 공모전 직접 추가`;
+    add.onclick = showGenreRow;
+    el.acList.appendChild(add);
+
+    el.acList.style.display = 'block';
+  }
+
+  function showGenreRow() {
+    document.getElementById('genreRow')?.classList.remove('hidden');
+    if (!genresCache) {
+      getGenres().then(list => {         // ← apiClient 사용
+        genresCache = list;
+        el.genre.innerHTML = '<option value="">장르 선택</option>' +
+          list.map(g => `<option value="${g.genre_id}">${g.name}</option>`).join('');
+      }).catch(e => alert(e.message));
     }
+  }
+  function hideGenreRow() {
+    document.getElementById('genreRow')?.classList.add('hidden');
+  }
+
+  if (el.issue) {
+    el.issue.addEventListener('click', async () => {
+      try {
+        let contestId = selectedContest?.contestId;
+        if (!contestId) {
+          const name = el.search?.value?.trim();
+          const genreId = el.genre?.value;
+          const created = await createContest({     // ← apiClient 사용
+            name, genreId,
+            imageFile: el.poster?.files?.[0] || null
+          });
+          contestId = created.contest_id || created.contestId; // 목업/실서버 양쪽 호환
+        }
+
+        const file = el.work?.files?.[0];
+        const res  = await issueTicket({ contestId, file });   // ← apiClient 사용
+        const ticketId = res?.response?.ticketId || res?.ticketId;
+
+        alert(res?.existed
+          ? '이미 동일 파일/공모전의 티켓이 있어 기존 티켓을 표시합니다.'
+          : '새로운 Proof Ticket이 발급되었습니다.'
+        );
+
+        if (ticketId) location.href = `protectecompleted.html?ticketId=${ticketId}`;
+      } catch (e) {
+        alert(e.message || '처리 중 오류가 발생했습니다.');
+      }
+    });
+  }
+</script>
+
+
+  <script>
+  function handleFileUpload() {
+    const uploadArea   = document.getElementById('uploadArea'); // ← 추가
+    const fileInput    = document.getElementById('fileInput');
+    const fileLabel    = document.getElementById('fileLabel');
+    const fileTypeList = document.getElementById('fileTypeList');
+
+    uploadArea.style.background = 'linear-gradient(360deg, #596E99 0%, #94B8FF 100%)';
+    if (fileInput.files && fileInput.files[0]) {
+      fileLabel.textContent = fileInput.files[0].name;
+      fileTypeList.style.display = 'none';
+    } else {
+      fileLabel.textContent = '파일을 끌어다 놓거나 눌러서 선택해주세요.';
+      fileTypeList.style.display = 'flex';
+    }
+  }
   </script>
 </body>
 </html>

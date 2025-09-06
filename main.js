@@ -1,12 +1,16 @@
-// ★ MSW 버전: 서비스/어댑터 없이 생짜 fetch만 사용합니다.
+import { verifyFiles } from './js/apiClient.js';
+import { loginUser } from './js/apiClient.js';
+
+// ★ API에 맞춘 버전: 생짜 fetch + Swagger 응답 스키마 반영
 document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE = 'http://127.0.0.1:8080/api'; // 필요시 '/api' 상대경로로 변경 가능
+
   /* ====== 업로드 영역 ====== */
   const uploadBox  = document.getElementById('uploadBox');
   const fileInput  = document.getElementById('fileInput');
   const confirmBtn = document.getElementById('confirmBtn');
 
   if (uploadBox && fileInput && confirmBtn) {
-    // 라벨 클릭 → 파일 선택
     uploadBox.addEventListener('click', (e) => {
       if (e.target !== fileInput) fileInput.click();
     });
@@ -32,33 +36,39 @@ document.addEventListener("DOMContentLoaded", () => {
     // 초기 상태
     handleFileUpload();
 
-    // 업로드 확인
-    confirmBtn.addEventListener('click', async () => {
-      if (fileInput.files.length === 0) {
-        alert('파일이 아직 업로드되지 않았습니다.');
-        return;
-      }
-      try {
-        const form = new FormData();
-        form.append('file', fileInput.files[0]);
+// 업로드 확인(비로그인 검증: POST /api/verify/files)
+confirmBtn.addEventListener('click', async () => {
+  if (fileInput.files.length === 0) {
+    alert('파일이 아직 업로드되지 않았습니다.');
+    return;
+  }
+  try {
+    const file = fileInput.files[0];
+    const page = 0, size = 8;
 
-        const res = await fetch('/api/proofs/verify', {
-          method: 'POST',
-          body: form, // Content-Type 자동 설정
-        });
+    const { result } = await verifyFiles({ file, page, size });
 
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || '업로드 실패');
-        }
+    sessionStorage.setItem('verifyResult', JSON.stringify({
+      count:   result.count,
+      tickets: result.tickets,
+    }));
 
-        const data = await res.json();
-        console.log('verify result:', data);
-        location.href = 'proofcomplete.html';
-      } catch (e) {
-        alert(`업로드 실패: ${e.message}`);
-      }
-    });
+    location.href = 'proofcomplete.html';
+  } catch (e) {
+    const msg = String(e?.message || e);
+    if (msg.includes('VERIFY_415')) {
+      alert('지원하지 않는 파일 형식입니다. (pdf, docx, mp3, mp4만 가능)');
+    } else if (msg.includes('VERIFY_413')) {
+      alert('업로드 가능한 최대 크기(1GB)를 초과했습니다.');
+    } else if (msg.includes('VERIFY_400')) {
+      alert('파일을 첨부해주세요.');
+    } else {
+      alert(`검증 실패: ${msg}`);
+      location.href = 'prooffailed.html'
+    }
+  }
+});
+
   }
 
   /* ====== 로그인 영역 ====== */
@@ -77,32 +87,30 @@ document.addEventListener("DOMContentLoaded", () => {
     checkInputs(); // 초기 상태
 
     loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (loginBtn.disabled) return;
+      e.preventDefault();
+      if (loginBtn.disabled) return;
 
-    try {
-        const res = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            email: emailInput.value.trim(),
-            password: passwordInput.value.trim(),
-        }),
+      try {
+        const resp = await loginUser({
+          email: emailInput.value.trim(),
+          password: passwordInput.value.trim(),
         });
+        // 전체 응답 콘솔 출력(요청하셨던 형식)
+        console.log('[MOCK LOGIN RESPONSE]', resp);
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || '로그인 실패');
+        const token = resp?.result?.accessToken;
+        const me    = resp?.result?.me;
+        if (!token) throw new Error('토큰이 응답에 없습니다.');
 
-        // 토큰 저장 (나중에 /api/users/me 호출 시 사용)
-        if (data.token) localStorage.setItem('token', data.token);
+        localStorage.setItem('accessToken', token);
+        if (me) localStorage.setItem('me', JSON.stringify(me));
 
-        console.log('logged in:', data.user);
+        alert('로그인 성공! 이제 발급/마이페이지 기능을 사용할 수 있어요.');
         location.href = 'register.html';
-    } catch (e) {
-        alert(`로그인 실패: ${e.message}`);
-    }
+      } catch (e) {
+        alert(`로그인 실패: ${e.message || e}`);
+      }
     });
-
   }
 
   /* ====== 스크롤 애니메이션(티켓) ====== */
