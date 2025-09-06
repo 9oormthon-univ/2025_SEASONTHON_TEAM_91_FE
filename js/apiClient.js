@@ -24,7 +24,7 @@ function buildAuthHeader() {
 }
 
 // 공통 fetch
-async function jfetch(path, { method = 'GET', headers = {}, body, auth = false } = {}) {
+async function jfetch(path, { method = 'POST', headers = {}, body, auth = false } = {}) {
   const h = { Accept: 'application/json', ...headers };
   if (body && body instanceof FormData === false) {
     // JSON 요청
@@ -104,7 +104,7 @@ export function getMeFromStorage() {
 /* ============================== Genres ================================ */
 /** GET /api/genres  (인증 필요) */
 export async function getGenres() {
-  const data = await jfetch('/genres', { method: 'GET', auth: true });
+  const data = await jfetch('/genres', { auth: true });
   return data?.result?.items ?? data?.result ?? [];
 }
 

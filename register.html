@@ -482,7 +482,7 @@
         url.searchParams.set('ticketId', String(ticketId));
         window.location.assign(url.toString()); // 또는 replace()
       }
-      else {
+      else if (!ticketId){
         console.warn('[DEBUG] ticketId 없음, 이동하지 않음');
       }
       } 
@@ -515,7 +515,6 @@
   }
   // <input id="fileInput" type="file" onchange="handleFileUpload()" ...> 로 연결 필요
 </script>
-
 
 </body>
 </html>
