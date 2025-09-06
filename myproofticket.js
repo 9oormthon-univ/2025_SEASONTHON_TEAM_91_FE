@@ -1,4 +1,4 @@
-import { listMyTickets, getTicketDetail  } from './js/apiClient.js';
+import { listMyTickets, getVerifyDetail  } from './js/apiClient.js';
 
   // ===== 커스텀 엘리먼트 준비 =====
   await customElements.whenDefined('proof-ticket');
@@ -40,14 +40,14 @@ import { listMyTickets, getTicketDetail  } from './js/apiClient.js';
   const TICKETS = RAW.map((r, i) => ({
     src: r.imageUrl || postersFallback[i % postersFallback.length],
     meta: {
-      title: r.contest_name || '',
-      proofCode: r.human_code || '',
-      timestamp: r.issued_at || '',
+      title: r.contestName || '',
+      proofCode: r.humanCode || '',
+      timestamp: r.issuedAt || '',
       hash: r.sha256 || '',
-      fileName: r.file_name_submitted || '',
-      owner: r.owner_name || '',
-      dateRight: fmtDateRight(r.issued_at),
-      ticketId: r.ticket_id
+      fileName: r.fileNameSubmitted || '',
+      owner: r.ownerName || '',
+      dateRight: fmtDateRight(r.issuedAt),
+      ticketId: r.ticketId
     }
   }));
 
