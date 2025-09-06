@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공모전 지원작 등록하기 - ProofTicket</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    .hidden { display:none; }
+    #acList .ac-item { padding:10px 14px; cursor:pointer; }
+    #acList .ac-item:hover { background:#232323; }
+    #acList { display:none; } /* 기본은 숨김, JS에서 결과 있으면 표시 */
+
+    html, body {
+      margin: 0; padding: 0; min-height: 100vh;
+      overflow: hidden;
+      background: #141414;
+      font-family: 'Roboto', 'Inter', system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif;
+      color: #fff;
+      box-sizing: border-box;
+    }
+    .content {
+      margin: 0 auto;
+      z-index: 2;
+      max-width: 680px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .title {
+      text-align: center;
+      margin-top: 50px;
+      width: 100%;
+      font-size: 48px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 14px;
+      font-family: 'Roboto', sans-serif;
+    }
+    .subtitle {
+      text-align: center;
+      width: 100%;
+      font-size: 20px;
+      color: #C7C9D9;
+      margin-bottom: 48px;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 400;
+    }
+    .search-bar-wrap {
+      width: 100%;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .search-bar {
+      width: 100%;
+      border: none;
+      border-bottom: 2px solid #36383A;
+      padding: 12px 42px 12px 0;
+      font-size: 18px;
+      color: #fff;
+      background: transparent;
+      outline: none;
+      font-family: 'Roboto', sans-serif;
+    }
+    .search-icon {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      width: 28px;
+      height: 28px;
+      pointer-events: none;
+      fill: #C7C9D9;
+    }
+    .upload-area {
+      width: 100%;
+      height: 230px;
+      background: rgba(255,255,255,0.04);
+      border: 2px dashed #686868;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      transition: border 0.2s, background 0.2s;
+      text-align: center;
+      position: relative;
+    }
+    .upload-area input {
+      display: none;
+    }
+    .upload-icon {
+      font-size: 44px;
+      margin-bottom: 10px;
+    }
+    .upload-area label, .upload-area span {
+      color: #ededed;
+      font-size: 18px;
+      font-weight: 500;
+      opacity: 1;
+      cursor: pointer;
+    }
+    .ext-wrap {
+      margin: 18px 0 0 0;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .file-type {
+      background: rgba(255,255,255,0.10);
+      color: #bbb;
+      padding: 6px 13px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .info-row {
+      display: flex;
+      align-items: center;
+      font-size: 15px;
+      color: #aaa;
+      margin-bottom: 18px;
+      margin-top: 4px;
+      font-family: 'Roboto', sans-serif;
+    }
+    .info-row input[type=checkbox] {
+      accent-color: #C7C9D9;
+      margin-right: 7px;
+      transform: translateY(1px);
+    }
+    .btn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 480px;
+      margin-top: 25px;
+    }
+    .main-btn, .sec-btn {
+      font-size: 20px;
+      font-weight: 700;
+      border-radius: 100px;
+      padding: 18px 0;
+      width: 100%;
+      border: 2px solid #fff;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      transition: background .15s, color .15s;
+      background: #fff;
+      color: #141414;
+      letter-spacing: 1px;
+    }
+    .sec-btn {
+      color: #fff;
+      background: #232323;
+      border: 2px solid #36383A;
+    }
+    .btn-icon {
+      margin-right: 12px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* 티켓 이미지 영역 (우측) */
+    .ticket-bg {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      width: 480px;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+    /* 티켓 이미지들 공통 스타일 */
+    .ticket-bg .ticket {
+      position: absolute;
+      width: 320px;
+      opacity: 0.96;
+      filter: drop-shadow(0px 8px 36px #000a);
+      transition: all 0.3s;
+    }
+    .ticket1 {
+      top: 0;
+      right: 0px;
+      z-index: 1;
+    }
+    .ticket2 {
+      top: 220px;
+      right: 0px;
+      z-index: 2;
+    }
+    .ticket3 {
+      bottom: -30px;
+      right: 0px;
+      z-index: 0;
+    }
+    @media (max-width: 1280px) {
+      .ticket-bg { display: none; }
+      .content { padding: 60px 24px 0 24px; }
+    }
+    @media (max-width: 650px) {
+      .content, .btn-list { width: 100%; max-width: unset; }
+      .upload-area { width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-wrap">
+    <div class="content">
+      <img src="public/images/logo.svg" style="position:absolute; left:100px; top:100px;" onclick="location.href='main.html'"/>
+
+      <div class="title">공모전 지원작 등록하기</div>
+      <div class="subtitle">
+        참여한 공모전을 선택하고 작품을 등록하면 Proof Ticket이 발급됩니다.
+      </div>
+
+      <div class="search-bar-wrap">
+        <input id="contestSearch" class="search-bar" type="text" placeholder="공모전 이름을 검색하세요" />
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">
+          <circle cx="13" cy="13" r="9" stroke="#C7C9D9" stroke-width="2" fill="none"/>
+          <line x1="20" y1="20" x2="26" y2="26" stroke="#C7C9D9" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <!-- 자동완성 리스트 -->
+      <div id="acList" style="width:100%;max-height:220px;overflow:auto;border:1px solid #36383A;border-radius:12px;margin:-6px 0 12px 0;display:none;background:#1b1b1b"></div>
+
+      <!-- 직접 추가 모드: 장르/포스터 -->
+      <div id="genreRow" class="info-row hidden" style="gap:12px;">
+        <span>장르 선택:</span>
+        <select id="genreSelect" style="background:#232323;color:#fff;border:1px solid #36383A;border-radius:10px;padding:6px 10px;">
+          <option value="">장르</option>
+        </select>
+      </div>
+
+      <label class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput"  accept=".pdf,.docx,.mp3,.mp4" onchange="handleFileUpload()" />
+        <div class="upload-icon">
+            <img src="public/images/register.svg" alt="Upload icon" />
+            
+        </div>
+        <span id="fileLabel">파일을 끌어다 놓거나 눌러서 선택해주세요.</span>
+        <div class="ext-wrap" id="fileTypeList">
+          <div class="file-type">PDF</div>
+          <div class="file-type">DOCX</div>
+          <div class="file-type">MP3</div>
+          <div class="file-type">MP4</div>
+          <div class="file-type">최대 1GB</div>
+        </div>
+      </label>
+
+      <div class="info-row">
+        <input type="checkbox" checked readOnly />
+        Proof Ticket은 원본 파일과 연결되어 있습니다. 추후 검증을 위해 제출 당시의 파일을 보관해 주세요.
+      </div>
+
+      <div class="btn-list">
+        <button id="issueBtn" type= "button" class="main-btn">
+          <span class="btn-icon">
+            <img src="public/images/haveticket-icon.svg" alt="Ticket icon" />
+          </span>
+          PROOF TICKET 발급받기
+        </button>
+        <button class="sec-btn" onclick="location.href='myproofticket.html'">
+          <span class="btn-icon">
+            <img src="public/images/map.svg" alt="Map icon" />
+          </span>
+          나의 PROOF TICKET 확인하기
+        </button>
+      </div>
+    </div>
+    <div class="ticket-bg">
+      <img src="public/images/Group.svg" alt="Ticket 1" class="ticket ticket1" />
+      <img src="public/images/Group-1.svg" alt="Ticket 2" class="ticket ticket2" />
+      <img src="public/images/Group-2.svg" alt="Ticket 3" class="ticket ticket3" />
+    </div>
+  </div>
+<!-- register.html 안, 기존 스니펫 통째로 교체 -->
+<script type="module">
+  import {
+    searchContests,
+    getGenres,
+    createContest,
+    issueTicket,
+  } from './js/apiClient.js';
+
+  // ===== DOM =====
+  const el = {
+    search: document.getElementById('contestSearch'),
+    acList: document.getElementById('acList'),
+    genre:  document.getElementById('genreSelect'),
+    poster: document.getElementById('posterInput'),
+    work:   document.getElementById('fileInput'),
+    issue:  document.getElementById('issueBtn'),
+  };
+
+  // ===== 상태 =====
+  let selectedContest = null;
+  let genresCache = null;
+
+  const hasToken = () => !!localStorage.getItem('accessToken');
+
+  // ===== 자동완성 =====
+  if (el.search && el.acList) {
+    let t;
+    el.search.addEventListener('input', () => {
+      selectedContest = null;
+      if (t) clearTimeout(t);
+      t = setTimeout(onSearchInput, 220);
+    });
+
+    // 입력 밖 클릭 시 자동완성 닫기
+    document.addEventListener('click', (e) => {
+      if (!el.acList.contains(e.target) && e.target !== el.search) {
+        hideAC();
+      }
+    });
+  }
+
+  async function onSearchInput() {
+    const q = el.search.value.trim();
+
+    if (!q || q.length < 2) {
+      hideAC();
+      return;
+    }
+
+    try {
+      // 서버 스키마: [{ contest_id, name, ... }]
+      const items = await searchContests(q, 10);
+      renderAC(items, q);
+    } catch (e) {
+      console.warn('[searchContests]', e);
+      renderAC([], q);
+    }
+  }
+
+  function renderAC(items, q) {
+    el.acList.innerHTML = '';
+    if (!q) { hideAC(); return; }
+
+    // 기존 항목
+    items.forEach(it => {
+      const li = document.createElement('div');
+      li.textContent = it.name;
+      li.className = 'ac-item';
+      li.onclick = () => {
+        // 서버 키: contest_id
+        selectedContest = { contestId: it.contest_id ?? it.contestId, name: it.name };
+        el.search.value = it.name;
+        hideAC();
+        hideGenreRow();
+      };
+      el.acList.appendChild(li);
+    });
+
+    // 직접 추가
+    const add = document.createElement('div');
+    add.className = 'ac-item add';
+    add.textContent = `“${q}” 공모전 직접 추가`;
+    add.onclick = () => {
+      selectedContest = null;
+      showGenreRow();
+      hideAC();
+    };
+    el.acList.appendChild(add);
+
+    el.acList.style.display = 'block';
+  }
+
+  function hideAC() {
+    el.acList.style.display = 'none';
+    el.acList.innerHTML = '';
+  }
+
+  // ===== 장르 선택 표시/로딩 =====
+  function showGenreRow() {
+    document.getElementById('genreRow')?.classList.remove('hidden');
+
+    // 장르 조회는 인증 필요일 가능성이 높음 → 토큰 가드
+    if (!hasToken()) {
+      alert('장르 목록을 불러오려면 먼저 로그인 해주세요.');
+      return;
+    }
+
+    if (!genresCache) {
+      getGenres()
+        .then(list => {
+          // 서버 키: genre_id / name
+          genresCache = Array.isArray(list) ? list : [];
+          el.genre.innerHTML =
+            '<option value="">장르 선택</option>' +
+            genresCache.map(g => `<option value="${g.genre_id}">${g.name}</option>`).join('');
+        })
+        .catch(e => {
+          console.error('[getGenres]', e);
+          alert(e?.message || '장르 로드 실패');
+        });
+    }
+  }
+
+  function hideGenreRow() {
+    document.getElementById('genreRow')?.classList.add('hidden');
+  }
+
+  // ===== 발급 =====
+  if (el.issue) {
+    el.issue.addEventListener('click', onIssue);
+  }
+
+  async function onIssue() {
+    try {
+      // 1) 입력 가드
+      const file = el.work?.files?.[0];
+      if (!file) {
+        alert('작품 파일을 선택해주세요.');
+        return;
+      }
+
+      const nameTyped = el.search?.value?.trim();
+      if (!nameTyped) {
+        alert('공모전 이름을 입력하거나 검색에서 선택해주세요.');
+        return;
+      }
+
+      if (!hasToken()) {
+        alert('티켓 발급은 로그인 후 이용할 수 있어요.');
+        return;
+      }
+
+      // 2) contestId 준비 (선택 or 신규 생성)
+      let contestId = selectedContest?.contestId;
+      if (!contestId) {
+        const genreId = el.genre?.value;
+        if (!genreId) {
+          alert('직접 추가를 선택하셨습니다. 장르를 선택해주세요.');
+          showGenreRow();
+          return;
+        }
+
+        // 서버: POST /api/contests?name=&genre_id=  body: multipart(image?)
+        const created = await createContest({
+          name: nameTyped,
+          genreId,
+          imageFile: el.poster?.files?.[0] || null, // 선택
+        });
+
+        // Swagger 예시: result: { contest_id, ... } 를 그대로 넘겨받음
+        contestId = created?.contest_id ?? created?.contestId;
+        if (!contestId) {
+          throw new Error('공모전 생성에 실패했습니다. (contestId 없음)');
+        }
+      }
+
+      // 3) 티켓 발급
+      // 서버: POST /api/tickets/issue?contest_id=  body: multipart(file)
+      const res = await issueTicket({ contestId, file });
+
+      // Swagger: result: { response: { ticketId, ... }, existed }
+      const ticketId =
+        res?.result?.response?.ticket_id ??
+        res?.response?.ticket_id ??
+        res?.ticket_id ??
+        null;
+
+      alert(
+        res?.existed
+          ? '이미 동일 공모전/파일의 티켓이 있어 기존 티켓을 표시합니다.'
+          : '새로운 Proof Ticket이 발급되었습니다.' 
+      );
+
+      if (res && ticketId) {
+        console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
+        const url = new URL('protectcompleted.html', window.location.origin);
+        console.log('[DEBUG] 이동 시도 →', url.toString());
+        url.searchParams.set('ticketId', String(ticketId));
+        window.location.assign(url.toString()); // 또는 replace()
+      }
+      else if (ticketId === null){
+        console.warn('[DEBUG] ticketId 없음, 이동하지 않음');
+      }
+      } 
+      catch (e) {
+      console.error('[issueTicket]', e);
+      // 서버 표준 메시지/코드 포맷 고려
+      alert(e?.message || '처리 중 오류가 발생했습니다.');
+    }
+  }
+</script>
+
+<script>
+  // 파일 업로드 UI
+  function handleFileUpload() {
+    const uploadArea   = document.getElementById('uploadArea');
+    const fileInput    = document.getElementById('fileInput');
+    const fileLabel    = document.getElementById('fileLabel');
+    const fileTypeList = document.getElementById('fileTypeList');
+
+    if (!uploadArea || !fileInput || !fileLabel || !fileTypeList) return;
+
+    uploadArea.style.background = 'linear-gradient(360deg, #596E99 0%, #94B8FF 100%)';
+    if (fileInput.files && fileInput.files[0]) {
+      fileLabel.textContent = fileInput.files[0].name;
+      fileTypeList.style.display = 'none';
+    } else {
+      fileLabel.textContent = '파일을 끌어다 놓거나 눌러서 선택해주세요.';
+      fileTypeList.style.display = 'flex';
+    }
+  }
+  // <input id="fileInput" type="file" onchange="handleFileUpload()" ...> 로 연결 필요
+</script>
+
+</body>
+</html>

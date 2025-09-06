@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>티켓 검증 실패</title>
+  <style>
+    body {
+      margin: 0;
+      background: #141414;
+      font-family: 'Roboto', 'Inter', sans-serif;
+      color: #E5E7EB;
+      height: 100vh;
+      width: 100vw;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .stamp-area {
+      width: 600px;
+      height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* placeholder 영역 */
+      background: none;
+    }
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-left: 80px;
+    }
+    .main-title {
+      color: #FF7C50;
+      font-size: 48px;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 800;
+      margin-bottom: 24px;
+    }
+    .description {
+      color: #E5E7EB;
+      font-size: 24px;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      line-height: 48px;
+      letter-spacing: 2.4px;
+      text-transform: uppercase;
+      margin-bottom: 60px;
+    }
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .button {
+      width: 428px;
+      height: 62px;
+      border-radius: 20px;
+      border: 1px solid white;
+      background: transparent;
+      font-size: 20px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .button.secondary {
+      border: 1px solid #E5E7EB;
+      color: #E5E7EB;
+      background: transparent;
+      width: 349px;
+      height: 69px;
+    }
+    @media (max-width: 1100px) {
+        .container { flex-direction: column; }
+        .right-panel { margin-left: 0; margin-top: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <a href="main.html" class="logo-link" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
+    <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" />
+  </a>
+  <div class="container">
+    <div class="stamp-area">
+        <img src="public/images/failed-stamp.svg" style="margin-right: 10px;">
+    </div>
+    <div class="right-panel">
+      <div class="main-title">티켓 검증 실패</div>
+      <div class="description">
+        이 파일과 일치하는 PROOF TICKET을 찾지 못했어요<br>
+        파일을 확인하시고 한번 더 시도해주세요.
+      </div>
+      <div class="button-group">
+        <button class="button secondary" onclick="location.href='main.html'">
+          <!-- 아이콘(체크) 예시: -->
+          <img src="public/images/external.svg" style="margin-right: 10px;">
+          다른 작품 검증하러 가기
+        </button>
+        <button class="button" onclick="location.href='myproofticket.html'">
+          <!-- 아이콘(바코드) 예시: -->
+          <img src="public/images/map.svg" style="margin-right: 10px;">
+          나의 PROOF TICKET 확인하기
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
