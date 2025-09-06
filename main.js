@@ -12,7 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (uploadBox && fileInput && confirmBtn) {
     uploadBox.addEventListener('click', (e) => {
-      if (e.target !== fileInput) fileInput.click();
+      if (e.currentTarget !== e.target) return;
+      fileInput.click();
     });
 
     fileInput.addEventListener('change', handleFileUpload);
@@ -36,39 +37,38 @@ document.addEventListener("DOMContentLoaded", () => {
     // 초기 상태
     handleFileUpload();
 
-// 업로드 확인(비로그인 검증: POST /api/verify/files)
-confirmBtn.addEventListener('click', async () => {
-  if (fileInput.files.length === 0) {
-    alert('파일이 아직 업로드되지 않았습니다.');
-    return;
-  }
-  try {
-    const file = fileInput.files[0];
-    const page = 0, size = 8;
+    // 업로드 확인(비로그인 검증: POST /api/verify/files)
+    confirmBtn.addEventListener('click', async () => {
+      if (fileInput.files.length === 0) {
+        alert('파일이 아직 업로드되지 않았습니다.');
+        return;
+      }
+      try {
+        const file = fileInput.files[0];
+        const page = 0, size = 8;
 
-    const { result } = await verifyFiles({ file, page, size });
+        const { result } = await verifyFiles({ file, page, size });
 
-    sessionStorage.setItem('verifyResult', JSON.stringify({
-      count:   result.count,
-      tickets: result.tickets,
-    }));
+        sessionStorage.setItem('verifyResult', JSON.stringify({
+          count:   result.count,
+          tickets: result.tickets,
+        }));
 
-    location.href = 'proofcomplete.html';
-  } catch (e) {
-    const msg = String(e?.message || e);
-    if (msg.includes('VERIFY_415')) {
-      alert('지원하지 않는 파일 형식입니다. (pdf, docx, mp3, mp4만 가능)');
-    } else if (msg.includes('VERIFY_413')) {
-      alert('업로드 가능한 최대 크기(1GB)를 초과했습니다.');
-    } else if (msg.includes('VERIFY_400')) {
-      alert('파일을 첨부해주세요.');
-    } else {
-      alert(`검증 실패: ${msg}`);
-      location.href = 'prooffailed.html'
-    }
-  }
-});
-
+        location.href = 'proofcomplete.html';
+      } catch (e) {
+        const msg = String(e?.message || e);
+        if (msg.includes('VERIFY_415')) {
+          alert('지원하지 않는 파일 형식입니다. (pdf, docx, mp3, mp4만 가능)');
+        } else if (msg.includes('VERIFY_413')) {
+          alert('업로드 가능한 최대 크기(1GB)를 초과했습니다.');
+        } else if (msg.includes('VERIFY_400')) {
+          alert('파일을 첨부해주세요.');
+        } else {
+          alert(`검증 실패: ${msg}`);
+          location.href = 'prooffailed.html'
+        }
+      }
+    });
   }
 
   /* ====== 로그인 영역 ====== */

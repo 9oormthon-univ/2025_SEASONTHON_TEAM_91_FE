@@ -35,14 +35,19 @@ class ProofTicket extends HTMLElement {
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host{ display:inline-block; transform-origin:top left; font-family:'Inter', Roboto, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif; --stroke-color:#FFF9D9; --stroke-width:3px; }
+        :host{ display:inline-block; transform-origin:top left; font-family:'Roboto', Roboto, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif; --stroke-color:#FFF9D9; --stroke-width:3px; }
         .wrap{ position:relative; width:460px; height:787px; filter:drop-shadow(0px 4px 4px rgba(0,0,0,.25)); perspective:1000px; }
+        .hologram-overlay{ position:absolute; inset:0; pointer-events:none; z-index:5; overflow:hidden; }
+        .hologram-particle{ position:absolute; width:2px; height:2px; background:radial-gradient(circle, rgba(214, 255, 255, 0.8) 0%, rgba(0,255,255,0.4) 50%, transparent 100%); border-radius:50%; animation:float 3s ease-in-out infinite; }
+        .hologram-glow{ position:absolute; inset:0; background:radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0,255,255,0.1) 0%, transparent 70%); opacity:0; transition:opacity 0.3s ease; }
+        .wrap:hover .hologram-glow{ opacity:1.2; }
+        @keyframes float{ 0%,100%{ transform:translateY(0px) scale(1); opacity:0.3; } 50%{ transform:translateY(-20px) scale(1.2); opacity:0.8; } }
         .mask{ position:absolute; inset:0; overflow:hidden; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:0 0; mask-position:0 0; -webkit-mask-size:100% 100%; mask-size:100% 100%; }
         .card{ position:absolute; inset:0; box-shadow:0 4px 4px rgba(0,0,0,.25), 0 10px 20px rgba(0,0,0,.25); overflow:hidden; transform-style:preserve-3d; backface-visibility:hidden; transition:transform .6s ease; }
         .card.front{ background:url("${frontImage}") center/cover no-repeat; }
         /* ← 여기 배경은 JS에서 동적으로 linear-gradient로 덮어써요 */
         .card.back{ background: linear-gradient(180deg, #8C8C8C 0%, #6C8092 100%); transform: rotateY(180deg); }
-        .card.back .inner{ position:absolute; inset:0; color:#FFF9D9; font-family:Roboto,'Inter',sans-serif; }
+        .card.back .inner{ position:absolute; inset:0; color:#FFF9D9; font-family:Roboto,'Roboto',sans-serif; }
 
         .stroke-ring{ position:absolute; inset:0; z-index:10; pointer-events:none; background:var(--stroke-color);
           -webkit-mask:
@@ -53,11 +58,11 @@ class ProofTicket extends HTMLElement {
             url("${shapeSrc}") center/ calc(101% - (var(--stroke-width) * 3)) calc(101% - (var(--stroke-width) * 3)) no-repeat;
           -webkit-mask-composite:xor; mask-composite:exclude;
         }
-        .inner-frame{ position:absolute; inset:3px; width:calc(100% - 10px); height:calc(100% - 10px); object-fit:contain; pointer-events:none;
+        .inner-frame{ position:absolute; inset:5px; width:calc(100% - 10px); height:calc(100% - 10px); object-fit:contain; pointer-events:none;
           -webkit-mask:url("public/images/ticket-shape.svg") 0 0/100% 100% no-repeat; mask:url("public/images/ticket-shape.svg") 0 0/100% 100% no-repeat; }
 
         .panel{ position:absolute; left:27px; top:91px; width:406px; height:615px; border:1px solid #FFF9D9; }
-        .title{ position:absolute; left:0; right:0; top:29px; text-align:center; line-height:1.15; color:#FFF3B6; font-family:'Anton',sans-serif; font-weight:400; font-size:40px; }
+        .title{ position:absolute; left:0; right:0; top:29px; text-align:center; line-height:1.15; color:#FFF3B6; font-family:'Roboto',sans-serif; font-weight:700; font-size:40px; }
         .title .line{ display:block; }
         .star-rule-top,.star-rule-mid{ position:absolute; left:0; right:0; height:10px; }
         .star-rule-top{ top:150px; } .star-rule-mid{ top:380px; }
@@ -67,8 +72,8 @@ class ProofTicket extends HTMLElement {
 
         .info-list{ position:absolute; left:0; right:0; top:180px; padding:0; margin:0; list-style:none; }
         .info-row{ display:grid; grid-template-columns:100px 1fr; align-items:center; padding:12px 8px; border-bottom:1px solid #FFF9D9; line-height:13px; }
-        .info-row .label{ font-size:16px; color:#FFF9D9; font-family:Roboto,sans-serif; font-weight:400; }
-        .info-row .value{ text-align:left; font-size:16px; color:#FFFFFF; font-family:Roboto,sans-serif; font-weight:200; }
+        .info-row .label{ font-size:16px; color:#FFF9D9; font-family:Roboto,sans-serif; font-weight:500; }
+        .info-row .value{ text-align:left; font-size:16px; color:#FFFFFF; font-family:Roboto,sans-serif; font-weight:400; }
 
         .bottom-grid{
           color:#FFF9D9; font-family:Inter,sans-serif; font-weight:800; align-items:center; text-align:center; justify-content:center;
@@ -84,6 +89,17 @@ class ProofTicket extends HTMLElement {
         .bottom-grid > .th{ text-transform:uppercase; font-size:16px; line-height:28px; letter-spacing:1.6px; }
         .bottom-grid .value{ text-transform:uppercase; font-size:20px; line-height:28px; letter-spacing:2px; text-align:center; white-space:pre-line; }
         .proof-stamp{ position:absolute; top:-70px; left:-10px; width:187px; height:184px; background:url("public/images/proof_stamp.svg") center/contain no-repeat; opacity:.9; pointer-events:none; }
+        
+        /* 뒷면 무늬 디테일 */
+        .back-pattern{ position:absolute; inset:0; pointer-events:none; opacity:0.15; z-index:1; }
+        .back-pattern::before{ content:''; position:absolute; inset:0; background-image: repeating-linear-gradient(45deg, rgba(255,249,217,0.3) 0px, rgba(255,249,217,0.3) 1px, transparent 1px, transparent 20px), repeating-linear-gradient(-45deg, rgba(255,249,217,0.3) 0px, rgba(255,249,217,0.3) 1px, transparent 1px, transparent 20px); }
+        
+        /* 점 무늬 */
+        .dot-pattern{ position:absolute; inset:0; pointer-events:none; opacity:0.2; z-index:1; }
+        .dot-pattern::before{ content:''; position:absolute; inset:0; background-image: radial-gradient(circle, rgba(255,249,217,0.4) 1px, transparent 1px); background-size: 25px 25px; }
+        
+        /* 웨이브 무늬 */
+        .wave-pattern{ position:absolute; bottom:0; left:0; right:0; height:80px; pointer-events:none; opacity:0.3; z-index:1; background: repeating-linear-gradient(90deg, transparent 0px, transparent 8px, rgba(255,249,217,0.5) 8px, rgba(255,249,217,0.5) 10px, transparent 10px, transparent 18px); }
 
         :host([side="back"]) .card.front{ transform:rotateY(180deg); }
         :host([side="back"]) .card.back { transform:rotateY(0deg); }
@@ -100,7 +116,7 @@ class ProofTicket extends HTMLElement {
                 <ul class="info-list">
                   <li class="info-row"><span class="label">Proof Code</span><span class="value">${proofCode}</span></li>
                   <li class="info-row"><span class="label">Time Stamp</span><span class="value">${timestamp}</span></li>
-                  <li class="info-row"><span class="label">SHA-256 Hash</span><span class="value">${hash}</span></li>
+                  <li class="info-row"><span class="label">Hash</span><span class="value">${hash}</span></li>
                   <li class="info-row"><span class="label">File Name</span><span class="value">${fileName}</span></li>
                   <li class="info-row" style="border-bottom:none;"><span class="label">Owner</span><span class="value">${owner}</span></li>
                 </ul>
@@ -111,12 +127,20 @@ class ProofTicket extends HTMLElement {
                   <div class="value td">${dateRight}</div>
                   <div class="value td" style="position:relative;"><div class="proof-stamp" aria-hidden="true"></div></div>
                 </div>
+                
+                <!-- 뒷면 무늬 디테일 -->
+                <div class="back-pattern"></div>
+                <div class="dot-pattern"></div>
+                <div class="wave-pattern"></div>
               </div>
             </div>
           </div>
         </div>
         <div class="stroke-ring"></div>
         <img src="public/images/ticket-innerframe.svg" class="inner-frame" alt="">
+        <div class="hologram-overlay">
+          <div class="hologram-glow"></div>
+        </div>
       </div>
     `;
 
@@ -124,11 +148,14 @@ class ProofTicket extends HTMLElement {
     this._maskEl  = this.shadowRoot.querySelector(".mask");
     this._frontEl = this.shadowRoot.querySelector(".card.front");
     this._backEl  = this.shadowRoot.querySelector(".card.back");
+    this._hologramOverlay = this.shadowRoot.querySelector(".hologram-overlay");
+    this._hologramGlow = this.shadowRoot.querySelector(".hologram-glow");
 
     this._applyMask(shapeSrc);
     this._applyFrontImage(frontImage);   // ← 여기서 그라디언트도 갱신
     this._applySide(side);
     this._applyScale(scale);
+    this._initHologramEffect();
   }
 
   _applyMask(src = this.getAttr("shape-src", "/images/ticket-shape.svg")){
@@ -146,8 +173,23 @@ class ProofTicket extends HTMLElement {
 
   _applyFrontImage(src = this.getAttr("front-image", "/posters/poster7.png")){
     if (!this._frontEl) return;
-    this._frontEl.style.backgroundImage = `url("${src}")`;
-    this._updateBackGradientFromImage(src); // 🌈 앞면 이미지로 뒷면 그라디언트 추출/적용
+    
+    // 이미지 경로 정규화
+    const normalizedSrc = src.startsWith('/') ? src : `/${src}`;
+    
+    // 이미지 로딩 테스트
+    const img = new Image();
+    img.onload = () => {
+      this._frontEl.style.backgroundImage = `url("${normalizedSrc}")`;
+      this._updateBackGradientFromImage(normalizedSrc);
+    };
+    img.onerror = () => {
+      console.warn(`[ProofTicket] 이미지 로딩 실패: ${normalizedSrc}`);
+      // 폴백 이미지 사용
+      this._frontEl.style.backgroundImage = `url("/posters/poster7.png")`;
+      this._updateBackGradientFromImage("/posters/poster7.png");
+    };
+    img.src = normalizedSrc;
   }
 
   _applySide(val = (this.getAttr("side","front")).toLowerCase()){
@@ -263,6 +305,86 @@ class ProofTicket extends HTMLElement {
       r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
     }
     return { r:Math.round(r*255), g:Math.round(g*255), b:Math.round(b*255) };
+  }
+
+  /** 홀로그램 효과 초기화 */
+  _initHologramEffect(){
+    if (!this._hologramOverlay || !this._hologramGlow) return;
+    
+    // 홀로그램 오버레이에 티켓 모양 마스킹 적용
+    const shapeSrc = this.getAttr("shape-src", "/public/images/ticket-shape.svg");
+    this._hologramOverlay.style.webkitMask = `url("${shapeSrc}") no-repeat center/contain`;
+    this._hologramOverlay.style.mask = `url("${shapeSrc}") no-repeat center/contain`;
+    
+    // 파티클 생성
+    this._createHologramParticles();
+    
+    // 마우스 호버 효과
+    this._setupHologramHover();
+  }
+  
+  /** 홀로그램 파티클 생성 */
+  _createHologramParticles(){
+    if (!this._hologramOverlay) return;
+    
+    const createParticle = () => {
+      const particle = document.createElement('div');
+      particle.className = 'hologram-particle';
+      
+      // 랜덤 위치와 애니메이션 설정
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 3 + 's';
+      particle.style.animationDuration = (2 + Math.random() * 2) + 's';
+      
+      this._hologramOverlay.appendChild(particle);
+      
+      // 5초 후 제거
+      setTimeout(() => {
+        if (particle.parentNode) {
+          particle.parentNode.removeChild(particle);
+        }
+      }, 5000);
+    };
+    
+    // 초기 파티클 생성
+    for (let i = 0; i < 8; i++) {
+      setTimeout(createParticle, i * 200);
+    }
+    
+    // 지속적인 파티클 생성
+    this._particleInterval = setInterval(createParticle, 300);
+  }
+  
+  /** 홀로그램 호버 효과 설정 */
+  _setupHologramHover(){
+    if (!this._hologramGlow) return;
+    
+    const wrap = this.shadowRoot.querySelector('.wrap');
+    if (!wrap) return;
+    
+    const updateGlow = (e) => {
+      const rect = wrap.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      this._hologramGlow.style.setProperty('--mouse-x', x + '%');
+      this._hologramGlow.style.setProperty('--mouse-y', y + '%');
+    };
+    
+    wrap.addEventListener('mousemove', updateGlow);
+    wrap.addEventListener('mouseleave', () => {
+      this._hologramGlow.style.setProperty('--mouse-x', '50%');
+      this._hologramGlow.style.setProperty('--mouse-y', '50%');
+    });
+  }
+  
+  
+  /** 컴포넌트 제거 시 정리 */
+  disconnectedCallback(){
+    if (this._particleInterval) {
+      clearInterval(this._particleInterval);
+    }
   }
 
   /** 공개 API */

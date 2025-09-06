@@ -1,7 +1,6 @@
 /* Global */
 html, body {
   margin: 0; padding: 0; height: 100%;
-  overflow: hidden;
   font-family: Roboto, system-ui, -apple-system, Segoe UI, "Noto Sans KR", sans-serif;
   background: linear-gradient(180deg, #1F2125 0%, #141414 100%);
 }

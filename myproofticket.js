@@ -1,4 +1,6 @@
-  import { getMyTickets, getTicketById } from './js/apiClient.js';
+import { listMyTickets, getTicketDetail } from './js/apiClient.js';
+
+
 
   // ===== 커스텀 엘리먼트 준비 =====
   await customElements.whenDefined('proof-ticket');
@@ -6,22 +8,24 @@
   // ===== 유틸 =====
   const fmtDateRight = (iso='') => (iso ? String(iso).slice(0,10).replaceAll('-','/') : '');
   const postersFallback = [
-    'posters/poster1.png','posters/poster2.png','posters/poster3.jpg',
-    'posters/poster4.png','posters/poster5.jpg','posters/poster6.png','posters/poster7.png'
+    '/posters/demoposter1.png','/posters/demoposter2.png','/posters/demoposter3.png',
+    '/posters/demoposter4.png','/posters/demoposter5.png','/posters/demoposter6.png',
+    '/posters/demoposter7.png','/posters/demoposter8.png'
   ];
 
   // ===== 티켓 데이터 로드 (실서버/목 자동 처리: apiClient.js에 위임) =====
   let RAW = [];
   try {
     // getMyTickets는 로그인 토큰이 있으면 /api/tickets 호출, 없거나 서버 없으면 mock 반환하게 구현되어 있어야 함
-    const data = await getMyTickets();
+    const { items } = await listMyTickets();
     // 예상 스키마: [{ ticketId, contest:{name,imageUrl}, ticketDetail:{humanCode,issuedAt,sha256,fileNameSubmitted,owner:{name}} }, ...]
-    RAW = Array.isArray(data) ? data : [];
+    RAW = Array.isArray(items) ? items : [];
   } catch (e) {
     console.warn('[myproofticket] getMyTickets 실패 → fallback mock', e);
     RAW = postersFallback.map((src, i) => ({
       ticketId: 1000 + i,
-      contest: { name: `MOCK CONTEST #${i+1}`, imageUrl: src },
+      imageUrl: src,
+      contestName: `MOCK CONTEST #${i+1}`,
       ticketDetail: {
         humanCode: ['빛나는 장면-217','차분한 전개-071','섬세한 완성-071','미려한 질감-071'][i % 4],
         issuedAt: new Date(Date.now() - i*3600_000).toISOString(),
@@ -36,13 +40,13 @@
   const TICKETS = RAW.map((r, i) => ({
     src: r?.contest?.imageUrl || postersFallback[i % postersFallback.length],
     meta: {
-      title: r?.contest?.name || '',
-      proofCode: r?.ticketDetail?.humanCode || '',
-      timestamp: r?.ticketDetail?.issuedAt || '',
-      hash: r?.ticketDetail?.sha256 || '',
-      fileName: r?.ticketDetail?.fileNameSubmitted || '',
-      owner: r?.ticketDetail?.owner?.name || '',
-      dateRight: fmtDateRight(r?.ticketDetail?.issuedAt),
+      title: r?.contestName || '',
+      proofCode: r?.humanCode || '',
+      timestamp: r?.issuedAt || '',
+      hash: r?.sha256 || '',
+      fileName: r?.fileNameSubmitted || '',
+      owner: r?.ownerName || '',
+      dateRight: fmtDateRight(r?.issuedAt),
       ticketId: r?.ticketId
     }
   }));
@@ -161,8 +165,6 @@
         el.style.zIndex = String(1000 - i);
       }
     });
-
-    if (layoutMode === 'linear') updateLinearHeight();
   }
 
   // 드래그/관성/스냅
@@ -241,7 +243,7 @@
     // 필요 시 상세 API로 최신화 (실서버일 때만 의미 있음)
     try {
       if (info.ticketId && typeof getTicketById === 'function') {
-        const detail = await getTicketById(info.ticketId); // 실패 시 그냥 아래 info 사용
+        const detail = await getTicketDetail(info.ticketId); // 실패 시 그냥 아래 info 사용
         const r = detail?.result;
         if (r) {
           info.title     = r?.contest?.name     ?? info.title;
@@ -333,38 +335,131 @@
   onResize();
 
   // ===== 모드 토글 =====
+  // 초기 아이콘 설정 (arc 모드이므로 sortradius.svg)
+  const sortImg = sortBtn?.querySelector('img');
+  if (sortImg && layoutMode === 'arc') {
+    sortImg.src = "public/images/sortlinear.svg";
+  }
+
   sortBtn?.addEventListener('click', () => {
     layoutMode = (layoutMode === 'arc') ? 'linear' : 'arc';
+    
+    // 이미지 요소 찾기
+    if (sortImg) {
+      if (layoutMode === 'linear') {
+        sortImg.src = "public/images/sortradius.svg";
+      } else if (layoutMode === 'arc') {
+        sortImg.src = "public/images/sortlinear.svg";
+      }
+    }
+
     applyScrollMode();
     layout();
   });
   applyScrollMode();
 
-  // ===== 티켓 모달 3D/홀로그램 효과 =====
+  // ===== 티켓 모달 3D 효과 (부드러운 애니메이션) =====
   document.querySelectorAll('.ticketContainer').forEach(container => {
     const overlay = container.querySelector('.lightOverlay');
-    function trackOverlay(x, y, rect) {
+    
+    // 애니메이션 상태 관리
+    let targetRotX = 0, targetRotY = 0;
+    let currentRotX = 0, currentRotY = 0;
+    let targetOverlayX = 80, targetOverlayY = 80;
+    let currentOverlayX = 80, currentOverlayY = 80;
+    let isAnimating = false;
+    let animationId = null;
+    
+    // 부드러운 보간 함수 (ease-out)
+    const lerp = (start, end, factor) => start + (end - start) * factor;
+    
+    // 애니메이션 루프
+    function animate() {
+      if (!isAnimating) return;
+      
+      // 회전값 보간 (더 부드러운 움직임)
+      const rotFactor = 0.15;
+      currentRotX = lerp(currentRotX, targetRotX, rotFactor);
+      currentRotY = lerp(currentRotY, targetRotY, rotFactor);
+      
+      // 오버레이 위치 보간
+      const overlayFactor = 0.2;
+      currentOverlayX = lerp(currentOverlayX, targetOverlayX, overlayFactor);
+      currentOverlayY = lerp(currentOverlayY, targetOverlayY, overlayFactor);
+      
+      // DOM 업데이트
+      container.style.transform = `perspective(1000px) rotateX(${currentRotX}deg) rotateY(${currentRotY}deg)`;
+      overlay.style.backgroundPosition = `${currentOverlayX}% ${currentOverlayY}%`;
+      
+      // 애니메이션 계속 여부 확인 (목표값에 충분히 가까워졌는지)
+      const rotDiff = Math.abs(currentRotX - targetRotX) + Math.abs(currentRotY - targetRotY);
+      const overlayDiff = Math.abs(currentOverlayX - targetOverlayX) + Math.abs(currentOverlayY - targetOverlayY);
+      
+      if (rotDiff < 0.01 && overlayDiff < 0.1) {
+        isAnimating = false;
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+      } else {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+    
+    // 애니메이션 시작
+    function startAnimation() {
+      if (!isAnimating) {
+        isAnimating = true;
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+    
+    // 마우스/터치 위치를 목표값으로 설정
+    function updateTarget(x, y, rect) {
       const nx = (x / rect.width) * 2 - 1;
       const ny = (y / rect.height) * 2 - 1;
-      const rotY = nx * 10, rotX = -ny * 10;
-      container.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-      overlay.style.backgroundPosition = `${(x/rect.width)*100}% ${(y/rect.height)*100}%`;
+      
+      // 회전값 계산 (더 자연스러운 범위)
+      targetRotY = nx * 12; // 좌우 회전
+      targetRotX = -ny * 8; // 상하 회전
+      
+      // 오버레이 위치 계산
+      targetOverlayX = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      targetOverlayY = Math.max(0, Math.min(100, (y / rect.height) * 100));
+      
+      startAnimation();
     }
+    
+    // 초기화 (원래 위치로)
+    function resetToDefault() {
+      targetRotX = 0;
+      targetRotY = 0;
+      targetOverlayX = 80;
+      targetOverlayY = 80;
+      startAnimation();
+    }
+    
+    // 이벤트 리스너
     container.addEventListener('mousemove', e => {
       const r = container.getBoundingClientRect();
-      trackOverlay(e.clientX - r.left, e.clientY - r.top, r);
+      updateTarget(e.clientX - r.left, e.clientY - r.top, r);
     });
+    
     container.addEventListener('mouseleave', () => {
-      container.style.transform = '';
-      overlay.style.backgroundPosition = '80% 80%';
+      resetToDefault();
     });
+    
     container.addEventListener('touchmove', e => {
       const t = e.touches?.[0];
       if (!t) return;
       const r = container.getBoundingClientRect();
-      trackOverlay(t.clientX - r.left, t.clientY - r.top, r);
+      updateTarget(t.clientX - r.left, t.clientY - r.top, r);
       e.preventDefault();
     }, { passive: false });
+    
+    container.addEventListener('touchend', () => {
+      resetToDefault();
+    });
   });
 
   // 신규발급 버튼

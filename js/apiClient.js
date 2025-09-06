@@ -40,7 +40,7 @@ function makeMockLoginResponse(email) {
     result: {
       tokenType: 'Bearer',
       accessToken: 'mock-access-token-123',
-      me: { userId: 1, name: 'mockUser', email }
+      me: { userId: 1, name: '마커스', email }
     }
   };
   // 요청하신 대로 전체 응답을 콘솔에 출력
@@ -421,7 +421,7 @@ export async function listMyTickets({ page = 0, size = 50 } = {}) {
         ownerName: 'mockUser'
       }
     });
-    const items = Array.from({ length: 7 }, (_, i) => normalizeTicket(mk(i)));
+    const items = Array.from({ length: 5 }, (_, i) => normalizeTicket(mk(i)));
     return { items, page, size, totalElements: items.length, totalPages: 1 };
   }
 
