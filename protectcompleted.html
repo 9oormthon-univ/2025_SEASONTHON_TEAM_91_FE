@@ -192,36 +192,94 @@
     </div>
   </div>
 
-  <!-- 커스텀 엘리먼트 -->
-  <script type="module" src="./ticket.js"></script>
-
-  <script>
-    // 3D 회전 + 반짝임
-    
+  <script type="module">
+    import { getVerifyDetail } from './js/apiClient.js';
+  
+    /* ===== ticket_id 해석 ===== */
+    function resolveTicketId() {
+      const sp = new URLSearchParams(location.search);
+      const qs = sp.get('ticket_id');
+      if (qs && Number.isFinite(Number(qs))) return Number(qs);
+  
+      const ss = sessionStorage.getItem('lastTicketId');
+      if (ss && Number.isFinite(Number(ss))) return Number(ss);
+  
+      const ls = localStorage.getItem('lastTicketId');
+      if (ls && Number.isFinite(Number(ls))) return Number(ls);
+  
+      return null;
+    }
+  
+    /* ===== proof-ticket 주입 (응답 스키마와 1:1) ===== */
+    const tFront = document.getElementById('tFront');
+    const tBack  = document.getElementById('tBack');
+  
+    function ymdSlashFromIssuedAt(issued_at = '') {
+      // "2025-09-06T16:37:20.496497Z" -> "2025/09/06"
+      const datePart = String(issued_at).split('T')[0] || String(issued_at).split(' ')[0] || '';
+      return datePart.replaceAll('-', '/');
+    }
+  
+    function applyFromApiResult(el, result) {
+      // result: { ticket_id, contest:{contest_id,name,image_url}, human_code, issued_at, sha256, file_name_submitted, owner:{name} }
+      el.setAttribute('front-image', result?.contest?.image_url || './posters/poster7.png');
+      el.setAttribute('title',       result?.contest?.name || '');
+      el.setAttribute('proof-code',  result?.human_code || '');
+      el.setAttribute('timestamp',   result?.issued_at  || '');
+      el.setAttribute('hash',        result?.sha256     || '');
+      el.setAttribute('file-name',   result?.file_name_submitted || '');
+      el.setAttribute('owner',       result?.owner?.name || '');
+      el.setAttribute('date-right',  ymdSlashFromIssuedAt(result?.issued_at));
+    }
+  
+    /* ===== 초기 로드: ticket_id → 상세조회 → 주입 ===== */
+    (async () => {
+      try {
+        await customElements.whenDefined('proof-ticket');
+  
+        const ticketId = resolveTicketId();
+        if (!Number.isFinite(ticketId)) {
+          console.warn('[protectcompleted] ticket_id 없음: ?ticket_id= 또는 lastTicketId 저장 필요');
+          return;
+        }
+        sessionStorage.setItem('lastTicketId', String(ticketId));
+        localStorage.setItem('lastTicketId', String(ticketId));
+  
+        // apiClient.js: getVerifyDetail는 전체 응답을 반환하므로 .result를 사용
+        const { result } = await getVerifyDetail(ticketId);
+        applyFromApiResult(tFront, result);
+        applyFromApiResult(tBack,  result);
+        tFront.setAttribute('side', 'front');
+        tBack .setAttribute('side', 'back');
+      } catch (e) {
+        console.error('[protectcompleted] 상세 조회 실패:', e);
+        // 실패해도 페이지는 계속 보이도록
+      }
+    })();
+  
+    /* ===== 3D 회전 + 반짝임 (원본 유지) ===== */
     document.querySelectorAll('.ticketContainer').forEach(container => {
       const overlay = container.querySelector('.lightOverlay');
-
+  
       const onMove = (x, y, rect) => {
-        // -10 ~ +10도 범위
-        const nx = (x / rect.width) * 2 - 1;   // -1 ~ 1
-        const ny = (y / rect.height) * 2 - 1;  // -1 ~ 1
+        const nx = (x / rect.width) * 2 - 1;
+        const ny = (y / rect.height) * 2 - 1;
         const rotY = nx * 10;
         const rotX = -ny * 10;
         container.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
-        overlay.style.backgroundPosition = `${(x/rect.width)*100}% ${(y/rect.height)*100}%`;
+        if (overlay) overlay.style.backgroundPosition = `${(x/rect.width)*100}% ${(y/rect.height)*100}%`;
       };
-
+  
       container.addEventListener('mousemove', e => {
         const r = container.getBoundingClientRect();
         onMove(e.clientX - r.left, e.clientY - r.top, r);
       });
-
+  
       container.addEventListener('mouseleave', () => {
         container.style.transform = '';
-        overlay.style.backgroundPosition = '80% 80%';
+        if (overlay) overlay.style.backgroundPosition = '80% 80%';
       });
-
-      // 모바일 터치(뷰 이동 방지)
+  
       container.addEventListener('touchmove', e => {
         const t = e.touches[0];
         if (!t) return;
@@ -230,42 +288,44 @@
         e.preventDefault();
       }, { passive: false });
     });
-
-    // 화면에 꽉 차도록 자동 스케일
+  
+    /* ===== 화면에 맞춰 자동 스케일 (원본 유지) ===== */
     function fitTicketsToViewport(){
       const ticketsWrap = document.querySelector('.tickets');
       if(!ticketsWrap) return;
-
+  
       const h1   = document.querySelector('h1');
       const sub  = document.querySelector('.subtitle');
       const btns = document.querySelector('.buttons');
-
+  
       const vw = window.innerWidth, vh = window.innerHeight;
-
+  
       const bs = getComputedStyle(document.body);
       const padTop = parseFloat(bs.paddingTop)||0, padBottom = parseFloat(bs.paddingBottom)||0;
       const padLeft = parseFloat(bs.paddingLeft)||0, padRight = parseFloat(bs.paddingRight)||0;
-
+  
       const gap = parseFloat(getComputedStyle(ticketsWrap).gap)||0;
       const isColumn = getComputedStyle(ticketsWrap).flexDirection === 'column';
       const cols = isColumn ? 1 : 2;
-
-      const usedH = (h1?.offsetHeight||0) + (sub?.offsetHeight||0) + (btns?.offsetHeight||0) + padTop + padBottom -24 ;
+  
+      const usedH = (h1?.offsetHeight||0) + (sub?.offsetHeight||0) + (btns?.offsetHeight||0) + padTop + padBottom - 24;
       const availH = Math.max(200, vh - usedH);
       const sH = availH / 887;
-
+  
       const availW = Math.max(200, vw - padLeft - padRight);
       const sW = (availW - (cols - 1) * gap) / (cols * 460);
-
+  
       const s = Math.max(0.3, Math.min(1, sH, sW));
-
+  
       document.documentElement.style.setProperty('--ticket-scale', s.toFixed(3));
       document.querySelectorAll('proof-ticket')
         .forEach(el => el.setAttribute('scale', s.toFixed(3)));
     }
-
+  
     window.addEventListener('load', fitTicketsToViewport);
     window.addEventListener('resize', fitTicketsToViewport);
   </script>
+  
+  
 </body>
 </html>

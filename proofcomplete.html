@@ -385,113 +385,74 @@
   </main>
 
 
-  <script type="module" src="./ticket.js"></script>
-  
-
   <script type="module">
     import { getVerifyDetail, USE_MOCK } from './js/apiClient.js';
     const API_BASE = 'http://13.125.59.4:8080/api';
-
-
+  
     // === 모달 및 티켓 바인딩 ===
-    const dlg = document.getElementById('ticketModal');
+    const dlg    = document.getElementById('ticketModal');
     const tFront = document.getElementById('tFront');
-    const tBack = document.getElementById('tBack');
-    const openButtons = document.querySelectorAll('.open-ticket');
-
-/** 다른 스크립트에서 모달을 열 수 있도록 전역 공개 */
-window.openTicketWithData = (data) => {
-  const dateRight = (data.timestamp?.split(' ')[0] || '').replaceAll('-', '/');
-  const patch = (el) => {
-    el.setAttribute('front-image', data.frontImage || './posters/poster7.png');
-    el.setAttribute('title',       data.title      || '');
-    el.setAttribute('proof-code',  data.proofCode  || '');
-    el.setAttribute('timestamp',   data.timestamp  || '');
-    el.setAttribute('hash',        data.hash       || '');
-    el.setAttribute('file-name',   data.fileName   || '');
-    el.setAttribute('owner',       data.owner      || '');
-    el.setAttribute('date-right',  dateRight       || '');
-  };
-  patch(tFront);
-  patch(tBack);
-  tFront.setAttribute('side', 'front');
-  tBack.setAttribute('side',  'back');
-  if (typeof dlg.showModal === 'function') dlg.showModal();
-  else dlg.setAttribute('open', '');
-};
-
-/** ticketId로 상세 조회 후 모달 열기 (비로그인 상세 API) */
-window.openTicketById = async (ticketId) => {
-  try {
-    // 배포 전: USE_MOCK=true 이면 apiClient가 목업 응답을 반환 (네트워크 X)
-    // 배포 후: USE_MOCK=false 이면 실제 서버로 요청
-    const data = await getVerifyDetail(ticketId);
-    const r = data?.result || {};
-    window.openTicketWithData({
-      frontImage: r?.contest?.imageUrl || './posters/poster7.png',
-      title:      r?.contest?.name     || '',
-      proofCode:  r?.humanCode         || '',
-      timestamp:  r?.issuedAt          || '',
-      hash:       r?.sha256            || '',
-      fileName:   r?.fileNameSubmitted || '',
-      owner:      r?.owner?.name       || '',
-    });
-  } catch (e) {
-    alert(e?.message || '티켓 상세 조회 실패');
-
-  }
-};
-
-
-    await customElements.whenDefined('proof-ticket');
-
-    const applyDataToTicket = (el, data) => {
-      const dateRight = (data.timestamp?.split(' ')[0] || '').replaceAll('-', '/');
-
-      el.setAttribute('front-image', data.frontImage || './posters/poster7.png');
-      el.setAttribute('title', data.title || '');
-      el.setAttribute('proof-code', data.proofCode || '');
-      el.setAttribute('timestamp', data.timestamp || '');
-      el.setAttribute('hash', data.hash || '');
-      el.setAttribute('file-name', data.fileName || '');
-      el.setAttribute('owner', data.owner || '');
-      el.setAttribute('date-right', dateRight || '');
+    const tBack  = document.getElementById('tBack');
+  
+    // ❶ 키 정규화 헬퍼
+    const normalize = (d = {}) => {
+      const n = (v, ...alts) => v ?? alts.find(a => a !== undefined) ?? '';
+      const ts = n(d.timestamp, d.time_stamp, d.issued_at);
+      const dateRight = (String(ts).split(' ')[0] || '').replaceAll('-', '/');
+  
+      return {
+        frontImage: n(d.frontImage, d.front_image, d.contest?.image_url, d.contest_image),
+        title:      n(d.title, d.contest?.name, d.name),
+        proofCode:  n(d.proofCode, d.proof_code, d.human_code),
+        timestamp:  ts,
+        hash:       n(d.hash, d.sha256),
+        fileName:   n(d.fileName, d.file_name, d.file_name_submitted),
+        owner:      n(d.owner, d.owner_name, d.owner?.name),
+        dateRight
+      };
     };
-
-    openButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const dataset = btn.dataset;
-        const data = {
-          frontImage: dataset.frontImage,
-          title: dataset.title,
-          proofCode: dataset.proofCode,
-          timestamp: dataset.timestamp,
-          hash: dataset.hash,
-          fileName: dataset.fileName,
-          owner: dataset.owner,
-        };
-        applyDataToTicket(tFront, data);
-        applyDataToTicket(tBack, data);
-        tFront.setAttribute('side', 'front');
-        tBack.setAttribute('side', 'back');
-        if (typeof dlg.showModal === 'function') {
-          dlg.showModal();
-        } else {
-          dlg.setAttribute('open', '');
-        }
-      });
-    });
-
-    dlg.querySelector('.close').addEventListener('click', () => dlg.close());
-    dlg.addEventListener('click', e => {
-      const box = dlg.querySelector('.modal-box');
-      if (!box.contains(e.target)) dlg.close();
-    });
-
-    // === 티켓 3D 및 홀로그램 효과 ===
+  
+    const applyData = (el, data) => {
+      const v = normalize(data);
+      el.setAttribute('front-image', v.frontImage || './posters/poster7.png');
+      el.setAttribute('title',       v.title);
+      el.setAttribute('proof-code',  v.proofCode);
+      el.setAttribute('timestamp',   v.timestamp);
+      el.setAttribute('hash',        v.hash);
+      el.setAttribute('file-name',   v.fileName);
+      el.setAttribute('owner',       v.owner);
+      el.setAttribute('date-right',  v.dateRight);
+    };
+  
+    /** 전역 공개: 다른 스크립트에서 모달 열기 */
+    window.openTicketWithData = (data) => {
+      applyData(tFront, data);
+      applyData(tBack,  data);
+      tFront.setAttribute('side', 'front');
+      tBack.setAttribute('side',  'back');
+      if (typeof dlg.showModal === 'function') dlg.showModal();
+      else dlg.setAttribute('open', '');
+    };
+  
+    /** ticketId로 상세 조회 후 모달 열기 */
+    window.openTicketById = async (ticketId) => {
+      try {
+        const data = await getVerifyDetail(ticketId);
+        const r = data?.result || {};
+        // 응답을 그대로 normalize가 처리하게 넘김
+        window.openTicketWithData(r);
+      } catch (e) {
+        console.error(e);
+        alert(e?.message || '티켓 상세 조회 실패');
+      }
+    };
+  
+    // 커스텀 엘리먼트 준비 후 진행 (필요 시)
+    await customElements.whenDefined('proof-ticket');
+  
+    // 3D/홀로그램 효과 (기존 코드 그대로)
     document.querySelectorAll('.ticketContainer').forEach(container => {
       const overlay = container.querySelector('.lightOverlay');
-
       function trackOverlay(x, y, rect) {
         const nx = (x / rect.width) * 2 - 1;
         const ny = (y / rect.height) * 2 - 1;
@@ -500,17 +461,14 @@ window.openTicketById = async (ticketId) => {
         container.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
         overlay.style.backgroundPosition = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
       }
-
       container.addEventListener('mousemove', e => {
         const r = container.getBoundingClientRect();
         trackOverlay(e.clientX - r.left, e.clientY - r.top, r);
       });
-
       container.addEventListener('mouseleave', () => {
         container.style.transform = '';
         overlay.style.backgroundPosition = '80% 80%';
       });
-
       container.addEventListener('touchmove', e => {
         const t = e.touches[0];
         if (!t) return;
@@ -519,7 +477,15 @@ window.openTicketById = async (ticketId) => {
         e.preventDefault();
       }, { passive: false });
     });
+  
+    // 닫기
+    dlg.querySelector('.close')?.addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', e => {
+      const box = dlg.querySelector('.modal-box');
+      if (box && !box.contains(e.target)) dlg.close();
+    });
   </script>
+  
 
   <script type="module">
   const subtitle = document.getElementById('resultSubtitle');
@@ -538,12 +504,12 @@ window.openTicketById = async (ticketId) => {
     // 표 렌더링
     tbody.innerHTML = (tickets || []).map(t => `
       <tr>
-        <td>${esc(t.contestName)}</td>
-        <td>${esc(t.fileNameSubmitted)}</td>
-        <td>${esc(t.humanCode)}</td>
-        <td>${fmt(t.issuedAt)}</td>
+        <td>${esc(t.contest_name)}</td>
+        <td>${esc(t.file_name_submitted)}</td>
+        <td>${esc(t.human_code)}</td>
+        <td>${fmt(t.issued_at)}</td>
         <td>
-          <button class="btn-small" data-ticket-id="${t.ticketId}">티켓 보기</button>
+          <button class="btn-small" data-ticket-id="${t.ticket_id}">티켓 보기</button>
         </td>
       </tr>
     `).join('');

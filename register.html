@@ -416,7 +416,6 @@
 
   async function onIssue() {
     try {
-      const responseBody = await res.json();
       // 1) 입력 가드
       const file = el.work?.files?.[0];
       if (!file) {
@@ -465,9 +464,9 @@
 
       // Swagger: result: { response: { ticketId, ... }, existed }
       const ticketId =
-        res?.result?.response?.ticketId ??
-        res?.response?.ticketId ??
-        res?.ticketId ??
+        res?.result?.response?.ticket_id ??
+        res?.response?.ticket_id ??
+        res?.ticket_id ??
         null;
 
       alert(
@@ -476,7 +475,7 @@
           : '새로운 Proof Ticket이 발급되었습니다.' 
       );
 
-      if (responseBody &&ticketId) {
+      if (res && ticketId) {
         console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
         const url = new URL('protectcompleted.html', window.location.origin);
         console.log('[DEBUG] 이동 시도 →', url.toString());
