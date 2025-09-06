@@ -416,6 +416,7 @@
 
   async function onIssue() {
     try {
+      const responseBody = await res.json();
       // 1) 입력 가드
       const file = el.work?.files?.[0];
       if (!file) {
@@ -475,14 +476,14 @@
           : '새로운 Proof Ticket이 발급되었습니다.' 
       );
 
-      if (ticketId) {
+      if (responseBody &&ticketId) {
         console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
         const url = new URL('protectcompleted.html', window.location.origin);
         console.log('[DEBUG] 이동 시도 →', url.toString());
         url.searchParams.set('ticketId', String(ticketId));
         window.location.assign(url.toString()); // 또는 replace()
       }
-      else if (!ticketId){
+      else if (ticketId === null){
         console.warn('[DEBUG] ticketId 없음, 이동하지 않음');
       }
       } 
