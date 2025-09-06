@@ -20,7 +20,7 @@ class ProofTicket extends HTMLElement {
   }
 
   render() {
-    const frontImage = this.getAttr("front-image", "/posters/poster7.png");
+    const frontImage = this.getAttr("front-image");
     const side       = (this.getAttr("side","front")).toLowerCase();
     const scale      = parseFloat(this.getAttr("scale","1"));
     const shapeSrc   = this.getAttr("shape-src", "/public/images/ticket-shape.svg");
@@ -176,6 +176,7 @@ class ProofTicket extends HTMLElement {
     
     // 이미지 경로 정규화
     const normalizedSrc = src.startsWith('/') ? src : `/${src}`;
+    console.log(normalizedSrc);
     
     // 이미지 로딩 테스트
     const img = new Image();
@@ -185,9 +186,9 @@ class ProofTicket extends HTMLElement {
     };
     img.onerror = () => {
       console.warn(`[ProofTicket] 이미지 로딩 실패: ${normalizedSrc}`);
-      // 폴백 이미지 사용
-      this._frontEl.style.backgroundImage = `url("/posters/poster7.png")`;
-      this._updateBackGradientFromImage("/posters/poster7.png");
+      // // 폴백 이미지 사용
+      // this._frontEl.style.backgroundImage = `url("/posters/poster7.png")`;
+      // this._updateBackGradientFromImage("/posters/poster7.png");
     };
     img.src = normalizedSrc;
   }

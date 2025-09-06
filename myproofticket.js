@@ -1,6 +1,4 @@
-import { listMyTickets, getTicketDetail } from './js/apiClient.js';
-
-
+import { listMyTickets, getTicketDetail  } from './js/apiClient.js';
 
   // ===== 커스텀 엘리먼트 준비 =====
   await customElements.whenDefined('proof-ticket');
@@ -18,9 +16,11 @@ import { listMyTickets, getTicketDetail } from './js/apiClient.js';
   try {
     // getMyTickets는 로그인 토큰이 있으면 /api/tickets 호출, 없거나 서버 없으면 mock 반환하게 구현되어 있어야 함
     const { items } = await listMyTickets();
+    console.log(items);
     // 예상 스키마: [{ ticketId, contest:{name,imageUrl}, ticketDetail:{humanCode,issuedAt,sha256,fileNameSubmitted,owner:{name}} }, ...]
     RAW = Array.isArray(items) ? items : [];
-  } catch (e) {
+  } 
+  catch (e) {
     console.warn('[myproofticket] getMyTickets 실패 → fallback mock', e);
     RAW = postersFallback.map((src, i) => ({
       ticketId: 1000 + i,
@@ -40,14 +40,14 @@ import { listMyTickets, getTicketDetail } from './js/apiClient.js';
   const TICKETS = RAW.map((r, i) => ({
     src: r.imageUrl || postersFallback[i % postersFallback.length],
     meta: {
-      title: r.contestName || '',
-      proofCode: r.humanCode || '',
-      timestamp: r.issuedAt || '',
+      title: r.contest_name || '',
+      proofCode: r.human_code || '',
+      timestamp: r.issued_at || '',
       hash: r.sha256 || '',
-      fileName: r.fileNameSubmitted || '',
-      owner: r.ownerName || '',
-      dateRight: fmtDateRight(r.issuedAt),
-      ticketId: r.ticketId
+      fileName: r.file_name_submitted || '',
+      owner: r.owner_name || '',
+      dateRight: fmtDateRight(r.issued_at),
+      ticketId: r.ticket_id
     }
   }));
 
@@ -242,12 +242,14 @@ import { listMyTickets, getTicketDetail } from './js/apiClient.js';
 
     // 필요 시 상세 API로 최신화 (실서버일 때만 의미 있음)
     try {
+      console.log("yrs");
       if (info.ticketId && typeof getTicketById === 'function') {
         const detail = await getTicketDetail(info.ticketId); // 실패 시 그냥 아래 info 사용
         const r = detail?.result;
+        console.log('r' + r);
         if (r) {
           info.title     = r?.contest?.name     ?? info.title;
-          info.proofCode = r?.ticketDetail?.humanCode ?? r?.humanCode ?? info.proofCode;
+          info.proofCode = r?.ticket_detail?.humanCode ?? r?.humanCode ?? info.proofCode;
           info.timestamp = r?.ticketDetail?.issuedAt  ?? r?.issuedAt  ?? info.timestamp;
           info.hash      = r?.ticketDetail?.sha256    ?? r?.sha256    ?? info.hash;
           info.fileName  = r?.ticketDetail?.fileNameSubmitted ?? r?.fileNameSubmitted ?? info.fileName;
@@ -261,13 +263,13 @@ import { listMyTickets, getTicketDetail } from './js/apiClient.js';
 
     const patch = (el) => {
       el.setAttribute('front-image', TICKETS[idx].src);
-      el.setAttribute('title',       info.title      || '');
-      el.setAttribute('proof-code',  info.proofCode  || '');
-      el.setAttribute('timestamp',   info.timestamp  || '');
+      el.setAttribute('title',       info.contest_name      || '');
+      el.setAttribute('proof-code',  info.human_code  || '');
+      el.setAttribute('timestamp',   info.issued_at  || '');
       el.setAttribute('hash',        info.hash       || '');
-      el.setAttribute('file-name',   info.fileName   || '');
-      el.setAttribute('owner',       info.owner      || '');
-      el.setAttribute('date-right',  info.dateRight  || '');
+      el.setAttribute('file-name',   info.file_name_submitted   || '');
+      el.setAttribute('owner',       info.owner      || '홍길동');
+      el.setAttribute('date-right',  fmtDate(info.issued_at));
     };
     patch(tFront);
     patch(tBack);

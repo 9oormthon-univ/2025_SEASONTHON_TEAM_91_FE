@@ -140,7 +140,7 @@ function normalizeTicket(item) {
   const contest = item.contest || {};
   const td = item.ticketDetail || {};
   return {
-    ticketId: item.ticketId ?? item.id ?? 0,
+    ticketId: items.ticketId ?? item.id ?? 0,
     contestId: contest.contestId ?? contest.id ?? null,
     contestName: contest.name ?? '',
     imageUrl: contest.imageUrl ?? item.imageUrl ?? '',
@@ -170,8 +170,9 @@ export async function issueTicket({ contestId, file }) {
 }
 
 /** GET /api/tickets/{ticketId}  (인증) — 단건 */
-export async function getTicketById(ticketId) {
+export async function getTicketDetail(ticketId) {
   const data = await jfetch(`/tickets/${encodeURIComponent(ticketId)}`, { auth: true });
+  console.log("data : " + data);
   const raw = data?.result ?? data;
   return normalizeTicket({
     ticketId: raw?.ticketId,
@@ -183,7 +184,7 @@ export async function getTicketById(ticketId) {
 /** GET /api/tickets/me?page=&size=  (인증) — 내 티켓 목록 */
 export async function listMyTickets({ page = 0, size = 20 } = {}) {
   const qs = new URLSearchParams({ page: String(page), size: String(size) });
-  const data = await jfetch(`/tickets/me?${qs}`, { auth: true });
+  const data = await jfetch(`/tickets?${qs}`, { auth: true });
 
   const container = data?.result ?? data;
   const itemsRaw = container?.items ?? container ?? [];

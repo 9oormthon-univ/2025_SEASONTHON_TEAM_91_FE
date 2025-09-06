@@ -509,16 +509,51 @@
         <td>${esc(t.human_code)}</td>
         <td>${fmt(t.issued_at)}</td>
         <td>
-          <button class="btn-small" data-ticket-id="${t.ticket_id}">티켓 보기</button>
+          <button class="btn-small" data-ticket-id="${t.ticket_id}">티켓 보기
+            </button>
         </td>
       </tr>
     `).join('');
 
+    // 모든 '티켓 보기' 버튼에 이벤트 연결
+    document.querySelectorAll('.btn-small[data-ticket-id]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const ticketId = btn.getAttribute('data-ticket-id');
+    console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
+
+    const url = new URL('protectcompleted.html', window.location.origin);
+    url.searchParams.set('ticketId', String(ticketId));
+
+    // 여기서 원하는 텍스트 값 넣기
+    url.searchParams.set('title', '내 티켓 보호 완료');
+    url.searchParams.set('subtitle', '선택한 티켓이 안전하게 보호되었습니다!');
+
+    console.log('[DEBUG] 이동 시도 →', url.toString());
+    window.location.assign(url.toString());
+  });
+});
+
+
+
     // 버튼 → 상세조회 → 기존 모달 오픈
     tbody.querySelectorAll('[data-ticket-id]').forEach(btn => {
+
+      console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
+        const url = new URL('protectcompleted.html', window.location.origin);
+        console.log('[DEBUG] 이동 시도 →', url.toString());
+        url.searchParams.set('ticketId', String(ticketId));
+        window.location.assign(url.toString()); // 또는 replace()
+
       btn.addEventListener('click', () => {
+        
         const id = Number(btn.dataset.ticketId);
         window.openTicketById?.(id);
+
+        console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
+        const url = new URL('protectcompleted.html', window.location.origin);
+        console.log('[DEBUG] 이동 시도 →', url.toString());
+        url.searchParams.set('ticketId', String(ticketId));
+        window.location.assign(url.toString()); // 또는 replace()
       });
     });
   }
