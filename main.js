@@ -1,9 +1,10 @@
-import { verifyFiles } from './js/apiClient.js';
-import { loginUser } from './js/apiClient.js';
+// main.js
+import { verifyFiles, loginUser } from './js/apiClient.js';
 
 // ★ API에 맞춘 버전: 생짜 fetch + Swagger 응답 스키마 반영
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE = 'http://127.0.0.1:8080/api'; // 필요시 '/api' 상대경로로 변경 가능
+  const API_BASE = 'http://13.125.59.4:8080/api';
+ // 필요시 '/api' 상대경로로 변경 가능
 
   /* ====== 업로드 영역 ====== */
   const uploadBox  = document.getElementById('uploadBox');
@@ -89,28 +90,43 @@ document.addEventListener("DOMContentLoaded", () => {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (loginBtn.disabled) return;
-
+    
       try {
         const resp = await loginUser({
           email: emailInput.value.trim(),
           password: passwordInput.value.trim(),
         });
-        // 전체 응답 콘솔 출력(요청하셨던 형식)
-        console.log('[MOCK LOGIN RESPONSE]', resp);
-
-        const token = resp?.result?.accessToken;
-        const me    = resp?.result?.me;
+        console.log('[LOGIN RESPONSE]', resp);
+    
+        // apiClient에서 정규화/저장까지 해뒀다면, 그냥 통과시켜도 됨.
+        // 혹시 정규화가 없다면 아래처럼 안전하게 파싱:
+        const token =
+          resp?.normalized?.accessToken ??
+          resp?.result?.access_token ??
+          resp?.result?.accessToken;
+    
+        const tokenType =
+          resp?.normalized?.tokenType ??
+          resp?.result?.token_type ??
+          resp?.result?.tokenType ?? 'Bearer';
+    
+        const me = resp?.normalized?.me ?? resp?.result?.me;
+    
         if (!token) throw new Error('토큰이 응답에 없습니다.');
-
-        localStorage.setItem('accessToken', token);
+    
+        // 이미 apiClient가 저장했다면 생략 가능. 아닐 경우에는 저장:
+        localStorage.setItem('accessToken', token);      // raw token
+        localStorage.setItem('tokenType', tokenType);    // 'Bearer'
         if (me) localStorage.setItem('me', JSON.stringify(me));
-
+    
         alert('로그인 성공! 이제 발급/마이페이지 기능을 사용할 수 있어요.');
         location.href = 'register.html';
       } catch (e) {
-        alert(`로그인 실패: ${e.message || e}`);
+        console.error(e);
+        alert(`로그인 실패: ${e?.message || e}`);
       }
     });
+    
   }
 
   /* ====== 스크롤 애니메이션(티켓) ====== */

@@ -31,23 +31,23 @@ import { listMyTickets, getTicketDetail } from './js/apiClient.js';
         issuedAt: new Date(Date.now() - i*3600_000).toISOString(),
         sha256: `mocked-sha256-${i}`,
         fileNameSubmitted: `sample_${i+1}.pdf`,
-        owner: { name: (JSON.parse(localStorage.getItem('me')||'{}').name || 'mockUser') }
+        owner: { name: (JSON.parse(localStorage.getItem('me')||'{}').name || '사용자') }
       }
     }));
   }
 
   // ===== 휠에 쓸 TICKETS (이미지 src + 모달 바인딩용 메타 동봉) =====
   const TICKETS = RAW.map((r, i) => ({
-    src: r?.contest?.imageUrl || postersFallback[i % postersFallback.length],
+    src: r.imageUrl || postersFallback[i % postersFallback.length],
     meta: {
-      title: r?.contestName || '',
-      proofCode: r?.humanCode || '',
-      timestamp: r?.issuedAt || '',
-      hash: r?.sha256 || '',
-      fileName: r?.fileNameSubmitted || '',
-      owner: r?.ownerName || '',
-      dateRight: fmtDateRight(r?.issuedAt),
-      ticketId: r?.ticketId
+      title: r.contestName || '',
+      proofCode: r.humanCode || '',
+      timestamp: r.issuedAt || '',
+      hash: r.sha256 || '',
+      fileName: r.fileNameSubmitted || '',
+      owner: r.ownerName || '',
+      dateRight: fmtDateRight(r.issuedAt),
+      ticketId: r.ticketId
     }
   }));
 

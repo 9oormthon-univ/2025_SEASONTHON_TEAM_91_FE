@@ -261,7 +261,7 @@
       </div>
 
       <div class="btn-list">
-        <button id="issueBtn" class="main-btn">
+        <button id="issueBtn" type= "button" class="main-btn">
           <span class="btn-icon">
             <img src="public/images/haveticket-icon.svg" alt="Ticket icon" />
           </span>
@@ -281,16 +281,16 @@
       <img src="public/images/Group-2.svg" alt="Ticket 3" class="ticket ticket3" />
     </div>
   </div>
+<!-- register.html 안, 기존 스니펫 통째로 교체 -->
 <script type="module">
   import {
-    USE_MOCK,
     searchContests,
     getGenres,
     createContest,
     issueTicket,
   } from './js/apiClient.js';
 
-  // (여기부터는 기존 DOM 로직만 남기고, API는 위 함수들을 호출)
+  // ===== DOM =====
   const el = {
     search: document.getElementById('contestSearch'),
     acList: document.getElementById('acList'),
@@ -300,101 +300,209 @@
     issue:  document.getElementById('issueBtn'),
   };
 
+  // ===== 상태 =====
   let selectedContest = null;
   let genresCache = null;
 
+  const hasToken = () => !!localStorage.getItem('accessToken');
+
+  // ===== 자동완성 =====
   if (el.search && el.acList) {
     let t;
     el.search.addEventListener('input', () => {
       selectedContest = null;
       if (t) clearTimeout(t);
-      t = setTimeout(async () => {
-        const q = el.search.value.trim();
-        const items = await searchContests(q, 10); // ← apiClient 사용
-        renderAC(items, q);
-      }, 200);
+      t = setTimeout(onSearchInput, 220);
     });
+
+    // 입력 밖 클릭 시 자동완성 닫기
+    document.addEventListener('click', (e) => {
+      if (!el.acList.contains(e.target) && e.target !== el.search) {
+        hideAC();
+      }
+    });
+  }
+
+  async function onSearchInput() {
+    const q = el.search.value.trim();
+
+    if (!q || q.length < 2) {
+      hideAC();
+      return;
+    }
+
+    try {
+      // 서버 스키마: [{ contest_id, name, ... }]
+      const items = await searchContests(q, 10);
+      renderAC(items, q);
+    } catch (e) {
+      console.warn('[searchContests]', e);
+      renderAC([], q);
+    }
   }
 
   function renderAC(items, q) {
     el.acList.innerHTML = '';
-    if (!q) { el.acList.style.display = 'none'; return; }
+    if (!q) { hideAC(); return; }
 
+    // 기존 항목
     items.forEach(it => {
       const li = document.createElement('div');
       li.textContent = it.name;
       li.className = 'ac-item';
       li.onclick = () => {
-        selectedContest = { contestId: it.contest_id, name: it.name };
+        // 서버 키: contest_id
+        selectedContest = { contestId: it.contest_id ?? it.contestId, name: it.name };
         el.search.value = it.name;
-        el.acList.innerHTML = '';
-        el.acList.style.display = 'none';
+        hideAC();
         hideGenreRow();
       };
       el.acList.appendChild(li);
     });
 
+    // 직접 추가
     const add = document.createElement('div');
     add.className = 'ac-item add';
     add.textContent = `“${q}” 공모전 직접 추가`;
-    add.onclick = showGenreRow;
+    add.onclick = () => {
+      selectedContest = null;
+      showGenreRow();
+      hideAC();
+    };
     el.acList.appendChild(add);
 
     el.acList.style.display = 'block';
   }
 
+  function hideAC() {
+    el.acList.style.display = 'none';
+    el.acList.innerHTML = '';
+  }
+
+  // ===== 장르 선택 표시/로딩 =====
   function showGenreRow() {
     document.getElementById('genreRow')?.classList.remove('hidden');
+
+    // 장르 조회는 인증 필요일 가능성이 높음 → 토큰 가드
+    if (!hasToken()) {
+      alert('장르 목록을 불러오려면 먼저 로그인 해주세요.');
+      return;
+    }
+
     if (!genresCache) {
-      getGenres().then(list => {         // ← apiClient 사용
-        genresCache = list;
-        el.genre.innerHTML = '<option value="">장르 선택</option>' +
-          list.map(g => `<option value="${g.genre_id}">${g.name}</option>`).join('');
-      }).catch(e => alert(e.message));
+      getGenres()
+        .then(list => {
+          // 서버 키: genre_id / name
+          genresCache = Array.isArray(list) ? list : [];
+          el.genre.innerHTML =
+            '<option value="">장르 선택</option>' +
+            genresCache.map(g => `<option value="${g.genre_id}">${g.name}</option>`).join('');
+        })
+        .catch(e => {
+          console.error('[getGenres]', e);
+          alert(e?.message || '장르 로드 실패');
+        });
     }
   }
+
   function hideGenreRow() {
     document.getElementById('genreRow')?.classList.add('hidden');
   }
 
+  // ===== 발급 =====
   if (el.issue) {
-    el.issue.addEventListener('click', async () => {
-      try {
-        let contestId = selectedContest?.contestId;
-        if (!contestId) {
-          const name = el.search?.value?.trim();
-          const genreId = el.genre?.value;
-          const created = await createContest({     // ← apiClient 사용
-            name, genreId,
-            imageFile: el.poster?.files?.[0] || null
-          });
-          contestId = created.contest_id || created.contestId; // 목업/실서버 양쪽 호환
+    el.issue.addEventListener('click', onIssue);
+  }
+
+  async function onIssue() {
+    try {
+      // 1) 입력 가드
+      const file = el.work?.files?.[0];
+      if (!file) {
+        alert('작품 파일을 선택해주세요.');
+        return;
+      }
+
+      const nameTyped = el.search?.value?.trim();
+      if (!nameTyped) {
+        alert('공모전 이름을 입력하거나 검색에서 선택해주세요.');
+        return;
+      }
+
+      if (!hasToken()) {
+        alert('티켓 발급은 로그인 후 이용할 수 있어요.');
+        return;
+      }
+
+      // 2) contestId 준비 (선택 or 신규 생성)
+      let contestId = selectedContest?.contestId;
+      if (!contestId) {
+        const genreId = el.genre?.value;
+        if (!genreId) {
+          alert('직접 추가를 선택하셨습니다. 장르를 선택해주세요.');
+          showGenreRow();
+          return;
         }
 
-        const file = el.work?.files?.[0];
-        const res  = await issueTicket({ contestId, file });   // ← apiClient 사용
-        const ticketId = res?.response?.ticketId || res?.ticketId;
+        // 서버: POST /api/contests?name=&genre_id=  body: multipart(image?)
+        const created = await createContest({
+          name: nameTyped,
+          genreId,
+          imageFile: el.poster?.files?.[0] || null, // 선택
+        });
 
-        alert(res?.existed
-          ? '이미 동일 파일/공모전의 티켓이 있어 기존 티켓을 표시합니다.'
-          : '새로운 Proof Ticket이 발급되었습니다.'
-        );
-
-        if (ticketId) location.href = `protectecompleted.html?ticketId=${ticketId}`;
-      } catch (e) {
-        alert(e.message || '처리 중 오류가 발생했습니다.');
+        // Swagger 예시: result: { contest_id, ... } 를 그대로 넘겨받음
+        contestId = created?.contest_id ?? created?.contestId;
+        if (!contestId) {
+          throw new Error('공모전 생성에 실패했습니다. (contestId 없음)');
+        }
       }
-    });
+
+      // 3) 티켓 발급
+      // 서버: POST /api/tickets/issue?contest_id=  body: multipart(file)
+      const res = await issueTicket({ contestId, file });
+
+      // Swagger: result: { response: { ticketId, ... }, existed }
+      const ticketId =
+        res?.result?.response?.ticketId ??
+        res?.response?.ticketId ??
+        res?.ticketId ??
+        null;
+
+      alert(
+        res?.existed
+          ? '이미 동일 공모전/파일의 티켓이 있어 기존 티켓을 표시합니다.'
+          : '새로운 Proof Ticket이 발급되었습니다.' 
+      );
+
+      if (ticketId) {
+        console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
+        const url = new URL('protectcompleted.html', window.location.origin);
+        console.log('[DEBUG] 이동 시도 →', url.toString());
+        url.searchParams.set('ticketId', String(ticketId));
+        window.location.assign(url.toString()); // 또는 replace()
+      }
+      else {
+        console.warn('[DEBUG] ticketId 없음, 이동하지 않음');
+      }
+      } 
+      catch (e) {
+      console.error('[issueTicket]', e);
+      // 서버 표준 메시지/코드 포맷 고려
+      alert(e?.message || '처리 중 오류가 발생했습니다.');
+    }
   }
 </script>
 
-
-  <script>
+<script>
+  // 파일 업로드 UI
   function handleFileUpload() {
-    const uploadArea   = document.getElementById('uploadArea'); // ← 추가
+    const uploadArea   = document.getElementById('uploadArea');
     const fileInput    = document.getElementById('fileInput');
     const fileLabel    = document.getElementById('fileLabel');
     const fileTypeList = document.getElementById('fileTypeList');
+
+    if (!uploadArea || !fileInput || !fileLabel || !fileTypeList) return;
 
     uploadArea.style.background = 'linear-gradient(360deg, #596E99 0%, #94B8FF 100%)';
     if (fileInput.files && fileInput.files[0]) {
@@ -405,6 +513,9 @@
       fileTypeList.style.display = 'flex';
     }
   }
-  </script>
+  // <input id="fileInput" type="file" onchange="handleFileUpload()" ...> 로 연결 필요
+</script>
+
+
 </body>
 </html>
