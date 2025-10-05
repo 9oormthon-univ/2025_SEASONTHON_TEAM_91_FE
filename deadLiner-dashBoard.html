@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deadliner - Monthly Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Open Sans', sans-serif;
+}
+
+body {
+  background-color: #E5E5E5;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ========== Sidebar ========== */
+.sidebar {
+  width: 280px;
+  background-color: #1E2A38;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 700;
+  font-style: italic;
+  margin-bottom: 50px;
+}
+
+.nav-item {
+  margin: 15px 0;
+  font-size: 16px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.nav-item:hover { opacity: 0.8; }
+
+/* ========== Main Layout ========== */
+.main {
+  flex: 1;
+  padding: 4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 60px;
+}
+
+h2 {
+  color: #171F39;
+  font-size: 32px;
+  font-style: italic;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* ========== Calendar Section ========== */
+.calendar {
+  padding: 0rem;
+}
+.calendar-section {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  width: 700px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #5F5F5F;
+  margin-bottom: 25px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 18px;
+  text-align: center;
+}
+
+.day {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 17px;
+  color: #5F5F5F;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.day:hover { background: #E5E7EB; }
+
+.day.today {
+  border: 3px dotted #fff;
+  background: #FF6264;
+  color: #fff;
+  font-weight: 700;
+}
+.day.scheduled {
+  background: #E5E7EB;
+  border: 2px dotted #979797;
+  color: #171F39;
+  font-weight: 700;
+}
+.day.other-month { color: #9E9E9E; }
+
+/* ========== Ongoing Works Section ========== */
+.works-section {
+  width: 360px;
+}
+
+.work-card {
+  background: #F7F5F4;
+  border-radius: 20px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.work-card h3 {
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 700;
+  color: #5F667E;
+}
+
+.work-card p {
+  font-size: 14px;
+  color: #9B9A9A;
+  margin-top: 4px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #ECE9E7;
+  border-radius: 20px;
+  margin-top: 10px;
+  position: relative;
+}
+
+.progress {
+  height: 8px;
+  border-radius: 4px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.progress.green { background: #26B40A; width: 75%; }
+.progress.blue { background: #0A88B4; width: 40%; }
+
+.remaining {
+  text-align: right;
+  font-size: 12px;
+  color: #171F39;
+  margin-top: 5px;
+}
+
+/* ========== Buttons ========== */
+.action-btn {
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  font-style: italic;
+  margin-top: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 4px rgba(0,0,0,0.25);
+  transition: 0.3s;
+}
+.action-btn:hover { transform: translateY(-2px); }
+
+.btn-idea { background: #E3FAFF; color: #979797; }
+.btn-ticket { background: #FFF4E8; color: #979797; }
+</style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="logo">🕊 Deadliner</div>
+  <div class="nav-item">🏠 Home</div>
+  <div class="nav-item">📅 Calendar</div>
+  <div class="nav-item">📂 Ongoing Works</div>
+  <div class="nav-item">💡 Idea</div>
+  <div class="nav-item">🎫 Proof Ticket</div>
+  <div class="nav-item">👤 My Page</div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+  <!-- Left: Calendar -->
+  <div class="calendar">
+    <h2>Monthly Calendar</h2>
+    <div class="calendar-section">
+        <div class="calendar-header">
+        <button id="prev-month" style="border:none;background:none;font-size:22px;cursor:pointer;">◀</button>
+        <span>April, 2025</span>
+        <button id="next-month" style="border:none;background:none;font-size:22px;cursor:pointer;">▶</button>
+        </div>
+        <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
+  </div>
+
+  <!-- Right: Ongoing Works -->
+  <div class="works-section">
+    <h2>Ongoing Works</h2>
+    <div id="works-list"></div>
+    <div class="action-btn btn-idea">Manage My Ideas</div>
+    <div class="action-btn btn-ticket">Proof Ticket</div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+(function() {
+  const monthNames = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+
+  const scheduledDays = [23, 26]; // 일정 있는 날
+  const calendarGrid = document.getElementById('calendar-grid');
+  const headerSpan = document.querySelector('.calendar-header span');
+  const prevBtn = document.getElementById('prev-month');
+  const nextBtn = document.getElementById('next-month');
+
+  let today = new Date();
+  let currentYear = today.getFullYear();
+  let currentMonth = today.getMonth();
+
+  function renderCalendar(year, month) {
+    calendarGrid.innerHTML = '';
+    headerSpan.textContent = `${monthNames[month]}, ${year}`;
+
+    const daysOfWeek = ['S','M','T','W','T','F','S'];
+    daysOfWeek.forEach(day => {
+      const el = document.createElement('div');
+      el.textContent = day;
+      el.style.fontWeight = '700';
+      calendarGrid.appendChild(el);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const d = document.createElement('div');
+      d.className = 'day other-month';
+      d.textContent = daysInPrevMonth - i;
+      calendarGrid.appendChild(d);
+    }
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = document.createElement('div');
+      d.className = 'day';
+      if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) d.classList.add('today');
+      if (scheduledDays.includes(i)) d.classList.add('scheduled');
+      d.textContent = i;
+      calendarGrid.appendChild(d);
+    }
+
+    const total = calendarGrid.children.length;
+    const remainder = total % 7;
+    if (remainder !== 0) {
+      for (let i = 1; i <= 7 - remainder; i++) {
+        const d = document.createElement('div');
+        d.className = 'day other-month';
+        d.textContent = i;
+        calendarGrid.appendChild(d);
+      }
+    }
+  }
+
+  prevBtn.onclick = () => {
+    currentMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    if (currentMonth === 11) currentYear--;
+    renderCalendar(currentYear, currentMonth);
+  };
+  nextBtn.onclick = () => {
+    currentMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+    if (currentMonth === 0) currentYear++;
+    renderCalendar(currentYear, currentMonth);
+  };
+
+  renderCalendar(currentYear, currentMonth);
+})();
+</script>
+
+<script>
+(function() {
+  const works = [
+    { title: "Project Alpha", contest: "Innovation Challenge", progressClass: "green", remaining: "5 days remaining" },
+    { title: "Project Beta", contest: "Startup Contest", progressClass: "blue", remaining: "15 days remaining" }
+  ];
+
+  const worksList = document.getElementById('works-list');
+  works.forEach(work => {
+    worksList.insertAdjacentHTML('beforeend', `
+      <div class="work-card">
+        <h3>${work.title}</h3>
+        <p>Contest: ${work.contest}</p>
+        <div class="progress-bar"><div class="progress ${work.progressClass}"></div></div>
+        <div class="remaining">${work.remaining}</div>
+      </div>
+    `);
+  });
+})();
+</script>
+
+</body>
+</html>
