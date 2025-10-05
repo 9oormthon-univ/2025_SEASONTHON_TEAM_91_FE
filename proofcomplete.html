@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ProofTicket – 티켓 검증 완료</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- html2canvas & jsPDF (UMD) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #141414;
+      --text: #E5E7EB;
+      --muted: #979797;
+      --ok: #06C270;
+      --btnText: #141414;
+      --cardBorder: #979797;
+      --accent: #FFF3B6;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Roboto, system-ui, -apple-system, Segoe UI, Noto Sans KR, sans-serif;
+    }
+    .page {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 24px 96px;
+      position: relative;
+    }
+    .title {
+      margin: 96px auto 8px;
+      text-align: center;
+      color: var(--ok);
+      font-size: 48px;
+      font-weight: 700;
+      font-family: Roboto, sans-serif;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 400;
+      margin-bottom: 32px;
+    }
+    .result-card {
+      position: relative;
+      border: 2px solid var(--cardBorder);
+      border-radius: 12px;
+      padding: 24px 24px 16px;
+      overflow: hidden;
+      backdrop-filter: blur(1px);
+    }
+    .ticket-stack {
+      position: absolute;
+      right: -40px;
+      top: -20px;
+      width: 420px;
+      height: 520px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .ticket {
+      position: absolute;
+      inset: auto;
+      width: 300px;
+      height: 480px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      transform-origin: center;
+      background: linear-gradient(180deg, #E5E7EB 0%, #87A3D9 100%);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+    .ticket.t1 {
+      left: 120px;
+      top: 40px;
+      transform: rotate(19deg);
+    }
+    .ticket.t2 {
+      left: 0;
+      top: 100px;
+      transform: rotate(-19deg);
+      background: linear-gradient(180deg, #E5E7EB 0%, #cfd8e3 100%);
+    }
+    .table {
+      position: relative;
+      width: 100%;
+      border-collapse: collapse;
+      z-index: 1;
+    }
+    .table thead th {
+      text-align: left;
+      padding: 14px 12px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid var(--muted);
+      white-space: nowrap;
+    }
+    .table tbody td {
+      padding: 14px 12px;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text);
+      border-bottom: 1px solid var(--muted);
+    }
+    .btn-small {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      min-width: 170px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #fff;
+      color: var(--btnText);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .cta {
+      margin: 36px auto 0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      padding: 18px 28px;
+      border-radius: 20px;
+      border: 1px solid var(--text);
+      color: var(--text);
+      font-family: Inter, Roboto, sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: transparent;
+      cursor: pointer;
+    }
+    .cta .ico {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background-image: url("./public/images/external.svg");
+    }
+    .ticket-modal::backdrop {
+      background: rgba(0, 0, 0, 0.6);
+    }
+    .ticket-modal {
+      top: 3%;
+      overflow: hidden;
+      justify-self: center;
+      border: 0;
+      padding: 0;
+      background: transparent;
+    }
+    .modal-box {
+      position: relative;
+      background: #0c0c0c;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 28px 28px 24px;
+      max-width: 960px;
+      width: calc(100vw - 40px);
+      overflow: hidden;
+      margin: auto;
+    }
+    .modal-box .close {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    /* 모달 안의 두 장 티켓 공통 */
+    .tickets {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: clamp(16px, 4vw, 40px);
+      margin: 10px auto 0;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+      position: relative;
+      z-index: 1;
+    }
+    .ticketContainer {
+      --scale: 1;
+      width: calc(460px * var(--scale));
+      height: calc(787px * var(--scale));
+      position: relative;
+      transform-style: preserve-3d;
+      will-change: transform;
+      border-radius: 0px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+
+      -webkit-mask-image: url('public/images/ticket-shape.svg');
+      mask-image:          url('public/images/ticket-shape.svg');
+      -webkit-mask-size:   100% 100%;
+      mask-size:           100% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat:         no-repeat;
+      -webkit-mask-position: center;
+      mask-position:       center;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    proof-ticket {
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+.lightOverlay{
+  position:absolute; inset:0; z-index:3; pointer-events:none; border-radius:14px;
+  margin-left: 6%;
+  mix-blend-mode: color-dodge;
+  background: linear-gradient(105deg,
+              transparent 40%,
+              rgba(255,219,112,0.8) 45%,
+              rgba(132,50,255,0.6) 50%,
+              transparent 54%);
+  filter: brightness(1.4) opacity(0.9);
+  background-size:250% 250%;
+  background-position:50%;
+  transition: background-position .1s;
+
+  --fade-start: 78%;
+  --fade-end: 97%;
+
+  /* 티켓 모양 마스크 */
+  -webkit-mask-image: url('public/images/ticket-shape.svg'),
+                      radial-gradient(
+    circle at 50% 50%,
+    rgba(0,0,0,1) var(--fade-start),
+    rgba(0,0,0,0) var(--fade-end)
+  );
+  mask-image:         url('public/images/ticket-shape.svg'),
+                      radial-gradient(
+    circle at 50% 50%,
+    rgba(0,0,0,1) var(--fade-start),
+    rgba(0,0,0,0) var(--fade-end)
+  );
+  -webkit-mask-composite: intersect; /* WebKit */
+  mask-composite: intersect;         /* 표준 */
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-size: 70% 50%, cover; /* 첫 번째는 티켓, 두 번째는 radial */
+  mask-size:         94% 85%, cover;
+}
+    .ticketContainer.is-front .lightOverlay { --fade-start: 75%; --fade-end: 98%; }
+    .ticketContainer.is-back  .lightOverlay { --fade-start: 82%; --fade-end: 97%; filter: brightness(1.2) opacity(0.85); }
+    
+    @media (max-width: 860px) {
+      .tickets {
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .ticketContainer {
+        --scale: 0.7;
+      }
+    }
+    .pdf-btn {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto 0;
+      height: 48px;
+      padding: 0 22px;
+      border-radius: 999px;
+      border: 1px solid #fff;
+      color: #fff;
+      background: transparent;
+      cursor: pointer;
+      font: 700 16px/1 Inter, sans-serif;
+    }
+    .pdf-btn .ico {
+      width: 20px;
+      height: 20px;
+      background: url("./public/images/download.svg") center/contain no-repeat;
+    }
+    @media (max-width: 900px) {
+      .ticket-stack {
+        display: none;
+      }
+      .table thead th:nth-child(3),
+      .table tbody td:nth-child(3),
+      .table thead th:nth-child(4),
+      .table tbody td:nth-child(4) {
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ticket modal -->
+  <dialog id="ticketModal" class="ticket-modal">
+    <div class="modal-box">
+      <button type="button" class="close" aria-label="닫기">✕</button>
+
+      <div class="tickets">
+        <div class="ticketContainer is-front">
+          <div class="lightOverlay"></div>
+          <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82"></proof-ticket>
+        </div>
+
+        <div class="ticketContainer is-back">
+          <div class="lightOverlay"></div>
+          <proof-ticket id="tBack" shape-src="./public/images/ticket-shape.svg" side="back" scale="0.82"></proof-ticket>
+        </div>
+      </div>
+
+      <button id="pdfDownload" class="pdf-btn" type="button">
+        <span class="ico" aria-hidden="true"></span> PDF 다운로드
+      </button>
+    </div>
+  </dialog>
+
+  <main class="page">
+    <a href="main.html" class="logo-link" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
+      <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" />
+    </a>
+
+    <h1 class="title">티켓 검증 완료</h1>
+    <p class="subtitle" id="resultSubtitle">검증 결과를 불러오는 중...</p>
+
+    <section class="result-card" aria-label="검증 결과 리스트">
+      <div class="ticket-stack" aria-hidden="true">
+        <div class="ticket t1"></div>
+        <div class="ticket t2"></div>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">공모전</th>
+            <th scope="col">파일 이름</th>
+            <th scope="col">증명 코드</th>
+            <th scope="col">타임스탬프</th>
+            <th scope="col">나의 Proof ticket</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody">
+        </tbody>
+      </table>
+    </section>
+
+    <button class="cta" type="button" onclick="location.href='main.html#section-2'">
+      <span class="ico" aria-hidden="true"></span>
+      다른 작품 검증하러 가기
+    </button>
+  </main>
+
+
+  <script type="module">
+    import { getVerifyDetail, USE_MOCK } from './js/apiClient.js';
+    const API_BASE = 'http://13.125.59.4:8080/api';
+  
+    // === 모달 및 티켓 바인딩 ===
+    const dlg    = document.getElementById('ticketModal');
+    const tFront = document.getElementById('tFront');
+    const tBack  = document.getElementById('tBack');
+  
+    // ❶ 키 정규화 헬퍼
+    const normalize = (d = {}) => {
+      const n = (v, ...alts) => v ?? alts.find(a => a !== undefined) ?? '';
+      const ts = n(d.timestamp, d.time_stamp, d.issued_at);
+      const dateRight = (String(ts).split(' ')[0] || '').replaceAll('-', '/');
+  
+      return {
+        frontImage: n(d.frontImage, d.front_image, d.contest?.image_url, d.contest_image),
+        title:      n(d.title, d.contest?.name, d.name),
+        proofCode:  n(d.proofCode, d.proof_code, d.human_code),
+        timestamp:  ts,
+        hash:       n(d.hash, d.sha256),
+        fileName:   n(d.fileName, d.file_name, d.file_name_submitted),
+        owner:      n(d.owner, d.owner_name, d.owner?.name),
+        dateRight
+      };
+    };
+  
+    const applyData = (el, data) => {
+      const v = normalize(data);
+      el.setAttribute('front-image', v.frontImage || './posters/poster7.png');
+      el.setAttribute('title',       v.title);
+      el.setAttribute('proof-code',  v.proofCode);
+      el.setAttribute('timestamp',   v.timestamp);
+      el.setAttribute('hash',        v.hash);
+      el.setAttribute('file-name',   v.fileName);
+      el.setAttribute('owner',       v.owner);
+      el.setAttribute('date-right',  v.dateRight);
+    };
+  
+    /** 전역 공개: 다른 스크립트에서 모달 열기 */
+    window.openTicketWithData = (data) => {
+      applyData(tFront, data);
+      applyData(tBack,  data);
+      tFront.setAttribute('side', 'front');
+      tBack.setAttribute('side',  'back');
+      if (typeof dlg.showModal === 'function') dlg.showModal();
+      else dlg.setAttribute('open', '');
+    };
+  
+    /** ticketId로 상세 조회 후 모달 열기 */
+    window.openTicketById = async (ticketId) => {
+      try {
+        const data = await getVerifyDetail(ticketId);
+        const r = data?.result || {};
+        // 응답을 그대로 normalize가 처리하게 넘김
+        window.openTicketWithData(r);
+      } catch (e) {
+        console.error(e);
+        alert(e?.message || '티켓 상세 조회 실패');
+      }
+    };
+  
+    // 커스텀 엘리먼트 준비 후 진행 (필요 시)
+    await customElements.whenDefined('proof-ticket');
+  
+    // 3D/홀로그램 효과 (기존 코드 그대로)
+    document.querySelectorAll('.ticketContainer').forEach(container => {
+      const overlay = container.querySelector('.lightOverlay');
+      function trackOverlay(x, y, rect) {
+        const nx = (x / rect.width) * 2 - 1;
+        const ny = (y / rect.height) * 2 - 1;
+        const rotY = nx * 10;
+        const rotX = -ny * 10;
+        container.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        overlay.style.backgroundPosition = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
+      }
+      container.addEventListener('mousemove', e => {
+        const r = container.getBoundingClientRect();
+        trackOverlay(e.clientX - r.left, e.clientY - r.top, r);
+      });
+      container.addEventListener('mouseleave', () => {
+        container.style.transform = '';
+        overlay.style.backgroundPosition = '80% 80%';
+      });
+      container.addEventListener('touchmove', e => {
+        const t = e.touches[0];
+        if (!t) return;
+        const r = container.getBoundingClientRect();
+        trackOverlay(t.clientX - r.left, t.clientY - r.top, r);
+        e.preventDefault();
+      }, { passive: false });
+    });
+  
+    // 닫기
+    dlg.querySelector('.close')?.addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', e => {
+      const box = dlg.querySelector('.modal-box');
+      if (box && !box.contains(e.target)) dlg.close();
+    });
+  </script>
+  
+
+  <script type="module">
+  const subtitle = document.getElementById('resultSubtitle');
+  const tbody    = document.getElementById('resultBody');
+
+  const saved = sessionStorage.getItem('verifyResult'); // main.js에서 저장한 것
+  if (!saved) {
+    subtitle.textContent = '검증할 파일이 없습니다. 메인에서 파일을 선택해 주세요.';
+    // 필요하면 자동 이동: location.href = 'main.html#section-2';
+  } else {
+    const { count, tickets } = JSON.parse(saved);
+    subtitle.textContent = count > 0
+      ? `총 ${count}개 공모전에서 이력이 있습니다.`
+      : '해당 파일로 등록된 티켓이 없습니다.';
+
+    // 표 렌더링
+    tbody.innerHTML = (tickets || []).map(t => `
+      <tr>
+        <td>${esc(t.contest_name)}</td>
+        <td>${esc(t.file_name_submitted)}</td>
+        <td>${esc(t.human_code)}</td>
+        <td>${fmt(t.issued_at)}</td>
+        <td>
+          <button class="btn-small" data-ticket-id="${t.ticket_id}">티켓 보기
+            </button>
+        </td>
+      </tr>
+    `).join('');
+
+    // 모든 '티켓 보기' 버튼에 이벤트 연결
+    document.querySelectorAll('.btn-small[data-ticket-id]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const ticketId = btn.getAttribute('data-ticket-id');
+    console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
+
+    const url = new URL('protectcompleted.html', window.location.origin);
+    url.searchParams.set('ticketId', String(ticketId));
+
+    // 여기서 원하는 텍스트 값 넣기
+    url.searchParams.set('title', '내 티켓 보호 완료');
+    url.searchParams.set('subtitle', '선택한 티켓이 안전하게 보호되었습니다!');
+
+    console.log('[DEBUG] 이동 시도 →', url.toString());
+    window.location.assign(url.toString());
+  });
+});
+
+
+
+    // 버튼 → 상세조회 → 기존 모달 오픈
+    tbody.querySelectorAll('[data-ticket-id]').forEach(btn => {
+
+      console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
+        const url = new URL('protectcompleted.html', window.location.origin);
+        console.log('[DEBUG] 이동 시도 →', url.toString());
+        url.searchParams.set('ticketId', String(ticketId));
+        window.location.assign(url.toString()); // 또는 replace()
+
+      btn.addEventListener('click', () => {
+        
+        const id = Number(btn.dataset.ticketId);
+        window.openTicketById?.(id);
+
+        console.log('[DEBUG] 발급 성공, ticketId =', ticketId);
+        const url = new URL('protectcompleted.html', window.location.origin);
+        console.log('[DEBUG] 이동 시도 →', url.toString());
+        url.searchParams.set('ticketId', String(ticketId));
+        window.location.assign(url.toString()); // 또는 replace()
+      });
+    });
+  }
+
+  // helpers
+  function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
+  function fmt(iso=''){ if(!iso) return ''; const d=new Date(iso); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+</script>
+
+
+  
+
+</body>
+</html>

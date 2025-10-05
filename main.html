@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProofTicket 메인페이지</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Section 1 -->
+    <section>
+      <div class="section1-stage">
+        <img src="public/images/logo.svg" class="logo" alt="로고" />
+        <img src="public/images/section1_tickets.svg" class="section1-tickets" alt="" />
+        <img src="public/images/section1_titleticket.svg" class="section1-title" alt="" />
+        <div class="section1-headline">
+          <h1 class="headline">창작의 순간을 증명하다,</h1>
+          <h1 class="headline accent">ProofTicket</h1>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2 (파일 업로드) -->
+    <section id="section-2">
+      <img id="ticket1" class="ticket ticket1-pos" src="public/images/Ticket1.svg" alt="티켓1"/>
+
+      <div class="centered">
+        <h1>티켓 검증하기</h1>
+        <p class="muted">당신의 작품을 ProofTicket으로 검증해보세요.</p>
+
+        <label class="upload-box" id="uploadBox">
+          <img src="public/images/upload.svg" alt="업로드 아이콘" />
+          <span>파일을 끌어다 놓거나 눌러서 선택해주세요.</span>
+          <input type="file" id="fileInput" accept=".pdf,.docx,.mp3,.mp4" />
+
+          <div class="file-hints">
+            <span>PDF</span><span>DOCX</span><span>MP3</span><span>MP4</span><span>최대 1GB</span>
+          </div>
+
+          <p class="subtle">파일은 저장되지 않으니 안심하세요!</p>
+        </label>
+
+        <button class="file-btn" id="confirmBtn" disabled>확인</button>
+      </div>
+    </section>
+
+    <!-- Section 3 (로그인) -->
+    <section id="section-3">
+      <img id="ticket2" class="ticket ticket2-pos" src="public/images/Ticket2.svg" alt="티켓2"/>
+
+      <div class="centered">
+        <h1>로그인</h1>
+        <p class="muted">당신의 저작권을 ProofTicket에서 관리하세요.</p>
+
+        <form class="login-form" id="loginForm">
+          <div class="input-wrapper">
+            <img src="public/images/mail.svg" class="input-icon" alt="이메일 아이콘" />
+            <input type="email" id="email" placeholder="Email" required />
+          </div>
+
+          <div class="input-wrapper">
+            <img src="public/images/lock.svg" class="input-icon" alt="비밀번호 아이콘" />
+            <input type="password" id="password" placeholder="Password" required />
+          </div>
+
+          <button type="submit" class="login-btn" id="loginBtn" disabled>로그인</button>
+        </form>
+
+        <p class="signup-link" onclick="location.href='signup.html'">회원이 아니신가요?</p>
+
+        <div class="divider">
+          <div class="line"></div>
+          <div class="label">간편 로그인</div>
+          <div class="line"></div>
+        </div>
+
+        <div class="social-login">
+          <button class="google" title="구글 로그인"></button>
+          <button class="kakao"  title="카카오 로그인"></button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 2) 앱 스크립트 -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

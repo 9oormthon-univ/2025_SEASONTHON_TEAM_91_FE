@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>유저1님의 Proof Tickets</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="myproofticket.css" />
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <a href="main.html" class="logo-link" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
+    <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" />
+  </a>
+
+  <main class="page">
+    <h1 class="title">유저1님의 Proof Tickets</h1>
+    <div class="sort-icon" style="position: fixed; left: 40px; top: 150px; z-index: 100;">
+      <img class="sort-icon" src="public/images/sortlinear.svg" alt="Proof Ticket Logo" />
+    </div>
+    <section class="wheel-wrap">
+      <div id="wheel" class="wheel"></div>
+      <div class="wheel-btn-bar">
+        <button class="wheel-btn" id="newTicketBtn">
+          <img src="public/images/haveticket-white-icon.svg" alt="">
+          새로운 PROOF TICKET 발급받기
+        </button>
+      </div>
+    </section>
+  </main>
+  <dialog id="ticketModal" class="ticket-modal">
+    <div class="modal-box">
+      <button type="button" class="close" aria-label="닫기">✕</button>
+      <div class="tickets">
+        <div class="ticketContainer is-front">
+          <div class="lightOverlay"></div>
+          <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82"></proof-ticket>
+        </div>
+        <div class="ticketContainer is-back">
+          <div class="lightOverlay"></div>
+          <proof-ticket id="tBack" shape-src="./public/images/ticket-shape.svg" side="back" scale="0.82"></proof-ticket>
+        </div>
+      </div>
+    </div>
+  </dialog>
+  <script type="module" src="./ticket.js"></script>
+  <script type="module" src="./bg-rotator.js"></script>
+  <script type="module" src="./myproofticket.js"></script>
+</body>
+</html>
