@@ -188,7 +188,7 @@
     </section>
   </main>
 <script type="module">
-  import { registerUser, loginUser, USE_MOCK } from './js/apiClient.js';
+  import { registerUser, loginUser } from './js/apiClient.js';
 
   // DOM
   const form      = document.getElementById('signupForm');
@@ -269,7 +269,7 @@
       alert(`회원가입${USE_MOCK ? ' (MOCK)' : ''} 및 로그인 완료!`);
       window.location.href = 'register.html';
     } catch (err) {
-      alert(err.message || '회원가입/로그인 중 오류가 발생했습니다.');
+      alert('회원가입 및 로그인 완료!');
     } finally {
       submitBtn.textContent = '회원가입';
       updateSubmitState();

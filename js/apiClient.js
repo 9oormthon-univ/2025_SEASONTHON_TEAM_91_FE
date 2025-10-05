@@ -140,15 +140,14 @@ function normalizeTicket(item) {
   const contest = item.contest || {};
   const td = item.ticketDetail || {};
   return {
-    ticketId: items.ticketId ?? item.id ?? 0,
-    contestId: contest.contestId ?? contest.id ?? null,
-    contestName: contest.name ?? '',
-    imageUrl: contest.imageUrl ?? item.imageUrl ?? '',
-    humanCode: td.humanCode ?? item.humanCode ?? '',
-    issuedAt: td.issuedAt ?? item.issuedAt ?? '',
-    sha256: td.sha256 ?? item.sha256 ?? '',
-    fileNameSubmitted: td.fileNameSubmitted ?? item.fileNameSubmitted ?? '',
-    ownerName: td.owner?.name ?? td.ownerName ?? item.ownerName ?? '',
+    ticketId: item.ticket_id ?? item.ticketId ?? item.id ?? 0,
+    contestId: item.contest_id ?? item.contestId ?? null,
+    contestName: item.contest_name ?? item.contestName ?? '',
+    imageUrl: item.contest_image_url ?? item.contestImageUrl ?? '',
+    humanCode: item.human_code ?? item.humanCode ?? '',
+    issuedAt: item.issued_at ?? item.issuedAt ?? '',
+    fileName: item.file_name_submitted ?? item.fileNameSubmitted ?? '',
+    ownerName: item.user_name ?? item.ownerName ?? '',
   };
 }
 

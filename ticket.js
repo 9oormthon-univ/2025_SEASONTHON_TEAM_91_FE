@@ -174,8 +174,11 @@ class ProofTicket extends HTMLElement {
   _applyFrontImage(src = this.getAttr("front-image", "/posters/poster7.png")){
     if (!this._frontEl) return;
     
-    // 이미지 경로 정규화
-    const normalizedSrc = src.startsWith('/') ? src : `/${src}`;
+    const rawSrc = src || '/posters/poster7.png';
+    const normalizedSrc =
+      rawSrc.startsWith('http://') || rawSrc.startsWith('https://') || rawSrc.startsWith('data:') ? rawSrc :
+      rawSrc.startsWith('/') ? rawSrc : `/${rawSrc}`;
+
     console.log(normalizedSrc);
     
     // 이미지 로딩 테스트
@@ -186,9 +189,6 @@ class ProofTicket extends HTMLElement {
     };
     img.onerror = () => {
       console.warn(`[ProofTicket] 이미지 로딩 실패: ${normalizedSrc}`);
-      // // 폴백 이미지 사용
-      // this._frontEl.style.backgroundImage = `url("/posters/poster7.png")`;
-      // this._updateBackGradientFromImage("/posters/poster7.png");
     };
     img.src = normalizedSrc;
   }
