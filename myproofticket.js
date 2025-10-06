@@ -227,9 +227,14 @@ async function openTicket(idx) {
 }
 
 
-
-
-  slots.forEach((btn, i) => btn.addEventListener('click', () => openTicket(i)));
+// ✅ 수정: 클릭 시 실제 티켓 인덱스 전달
+slots.forEach((btn, i) => {
+  btn.addEventListener('click', () => {
+    const realIdx = mapIdx(i);
+    console.log(`🖱️ 슬롯 ${i} 클릭 → 티켓[${realIdx}]: ${tickets[realIdx]?.meta?.title}`);
+    openTicket(realIdx);
+  });
+});
   dlg.querySelector('.close')?.addEventListener('click', () => dlg.close?.());
 
   /* ---------- 기하 계산 ---------- */

@@ -206,7 +206,7 @@ class ProofTicket extends HTMLElement {
   /** 이미지에서 컬러 2개 추출 → back 그라디언트 적용 */
   _updateBackGradientFromImage(src){
     const img = new Image();
-    // img.crossOrigin = "anonymous"; // CORS 허용된 이미지여야 캔버스 읽기 가능
+    img.crossOrigin = "anonymous"; // CORS 허용된 이미지여야 캔버스 읽기 가능
     img.decoding = "async";
     img.onload = () => {
       const w = 64, h = 64;
