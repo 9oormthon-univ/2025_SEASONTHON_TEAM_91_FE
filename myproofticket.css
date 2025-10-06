@@ -189,8 +189,8 @@ proof-ticket {
 
 .lightOverlay {
   position: absolute;
-  top: -30px; left: 0;
-  width: 97%; height: 97%;
+  top: 60px; left: 1%;
+  width: 88%; height: 75%;
   border-radius: 14px;
   z-index: 3;
   pointer-events: none;

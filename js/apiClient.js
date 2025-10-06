@@ -171,12 +171,15 @@ export async function issueTicket({ contestId, file }) {
 /** GET /api/tickets/{ticketId}  (인증) — 단건 */
 export async function getTicketDetail(ticketId) {
   const data = await jfetch(`/tickets/${encodeURIComponent(ticketId)}`, { auth: true });
-  console.log("data : " + data);
+  console.log("✅ getTicketDetail raw data:", data);
+  
   const raw = data?.result ?? data;
+  
+  // ✅ snake_case로 접근 후 normalizeTicket에 전달
   return normalizeTicket({
-    ticketId: raw?.ticketId,
-    contest: raw?.contest,
-    ticketDetail: raw?.ticketDetail,
+    ticketId: raw?.ticket_id,           // ⚠️ snake_case!
+    contest: raw?.contest,               // 이건 그대로
+    ticketDetail: raw?.ticket_detail,    // ⚠️ snake_case!
   });
 }
 
