@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Idea Board</title>
+  <link rel="stylesheet" href="main.css">
+  <style>
+    body {
+      background: #fffbe6;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+    }
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 200px;
+      height: 100vh;
+      background: #223044;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 30px;
+    }
+    .sidebar h2 {
+      font-size: 1.5em;
+      margin-bottom: 40px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-weight: bold;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      width: 100%;
+    }
+    .sidebar ul li {
+      padding: 15px 0 15px 30px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .sidebar ul li:hover {
+      background: #2c3e50;
+    }
+    .main {
+      margin-left: 220px;
+      padding: 40px;
+      min-height: 100vh;
+      background: #fffbe6;
+    }
+    .board-header {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 30px;
+      color: #223044;
+    }
+    .idea-board {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      min-height: 400px;
+    }
+    .idea-card {
+      min-width: 200px;
+      min-height: 120px;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      font-size: 1.1em;
+      font-weight: 500;
+      position: relative;
+      transition: box-shadow 0.2s;
+      cursor: pointer;
+      word-break: break-word;
+    }
+    .idea-card .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 1em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .add-idea-btn {
+      background: #0099cc;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 32px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 30px;
+      float: right;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: background 0.2s;
+    }
+    .add-idea-btn:hover {
+      background: #0077aa;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.2);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 32px 40px;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+      min-width: 350px;
+      max-width: 90vw;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .modal-content label {
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #223044;
+    }
+    .modal-content input, .modal-content textarea, .modal-content select {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+      margin-bottom: 10px;
+    }
+    .modal-content .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+    .modal-content .modal-actions button {
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-content .modal-actions .cancel {
+      background: #eee;
+      color: #223044;
+    }
+    .modal-content .modal-actions .confirm {
+      background: #0099cc;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>🪶 Deadliner</h2>
+    <ul>
+      <li onclick="location.href='main.html'">Home</li>
+      <li onclick="location.href='deadLiner-dashBoard.html'">Calender</li>
+      <li onclick="location.href='idea-board.html'" style="background:#2c3e50;">Idea</li>
+      <li onclick="location.href='myproofticket.html'">Proof ticket</li>
+      <li onclick="location.href='my-page.html'">My Page</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="board-header">Idea Board</div>
+    <button class="add-idea-btn" onclick="openModal()">+ Add Idea</button>
+    <button class="add-idea-btn" style="background:#223044;margin-right:10px;float:left;" onclick="openLoginModal()">Login</button>
+    <div class="idea-board" id="ideaBoard"></div>
+  </div>
+  <!-- Login Modal -->
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <h2>Login</h2>
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" placeholder="Enter email">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password">
+      <div class="modal-actions">
+        <button class="cancel" onclick="closeLoginModal()">Cancel</button>
+        <button class="confirm" onclick="loginUserAction()">Login</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal" id="ideaModal">
+    <div class="modal-content">
+      <h2>Add New Idea</h2>
+      <label for="color">Color</label>
+      <select id="color">
+        <option value="#b2f2c9">Mint</option>
+        <option value="#ffe066">Yellow</option>
+        <option value="#ffd6e0">Pink</option>
+        <option value="#cce5ff">Blue</option>
+      </select>
+      <label for="detail">Detail</label>
+      <textarea id="detail" rows="3" placeholder="Enter your idea..."></textarea>
+      <label for="x">X</label>
+      <input type="number" id="x" value="3" min="0" max="100" />
+      <label for="y">Y</label>
+      <input type="number" id="y" value="3" min="0" max="100" />
+      <label for="w">Width</label>
+      <input type="number" id="w" value="10" min="1" max="100" />
+      <label for="h">Height</label>
+      <input type="number" id="h" value="10" min="1" max="100" />
+      <div class="modal-actions">
+        <button class="cancel" onclick="closeModal()">Cancel</button>
+  <button class="confirm" id="addIdeaBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+  <script type="module">
+    import { listIdeas, addIdeaBoard, deleteIdeaBoard, loginUser } from './js/apiClient.js';
+
+    const ideaBoard = document.getElementById('ideaBoard');
+    const modal = document.getElementById('ideaModal');
+    const loginModal = document.getElementById('loginModal');
+
+    function openModal() {
+      console.log('[EVENT] openModal called');
+      modal.style.display = 'flex';
+    }
+    function closeModal() {
+      console.log('[EVENT] closeModal called');
+      modal.style.display = 'none';
+      document.getElementById('detail').value = '';
+    }
+    function openLoginModal() {
+      console.log('[EVENT] openLoginModal called');
+      loginModal.style.display = 'flex';
+    }
+    function closeLoginModal() {
+      console.log('[EVENT] closeLoginModal called');
+      loginModal.style.display = 'none';
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+    }
+    async function loginUserAction() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      console.log('[EVENT] loginUserAction called', { email });
+      if (!email.trim() || !password.trim()) {
+        alert('이메일과 비밀번호를 입력하세요.');
+        return;
+      }
+      try {
+        const res = await loginUser({ email, password });
+        console.log('[API] loginUser response', res);
+        closeLoginModal();
+        fetchIdeas();
+        alert('로그인 성공!');
+      } catch (err) {
+        console.error('[API] loginUser error', err);
+        alert('로그인 실패: ' + err.message);
+      }
+    }
+    function renderIdeas(ideas) {
+      console.log('[RENDER] renderIdeas called', ideas);
+      ideaBoard.innerHTML = '';
+      ideas.forEach(idea => {
+        const card = document.createElement('div');
+        card.className = 'idea-card';
+        card.style.background = idea.color || '#ffe066';
+        card.innerHTML = `
+          <span>${idea.detail}</span>
+          <button class="delete-btn" data-id="${idea.idea_id}">&times;</button>
+        `;
+        card.querySelector('.delete-btn').onclick = () => {
+          console.log('[EVENT] delete button clicked', idea.idea_id);
+          deleteIdea(idea.idea_id);
+        };
+        ideaBoard.appendChild(card);
+      });
+    }
+    async function fetchIdeas() {
+      console.log('[API] fetchIdeas called');
+      try {
+        const data = await listIdeas();
+        console.log('[API] listIdeas response', data);
+        if (data.isSuccess && data.result && Array.isArray(data.result.result)) {
+          renderIdeas(data.result.result);
+          window._lastIdeas = data.result.result;
+        } else {
+          console.log('[API] No ideas found or API error', data);
+          window._lastIdeas = [];
+        }
+      } catch (err) {
+        console.error('[API] fetchIdeas error', err);
+        ideaBoard.innerHTML = `<div style=\"color:red;\">${err.message}</div>`;
+        window._lastIdeas = [];
+      }
+    }
+    async function addIdea() {
+      const color = document.getElementById('color').value;
+      const detail = document.getElementById('detail').value;
+      const x = Number(document.getElementById('x').value);
+      const y = Number(document.getElementById('y').value);
+      const w = Number(document.getElementById('w').value);
+      const h = Number(document.getElementById('h').value);
+      console.log('[EVENT] addIdea called', { color, detail, x, y, w, h });
+      if (!detail.trim()) return;
+      try {
+        const res = await addIdeaBoard({ x, y, w, h, color, detail });
+        console.log('[API] addIdeaBoard response', res);
+        closeModal();
+        if (res?.result?.result) {
+          let currentIdeas = [];
+          if (window._lastIdeas && Array.isArray(window._lastIdeas)) {
+            currentIdeas = [...window._lastIdeas];
+          }
+          currentIdeas.push(res.result.result);
+          renderIdeas(currentIdeas);
+          window._lastIdeas = currentIdeas;
+        } else {
+          fetchIdeas();
+        }
+      } catch (err) {
+        console.error('[API] addIdea error', err);
+        alert('아이디어 추가 실패: ' + err.message);
+      }
+    }
+    async function deleteIdea(id) {
+      console.log('[EVENT] deleteIdea called', id);
+      try {
+        const res = await deleteIdeaBoard(id);
+        console.log('[API] deleteIdeaBoard response', res);
+        fetchIdeas();
+      } catch (err) {
+        console.error('[API] deleteIdea error', err);
+        alert('삭제 실패: ' + err.message);
+      }
+    }
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+  window.openLoginModal = openLoginModal;
+  window.closeLoginModal = closeLoginModal;
+  window.loginUserAction = loginUserAction;
+  window.deleteIdea = deleteIdea;
+  window.onload = fetchIdeas;
+
+  // 모듈 환경에서 버튼 이벤트 직접 연결
+    document.getElementById('addIdeaBtn').addEventListener('click', function(e) {
+      console.log('[EVENT] addIdeaBtn clicked');
+      addIdea();
+    });
+  </script>
+</body>
+</html>

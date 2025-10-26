@@ -225,3 +225,79 @@ export async function getVerifyDetail(ticketId) {
 export function isAuthed() {
   return !!localStorage.getItem(K_TOKEN);
 }
+
+/* =========================== Idea Board =============================== */
+
+/** GET /api/idea-board (인증 필요) */
+export async function listIdeas() {
+  const token = localStorage.getItem('accessToken');
+  return fetch(`${API_BASE}/idea-board`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    },
+  }).then(res => res.json());
+}
+
+/** POST /api/idea-board/add (인증 필요) */
+export async function addIdeaBoard({ x, y, w, h, color, detail }) {
+  const token = localStorage.getItem('accessToken');
+  const payload = { x, y, w, h, color, detail };
+  console.log('[API] addIdeaBoard payload', payload);
+  try {
+    const res = await fetch(`${API_BASE}/idea-board/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        'Accept': 'application/json;charset=UTF-8',
+      },
+      body: JSON.stringify(payload),
+    });
+    console.log('[API] addIdeaBoard fetch response', res);
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (jsonErr) {
+      console.error('[API] addIdeaBoard response JSON parse error', jsonErr);
+      data = { error: 'JSON parse error', status: res.status };
+    }
+    console.log('[API] addIdeaBoard response data', data);
+    if (!res.ok) {
+      console.error('[API] addIdeaBoard response not ok', res.status, data);
+      throw new Error(data.message || `HTTP ${res.status}`);
+    }
+    return data;
+  } catch (err) {
+    console.error('[API] addIdeaBoard error', err);
+    throw err;
+  }
+}
+
+/** DELETE /api/idea-board/{idea_id} (인증 필요) */
+export async function deleteIdeaBoard(ideaId) {
+  const token = localStorage.getItem('accessToken');
+  return fetch(`${API_BASE}/idea-board/${ideaId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    },
+  }).then(res => res.json());
+}
+
+/** PATCH /api/idea-board/{idea_id} (인증 필요) */
+export async function updateIdeaBoard(ideaId, { x = 0, y = 0, w = 0, h = 0, color, detail }) {
+  const token = localStorage.getItem('accessToken');
+  const payload = { x, y, w, h, color, detail };
+  return fetch(`${API_BASE}/idea-board/${ideaId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      'Accept': 'application/json;charset=UTF-8',
+    },
+    body: JSON.stringify(payload),
+  }).then(res => res.json());
+}
