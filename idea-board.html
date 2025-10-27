@@ -109,7 +109,7 @@
     .modal {
       display: none;
       position: fixed;
-      z-index: 1000;
+      z-index: 5000;
       left: 0;
       top: 0;
       width: 100vw;
@@ -181,6 +181,13 @@
   <div class="main">
     <div class="board-header">Idea Board</div>
     <button class="add-idea-btn" id="addIdeaOpenBtn">+ Add Idea</button>
+    <div id="colorBar" style="position:relative;width:132px;height:34px;margin:16px 0 24px 0;">
+      <div style="width:132px;height:34px;position:absolute;left:0;top:0;background:#BABABA;border-radius:78px;"></div>
+      <div class="color-icon" data-color="#CCE5FF" style="width:24px;height:24px;position:absolute;left:8px;top:5px;background:#CCE5FF;border-radius:9999px;cursor:pointer;"></div>
+      <div class="color-icon" data-color="#B2F2C9" style="width:24px;height:24px;position:absolute;left:38px;top:5px;background:#B2F2C9;border-radius:9999px;cursor:pointer;"></div>
+      <div class="color-icon" data-color="#FFE066" style="width:24px;height:24px;position:absolute;left:68px;top:5px;background:#FFE066;border-radius:9999px;cursor:pointer;"></div>
+      <div class="color-icon" data-color="#FFD6E0" style="width:24px;height:24px;position:absolute;left:98px;top:5px;background:#FFD6E0;border-radius:9999px;cursor:pointer;"></div>
+    </div>
     <button class="add-idea-btn" id="loginOpenBtn" style="background:#223044;margin-right:10px;float:left;">Login</button>
     <div class="idea-board" id="ideaBoard"></div>
     <button id="saveAllBtn"
@@ -193,13 +200,6 @@
   <div class="modal" id="ideaModal">
     <div class="modal-content">
       <h2>Add New Idea</h2>
-      <label for="color">Color</label>
-      <select id="color">
-        <option value="#b2f2c9">Mint</option>
-        <option value="#ffe066">Yellow</option>
-        <option value="#ffd6e0">Pink</option>
-        <option value="#cce5ff">Blue</option>
-      </select>
       <label for="detail">Detail</label>
       <textarea id="detail" rows="3" placeholder="Enter your idea..."></textarea>
       <div class="modal-actions">
@@ -317,7 +317,7 @@
         card.style.width = (idea.w ?? idea.width ?? 200) + 'px';
         card.style.height = (idea.h ?? idea.height ?? 120) + 'px';
         card.innerHTML = `
-          <span>${idea.detail}</span>
+          <span class="card-text">${idea.detail}</span>
           <button class="delete-btn" data-id="${idea.idea_id}">&times;</button>
           <div class="resize-handle" style="position:absolute;right:2px;bottom:2px;width:16px;height:16px;background:#ccc;border-radius:4px;cursor:nwse-resize;"></div>
         `;
@@ -325,9 +325,36 @@
           e.stopPropagation();
           deleteIdea(idea.idea_id);
         };
-        card.addEventListener('click', function(e) {
-          if (e.target.classList.contains('delete-btn') || e.target.classList.contains('resize-handle')) return;
-          openEditModal(idea);
+        // --- Double click for text edit ---
+        let editing = false;
+        card.querySelector('.card-text').addEventListener('dblclick', function(e) {
+          if (editing) return;
+          editing = true;
+          const span = e.target;
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = span.textContent;
+          input.style.width = '90%';
+          input.style.fontSize = '1em';
+          input.style.borderRadius = '8px';
+          input.style.border = '1px solid #ccc';
+          span.replaceWith(input);
+          input.focus();
+          input.addEventListener('blur', finishEdit);
+          input.addEventListener('keydown', function(ev) {
+            if (ev.key === 'Enter') finishEdit();
+          });
+          function finishEdit() {
+            const newText = input.value;
+            idea.detail = newText;
+            _modifiedIdeas[idea.idea_id] = {
+              ...( _modifiedIdeas[idea.idea_id] || {} ),
+              detail: newText
+            };
+            input.replaceWith(span);
+            span.textContent = newText;
+            editing = false;
+          }
         });
         // --- Drag logic ---
         let isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
@@ -343,7 +370,6 @@
             isDragging = false;
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
-            // 반영
             idea.x = parseInt(card.style.left);
             idea.y = parseInt(card.style.top);
             _modifiedIdeas[idea.idea_id] = {
@@ -354,7 +380,7 @@
           }
         }
         card.addEventListener('mousedown', function(e) {
-          if (e.target.classList.contains('resize-handle')) return;
+          if (e.target.classList.contains('resize-handle') || editing) return;
           isDragging = true;
           dragOffsetX = e.clientX - card.offsetLeft;
           dragOffsetY = e.clientY - card.offsetTop;
@@ -376,7 +402,6 @@
             isResizing = false;
             document.removeEventListener('mousemove', onResizeMove);
             document.removeEventListener('mouseup', onResizeUp);
-            // 반영
             idea.w = parseInt(card.style.width);
             idea.h = parseInt(card.style.height);
             _modifiedIdeas[idea.idea_id] = {
@@ -397,16 +422,35 @@
           document.addEventListener('mousemove', onResizeMove);
           document.addEventListener('mouseup', onResizeUp);
         });
+        // --- Color change ---
+        card.addEventListener('click', function(e) {
+          if (window._selectedColor && !editing && !e.target.classList.contains('delete-btn') && !e.target.classList.contains('resize-handle')) {
+            card.style.background = window._selectedColor;
+            idea.color = window._selectedColor;
+            _modifiedIdeas[idea.idea_id] = {
+              ...( _modifiedIdeas[idea.idea_id] || {} ),
+              color: window._selectedColor
+            };
+          }
+        });
         ideaBoard.appendChild(card);
+      });
+      // Color bar logic
+      window._selectedColor = null;
+      document.querySelectorAll('.color-icon').forEach(icon => {
+        icon.addEventListener('click', function() {
+          window._selectedColor = this.dataset.color;
+          document.querySelectorAll('.color-icon').forEach(i => i.style.outline = 'none');
+          this.style.outline = '3px solid #333';
+        });
       });
     }
 
     async function addIdea() {
-      const color = document.getElementById('color').value;
       const detail = document.getElementById('detail').value;
       if (!detail.trim()) return alert('내용을 입력하세요.');
       try {
-        const res = await addIdeaBoard({ x: 100, y: 100, w: 200, h: 120, color, detail });
+        const res = await addIdeaBoard({ x: 100, y: 100, w: 200, h: 120, color: "#ffe066", detail });
         closeModal();
         alert('아이디어가 추가되었습니다!');
         fetchIdeas();
