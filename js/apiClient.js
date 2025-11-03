@@ -1,3 +1,4 @@
+
 /* =========================================================================
  * apiClient.js  —  RightMark(가칭) 프런트 전용 API 래퍼
  * - Spring Boot Swagger (http://13.125.59.4:8080/swagger-ui) 기준
@@ -300,4 +301,54 @@ export async function updateIdeaBoard(ideaId, { x = 0, y = 0, w = 0, h = 0, colo
     },
     body: JSON.stringify(payload),
   }).then(res => res.json());
+}
+
+
+/*==================== 캘린더 API (경로 이중 /api 제거) ====================*/
+// 내부 공통 요청
+function getAccessToken() {
+  return localStorage.getItem('accessToken') || '';
+}
+async function request(method, path, { body, params } = {}) {
+  const url = new URL(API_BASE + path);
+  if (params) Object.entries(params).forEach(([k, v]) => v != null && url.searchParams.append(k, v));
+  const res = await fetch(url.toString(), {
+    method,
+    headers: {
+      'accept': 'application/json;charset=UTF-8',
+      'Authorization': `Bearer ${getAccessToken()}`,
+      ...(body ? { 'Content-Type': 'application/json' } : {})
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const text = await res.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = {}; }
+  if (!res.ok || data.isSuccess === false) {
+    throw new Error(data?.message || `HTTP ${res.status}`);
+  }
+  return data;
+}
+
+/* ------- Calendar APIs ------- */
+// 스웨거 표기대로 alerts/today 사용 (API_BASE가 /api 이므로 여기서는 /calendar 로 시작)
+export async function getTodayAlerts(tz = 'Asia/Seoul') {
+  const resp = await api('GET','/api/alerts/deadlines/today',{params:{tz:'Asia/Seoul'}});
+}
+
+export async function listCalendarEvents({ from, to, page = 0, size = 50 }) {
+  const params = { from, to, page, size };
+  return request('GET', '/calendar/events', { params });
+}
+
+export async function createCalendarEvent(payload /* {dueAt,title,memo} */) {
+  return request('POST', '/calendar/events', { body: payload });
+}
+
+export async function updateCalendarEvent(eventId, patch /* {dueAt?,title?,memo?} */) {
+  return request('PATCH', `/calendar/events/${eventId}`, { body: patch });
+}
+
+export async function deleteCalendarEvent(eventId) {
+  return request('DELETE', `/calendar/events/${eventId}`);
 }

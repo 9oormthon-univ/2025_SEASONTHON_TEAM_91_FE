@@ -1,336 +1,690 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deadliner - Monthly Calendar</title>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700;800&display=swap" rel="stylesheet">
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Open Sans', sans-serif;
-}
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Deadliner – Calendar</title>
 
-body {
-  background-color: #E5E5E5;
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
+  <!-- ================= Figma 느낌 UI 전용 CSS (HTML 구조도 함께 교체) ================= -->
+  <style>
+    :root{
+      --ink:#171F39;         /* 본문 진한 남색 */
+      --muted:#8B8F9C;       /* 흐린 회색 텍스트 */
+      --panel:#FCFCE5;       /* 연노랑(메모/모달) */
+      --side:#1E2A38;        /* 좌측 네비 */
+      --bg:#E5E5E5;          /* 전체 배경 */
+      --card:#ffffff;        /* 카드/달력 배경 */
+      --rule:#ECE9E7;        /* 구분선 */
+      --accent:#0A88B4;      /* 플로팅 + 버튼 */
+      --pill:#F7F5F4;        /* 입력/버튼 연회색 */
+      --danger:#d64545;
+      --ok:#2ecc71;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:'Open Sans','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--ink)}
 
-/* ========== Sidebar ========== */
-.sidebar {
-  width: 280px;
-  background-color: #1E2A38;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  padding: 30px 20px;
-}
+    /* ---------------- 레이아웃 ---------------- */
+    .app{
+      display:grid;
+      grid-template-columns: 200px 1fr;
+      grid-template-rows: 72px 1fr;
+      grid-template-areas:
+        "side head"
+        "side main";
+      min-height:100vh;
+      overflow:hidden;
+    }
 
-.logo {
-  font-size: 24px;
-  font-weight: 700;
-  font-style: italic;
-  margin-bottom: 50px;
-}
+    /* 좌측 사이드바 */
+    .side{
+      grid-area:side;
+      background:var(--side);
+      color:#fff;
+      padding:28px 20px 24px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;
+      margin-bottom:28px;
+    }
+    .brand-logo{
+      width:30px;height:30px;border-radius:6px;background:#fff;flex:0 0 30px;
+    }
+    .brand-name{
+      font-style:italic;font-weight:700;font-size:24px;
+    }
+    .nav{
+      display:flex;flex-direction:column;gap:22px;margin-top:24px;
+    }
+    .nav a{
+      display:flex;align-items:center;gap:14px;
+      color:#fff;text-decoration:none;font-size:16px;
+      opacity:.95;
+    }
+    .nav a .ico{
+      width:20px;height:20px;border-radius:4px;background:#fff;opacity:.9;
+    }
+    .nav a.active{opacity:1;font-weight:700}
 
-.nav-item {
-  margin: 15px 0;
-  font-size: 16px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-.nav-item:hover { opacity: 0.8; }
+    /* 헤더 */
+    .head{
+      grid-area:head;
+      display:flex;align-items:center;gap:16px;
+      padding:16px 22px;
+    }
+    .head-title{
+      font-size:36px;font-weight:700;font-style:italic;
+    }
+    .head-sub{
+      margin-left:24px;font-size:24px;color:var(--ink);
+    }
+    .sp{flex:1}
 
-/* ========== Main Layout ========== */
-.main {
-  flex: 1;
-  padding: 4rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 60px;
-}
+    /* 로그인 버튼 (우상단) */
+    .btn{
+      border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;
+      background:var(--pill);color:var(--ink);
+    }
+    .btn.blue{background:#eaf6fb;color:var(--accent)}
+    .hint{font-size:12px;color:var(--muted);margin-left:8px}
 
-h2 {
-  color: #171F39;
-  font-size: 32px;
-  font-style: italic;
-  font-weight: 700;
-  margin-bottom: 20px;
-}
+    /* 메인 */
+    .main{
+      grid-area:main;
+      padding:0 22px 28px;
+      position:relative;
+    }
 
-/* ========== Calendar Section ========== */
-.calendar {
-  padding: 0rem;
-}
-.calendar-section {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  width: 700px;
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+    /* 달력 카드 */
+    .calendar-card{
+      background:var(--card);
+      border-radius:16px;
+      box-shadow:0 0 0 rgba(0,0,0,0.08);
+      overflow:hidden;
+    }
+    .calendar-grid{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-auto-rows: 138px;
+      border-top:1px solid var(--rule);
+      border-left:1px solid var(--rule);
+    }
+    .calendar-head{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      padding:16px 0 10px;
+    }
+    .calendar-head div{
+      text-align:center;font-size:12px;color:var(--ink);letter-spacing:.3px;
+    }
+    .cell{
+      border-right:1px solid var(--rule);
+      border-bottom:1px solid var(--rule);
+      padding:12px 10px 8px;position:relative;
+      font-size:12px;
+    }
+    .cell .day{
+      font-style:italic;font-weight:700;opacity:.95;
+    }
+    .cell.muted .day{color:#8B8F9C}
+    .badge-dot{
+      width:7px;height:7px;border-radius:999px;display:inline-block;margin-right:6px;
+    }
+    .dot-gold{background:#DBB200}
+    .dot-orange{background:#FA8C45}
+    .dot-blue{background:#0A88B4}
 
-.calendar-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 25px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #5F5F5F;
-  margin-bottom: 25px;
-}
+    /* 셀 내부 라벨 (이벤트) */
+    .slot{
+      position:relative;
+      display:flex;align-items:center;gap:6px;
+      width:fit-content;
+      margin-top:8px;
+      background:#FCFCE5;
+      border-radius:4px;
+      padding:4px 8px;
+      cursor:pointer;
+    }
+    .slot-time{min-width:42px;text-align:left}
+    .slot-title{font-style:italic;font-weight:700}
 
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 18px;
-  text-align: center;
-}
+    /* Today Alerts & 조회 컨트롤 */
+    .section{
+      margin-top:18px;
+      background:var(--card);
+      border-radius:16px;
+      box-shadow:0 2px 10px rgba(0,0,0,.06);
+      padding:16px 18px;
+    }
+    .section h3{margin:0 0 10px;font-size:18px}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 
-.day {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 17px;
-  color: #5F5F5F;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.day:hover { background: #E5E7EB; }
+    /* 조회 컨트롤 (From/To) */
+    label{font-size:12px;color:var(--muted)}
+    input[type="date"]{
+      border:1px solid #d7dce3;border-radius:10px;padding:8px 10px;font-size:14px;background:#fff
+    }
 
-.day.today {
-  border: 3px dotted #fff;
-  background: #FF6264;
-  color: #fff;
-  font-weight: 700;
-}
-.day.scheduled {
-  background: #E5E7EB;
-  border: 2px dotted #979797;
-  color: #171F39;
-  font-weight: 700;
-}
-.day.other-month { color: #9E9E9E; }
+    /* 리스트 테이블을 카드형으로 보이도록 (JS id 유지) */
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    th,td{padding:12px;border-bottom:1px solid #eef0f4;text-align:left;font-size:14px}
+    tbody tr:hover{background:#fafafa}
+    .right{text-align:right}
 
-/* ========== Ongoing Works Section ========== */
-.works-section {
-  width: 360px;
-}
+    /* 삭제/수정 텍스트 버튼 (캡처와 유사) */
+    .link-action{
+      background:none;border:none;padding:0;margin-left:14px;
+      color:#171F39;font-weight:700;font-style:italic;cursor:pointer;
+    }
+    .link-danger{color:#c23c3c}
 
-.work-card {
-  background: #F7F5F4;
-  border-radius: 20px;
-  padding: 15px 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
+    /* 모달 (Edit deadline 패널) */
+    .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;pointer-events:none}
+      .modal.show{display:flex;pointer-events:auto;z-index:9999}
+    .modal .sheet{
+      width:min(680px, 92vw);
+      background:var(--panel);
+      border-radius:16px;
+      box-shadow:0 10px 15px rgba(0,0,0,.10);
+      padding:24px 26px 18px;
+    }
+    .sheet h4{margin:0 0 18px;font-size:24px;font-style:italic;font-weight:700}
+    .frow{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+    .ipt, .txt{
+      width:100%;background:var(--pill);border:1px solid #E5E7EB;border-radius:8px;
+      padding:12px 14px;font-size:14px;color:var(--ink)
+    }
+    .txt{min-height:100px}
+    .sheet-foot{display:flex;align-items:center;gap:14px;margin-top:10px}
+    .btn-ghost{background:var(--pill);color:#8B8F9C;font-style:italic}
+    .btn-primary{background:#eaf6fb;color:var(--accent);font-style:italic}
+    .floating{
+      position:absolute;right:26px;top:70px;
+      width:60px;height:60px;border-radius:50%;
+      display:grid;place-items:center;background:var(--accent);
+      box-shadow:0 10px 15px rgba(0,0,0,.10);color:#fff;font-size:28px;user-select:none;
+      z-index:10000;
+      cursor:pointer;
+    }
 
-.work-card h3 {
-  font-size: 20px;
-  font-style: italic;
-  font-weight: 700;
-  color: #5F667E;
-}
-
-.work-card p {
-  font-size: 14px;
-  color: #9B9A9A;
-  margin-top: 4px;
-}
-
-.progress-bar {
-  height: 8px;
-  background: #ECE9E7;
-  border-radius: 20px;
-  margin-top: 10px;
-  position: relative;
-}
-
-.progress {
-  height: 8px;
-  border-radius: 4px;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.progress.green { background: #26B40A; width: 75%; }
-.progress.blue { background: #0A88B4; width: 40%; }
-
-.remaining {
-  text-align: right;
-  font-size: 12px;
-  color: #171F39;
-  margin-top: 5px;
-}
-
-/* ========== Buttons ========== */
-.action-btn {
-  width: 100%;
-  padding: 12px 0;
-  border-radius: 20px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 700;
-  font-style: italic;
-  margin-top: 20px;
-  cursor: pointer;
-  box-shadow: 0 4px 4px rgba(0,0,0,0.25);
-  transition: 0.3s;
-}
-.action-btn:hover { transform: translateY(-2px); }
-
-.btn-idea { background: #E3FAFF; color: #979797; }
-.btn-ticket { background: #FFF4E8; color: #979797; }
-</style>
+    /* 유틸 */
+    .muted{color:var(--muted)}
+    .badge{display:inline-block;background:#eef7ff;color:#2a77c8;border-radius:999px;padding:2px 8px;font-size:12px}
+    .hide{display:none !important}
+  </style>
 </head>
-
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-  <div class="logo">🕊 Deadliner</div>
-  <div class="nav-item">🏠 Home</div>
-  <div class="nav-item">📅 Calendar</div>
-  <div class="nav-item">📂 Ongoing Works</div>
-  <div class="nav-item">💡 Idea</div>
-  <div class="nav-item">🎫 Proof Ticket</div>
-  <div class="nav-item">👤 My Page</div>
-</div>
-
-<!-- Main Content -->
-<div class="main">
-  <!-- Left: Calendar -->
-  <div class="calendar">
-    <h2>Monthly Calendar</h2>
-    <div class="calendar-section">
-        <div class="calendar-header">
-        <button id="prev-month" style="border:none;background:none;font-size:22px;cursor:pointer;">◀</button>
-        <span>April, 2025</span>
-        <button id="next-month" style="border:none;background:none;font-size:22px;cursor:pointer;">▶</button>
-        </div>
-        <div id="calendar-grid" class="calendar-grid"></div>
+<div class="app">
+  <!-- ====================== Sidebar ====================== -->
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-logo"></div>
+      <div class="brand-name">Deadliner</div>
     </div>
-  </div>
+    <nav class="nav">
+      <a href="#" class="active"><span class="ico"></span>Home</a>
+      <a href="#"><span class="ico"></span>Calender</a>
+      <a href="#"><span class="ico"></span>Ongoing Works</a>
+      <a href="#"><span class="ico"></span>Idea</a>
+      <a href="#"><span class="ico"></span>Proof ticket</a>
+      <a href="#"><span class="ico"></span>My Page</a>
+    </nav>
+  </aside>
 
-  <!-- Right: Ongoing Works -->
-  <div class="works-section">
-    <h2>Ongoing Works</h2>
-    <div id="works-list"></div>
-    <div class="action-btn btn-idea">Manage My Ideas</div>
-    <div class="action-btn btn-ticket">Proof Ticket</div>
-  </div>
+  <!-- ====================== Header ======================= -->
+  <header class="head">
+    <div class="head-title">Calendar</div>
+    <div class="head-sub" id="headMonth">April 8, 2022</div>
+    <button class="btn" id="prevMonthBtn" style="margin-left:16px">◀</button>
+    <button class="btn" id="nextMonthBtn">▶</button>
+    <div class="sp"></div>
+    <button id="loginBtn" class="btn blue">Login</button>
+    <span id="loginResult" class="hint"></span>
+  </header>
+
+  <!-- ======================= Main ======================== -->
+  <main class="main">
+    <!-- Floating + -->
+    <div class="floating">+</div>
+
+    <!-- Calendar board (격자와 상단 요일) -->
+    <section class="calendar-card">
+      <div class="calendar-head">
+        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+      </div>
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- 동적으로 셀 생성 -->
+      </div>
+    </section>
+
+    <!-- Today Alerts -->
+    <section class="section" style="margin-top:18px;">
+      <div class="row">
+        <h3 style="margin-right:8px">Today Alerts</h3>
+        <div class="sp"></div>
+        <button class="btn" id="btnLoadToday">불러오기</button>
+      </div>
+      <div id="todaySummary" class="muted" style="margin-top:6px"></div>
+      <div id="todayList" style="margin-top:8px"></div>
+    </section>
+
+    <!-- 조회 + 목록 (기존 JS와 동일한 id 유지) -->
+    <section class="section">
+      <div class="row">
+        <h3 style="margin-right:8px">Calendar Events</h3>
+        <div class="sp"></div>
+        <label>From</label><input type="date" id="qFrom"/>
+        <label>To</label><input type="date" id="qTo"/>
+        <button class="btn" id="btnLoad">조회</button>
+      </div>
+
+      <!-- 테이블을 유지하되, 액션은 캡처처럼 텍스트 링크 비주얼 -->
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>DueAt</th><th>Title</th><th>Memo</th><th>Deadline</th>
+            <th class="right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tblBody">
+          <tr><td colspan="6" class="muted">데이터가 없습니다. 위의 From/To를 설정 후 [조회]를 눌러주세요.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Add/Edit (모달 비주얼) -->
+    <div class="modal" id="editModal">
+      <div class="sheet">
+        <h4>Edit deadline</h4>
+        <div class="frow">
+          <label>Deadline Date</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input id="fYear" class="ipt" type="number" min="2020" max="2100" placeholder="Year" style="width:80px"/>
+            <input id="fMonth" class="ipt" type="number" min="1" max="12" placeholder="Month" style="width:60px"/>
+            <input id="fDay" class="ipt" type="number" min="1" max="31" placeholder="Day" style="width:60px"/>
+            <input id="fTime" class="ipt" type="time" placeholder="Time" style="width:110px"/>
+          </div>
+        </div>
+        <div class="frow">
+          <label>Deadline Title</label>
+          <input id="fTitle" class="ipt" placeholder="000 공모전"/>
+        </div>
+        <div class="frow">
+          <label>Notes</label>
+          <textarea id="fMemo" class="txt" placeholder="워드로 제출, 자유주제"></textarea>
+        </div>
+        <input id="editId" type="hidden"/>
+        <div class="sheet-foot">
+          <button class="btn btn-ghost" id="btnReset">Close</button>
+          <div class="sp"></div>
+          <button class="btn btn-primary" id="btnUpdate">confirm</button>
+          <button class="btn" id="btnCreate" style="display:none">+ Add</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
 </div>
 
-<!-- Scripts -->
+<!-- ==================== 기존 JS (API/로직 수정 없음) ==================== -->
 <script>
-(function() {
-  const monthNames = [
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December"
-  ];
+  // ====== 환경 ======
+  const BASE_URL = 'http://13.125.59.4:8080';
 
-  const scheduledDays = [23, 26]; // 일정 있는 날
-  const calendarGrid = document.getElementById('calendar-grid');
-  const headerSpan = document.querySelector('.calendar-header span');
-  const prevBtn = document.getElementById('prev-month');
-  const nextBtn = document.getElementById('next-month');
+  function getToken(){
+    const tk = localStorage.getItem('accessToken') || '';
+    return tk.startsWith('Bearer ') ? tk : (tk ? `Bearer ${tk}` : '');
+  }
 
-  let today = new Date();
-  let currentYear = today.getFullYear();
-  let currentMonth = today.getMonth();
+  async function api(method, path, {body, params} = {}) {
+    const url = new URL(BASE_URL + path);
+    if (params) Object.entries(params).forEach(([k, v]) => v != null && url.searchParams.append(k, v));
 
-  function renderCalendar(year, month) {
-    calendarGrid.innerHTML = '';
-    headerSpan.textContent = `${monthNames[month]}, ${year}`;
-
-    const daysOfWeek = ['S','M','T','W','T','F','S'];
-    daysOfWeek.forEach(day => {
-      const el = document.createElement('div');
-      el.textContent = day;
-      el.style.fontWeight = '700';
-      calendarGrid.appendChild(el);
+    const res = await fetch(url.toString(), {
+      method,
+      headers: {
+        'accept': 'application/json;charset=UTF-8',
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...(getToken() ? { 'Authorization': getToken() } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined
     });
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : {}; }
+    catch { data = text; }
 
-    for (let i = firstDay - 1; i >= 0; i--) {
-      const d = document.createElement('div');
-      d.className = 'day other-month';
-      d.textContent = daysInPrevMonth - i;
-      calendarGrid.appendChild(d);
+    if (!res.ok || (data && typeof data === 'object' && data.isSuccess === false)) {
+      const msg = (data && typeof data === 'object' && data.message) ? data.message : `HTTP ${res.status} ${text}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  // 토큰 저장
+  function saveAccessTokenFromResponse(data) {
+    let raw =
+      data?.result?.accessToken ??
+      data?.result?.access_token ??
+      data?.result?.token ??
+      data?.accessToken ??
+      data?.access_token ??
+      data?.token ??
+      null;
+
+    if (!raw || typeof raw !== 'string') {
+      localStorage.removeItem('accessToken');
+      throw new Error('로그인 응답에 토큰이 없습니다.');
     }
 
-    for (let i = 1; i <= daysInMonth; i++) {
-      const d = document.createElement('div');
-      d.className = 'day';
-      if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) d.classList.add('today');
-      if (scheduledDays.includes(i)) d.classList.add('scheduled');
-      d.textContent = i;
-      calendarGrid.appendChild(d);
-    }
+    raw = raw.trim();
+    const token = raw.startsWith('Bearer ') ? raw.slice(7) : raw;
+    localStorage.setItem('accessToken', token);
+    console.log('[auth] token saved:', token.slice(0, 12) + '...');
+  }
 
-    const total = calendarGrid.children.length;
-    const remainder = total % 7;
-    if (remainder !== 0) {
-      for (let i = 1; i <= 7 - remainder; i++) {
-        const d = document.createElement('div');
-        d.className = 'day other-month';
-        d.textContent = i;
-        calendarGrid.appendChild(d);
+  // ====== 로그인 버튼 ======
+  const loginBtn = document.getElementById('loginBtn');
+  const loginResult = document.getElementById('loginResult');
+  loginBtn.onclick = async function () {
+    const email = prompt('이메일을 입력하세요:');
+    if (!email) return;
+    const password = prompt('비밀번호를 입력하세요:');
+    if (!password) return;
+
+    try {
+      const res = await fetch('http://13.125.59.4:8080/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const text = await res.text();
+      if (!res.ok) throw new Error(text);
+      const data = JSON.parse(text);
+      saveAccessTokenFromResponse(data);
+      loginResult.textContent = '로그인 성공!';
+      loginResult.style.color = '#2ecc71';
+    } catch (err) {
+      loginResult.textContent = '로그인 실패: ' + err.message;
+      loginResult.style.color = '#FF6264';
+    }
+  };
+
+  // ====== Today Alerts ======
+  const todaySummary = document.getElementById('todaySummary');
+  const todayList = document.getElementById('todayList');
+  document.getElementById('btnLoadToday').onclick = async ()=>{
+    try{
+      const resp = await api('GET','/api/calendar/alerts/today',{params:{tz:'Asia/Seoul'}});
+      const result = resp?.result ?? resp ?? {};
+      todaySummary.textContent = `${result.date ?? '-'} · ${result.count ?? 0}건`;
+      todayList.innerHTML = (result.items ?? []).map(item=>`
+        <div style="margin:8px 0;padding:10px;border:1px solid #eef0f4;border-radius:10px;background:#fff">
+          <div><b>${item.title}</b> <span class="badge">${item.deadline ? ('progress ' + (item.deadline.progress ?? 0) + '%') : 'no deadline'}</span></div>
+          <div class="muted">${item.dueAt}</div>
+        </div>
+      `).join('') || '<div class="muted">알림이 없습니다.</div>';
+    }catch(e){
+      todaySummary.textContent = '불러오기 실패: ' + e.message;
+      todayList.innerHTML = '';
+    }
+  };
+
+  // ====== Calendar Events: 조회/표시 ======
+  const qFrom = document.getElementById('qFrom');
+  const qTo = document.getElementById('qTo');
+  const tblBody = document.getElementById('tblBody');
+
+  (function setDefaultRange(){
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    const first = new Date(y, m, 1);
+    const last  = new Date(y, m+1, 0);
+    qFrom.value = first.toISOString().slice(0,10);
+    qTo.value   = last.toISOString().slice(0,10);
+    // 헤더 월 표시
+    const opts = { year:'numeric', month:'long', day:'numeric' };
+    document.getElementById('headMonth').textContent = new Intl.DateTimeFormat('en-US', opts).format(now);
+  })();
+
+  document.getElementById('btnLoad').onclick = loadEvents;
+
+  async function loadEvents(){
+    tblBody.innerHTML = '<tr><td colspan="6" class="muted">Loading...</td></tr>';
+    try{
+      const from = toISODateString(qFrom.value, false);
+      const to   = toISODateString(qTo.value, true);
+      const resp = await api('GET','/api/calendar/events',{params:{ from, to, page:0, size:50 }});
+      const result = resp?.result ?? resp ?? {};
+      const items = result.items ?? (Array.isArray(result) ? result : []);
+      window._calendarEvents = items;
+      renderCalendar(items);
+      if(!items.length){
+        tblBody.innerHTML = '<tr><td colspan="6" class="muted">결과가 없습니다.</td></tr>';
+        return;
       }
+      tblBody.innerHTML = items.map(ev => {
+        const id   = ev.eventId ?? ev.event_id ?? '';
+        const due  = ev.dueAt ?? ev.due_at ?? '';
+        const hasD = ev.hasDeadline ? '<span class="badge">has deadline</span>' : '';
+        return `
+        <tr data-id="${id}">
+          <td>${id}</td>
+          <td>${due}</td>
+          <td>${ev.title ?? ''}</td>
+          <td>${ev.memo ?? ''}</td>
+          <td>${hasD}</td>
+          <td class="right">
+            <button class="link-action" onclick="editRow(${id})">Edit</button>
+            <button class="link-action link-danger" onclick="delRow(${id})">delete</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }catch(e){
+      tblBody.innerHTML = `<tr><td colspan="6" class="muted">오류: ${e.message}</td></tr>`;
+      renderCalendar([]);
     }
   }
 
-  prevBtn.onclick = () => {
-    currentMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-    if (currentMonth === 11) currentYear--;
-    renderCalendar(currentYear, currentMonth);
+  // ====== 추가/수정/삭제 ======
+  const fTitle = document.getElementById('fTitle');
+  const fMemo  = document.getElementById('fMemo');
+  const editId = document.getElementById('editId');
+  const modal  = document.getElementById('editModal');
+
+  // + 버튼 클릭 시 일정 추가 모달 오픈 (Add 모드)
+  const floatingBtn = document.querySelector('.floating');
+  floatingBtn.onclick = () => {
+    resetForm();
+    editId.value = '';
+    document.getElementById('btnCreate').style.display = '';
+    document.getElementById('btnUpdate').style.display = 'none';
+    showModal();
   };
-  nextBtn.onclick = () => {
-    currentMonth = currentMonth === 11 ? 0 : currentMonth + 1;
-    if (currentMonth === 0) currentYear++;
-    renderCalendar(currentYear, currentMonth);
+
+  // 생성(연/월/일/시간 → ISO8601)
+  document.getElementById('btnCreate').onclick = async ()=>{
+    const year  = document.getElementById('fYear').value.trim();
+    const month = document.getElementById('fMonth').value.trim();
+    const day   = document.getElementById('fDay').value.trim();
+    const time  = document.getElementById('fTime').value.trim(); // HH:mm
+    const title = fTitle.value.trim();
+    const memo  = fMemo.value.trim() || null;
+
+    if(!year || !month || !day || !time || !title){
+      alert('모든 날짜/시간/제목을 입력하세요.');
+      return;
+    }
+
+    const dueAt = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}T${time}:00+09:00`;
+
+    try{
+      await api('POST','/api/calendar/events',{body:{dueAt, title, memo}});
+      resetForm(); hideModal();
+      await loadEvents();
+      alert('생성 완료!');
+    }catch(e){ alert('생성 실패: ' + e.message); }
   };
 
-  renderCalendar(currentYear, currentMonth);
-})();
+  // 수정
+  document.getElementById('btnUpdate').onclick = async ()=>{
+    const id = editId.value;
+    if(!id){ alert('수정할 항목을 먼저 선택하세요.'); return; }
+    const year  = document.getElementById('fYear').value.trim();
+    const month = document.getElementById('fMonth').value.trim();
+    const day   = document.getElementById('fDay').value.trim();
+    const time  = document.getElementById('fTime').value.trim();
+    const title = fTitle.value.trim();
+    const memo  = fMemo.value.trim() || null;
+
+    let dueAt = undefined;
+    if(year && month && day && time){
+      dueAt = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}T${time}:00+09:00`;
+    }
+    const patch = { dueAt, title: title || undefined, memo };
+
+    try{
+      await api('PATCH', `/api/calendar/events/${id}`, {body:patch});
+      resetForm(); hideModal();
+      await loadEvents();
+      alert('수정 완료!');
+    }catch(e){ alert('수정 실패: ' + e.message); }
+  };
+
+  // 닫기/리셋
+  document.getElementById('btnReset').onclick = ()=>{ resetForm(); hideModal(); };
+
+  function resetForm(){
+    editId.value = '';
+    document.getElementById('fYear').value = '';
+    document.getElementById('fMonth').value = '';
+    document.getElementById('fDay').value = '';
+    document.getElementById('fTime').value = '';
+    fTitle.value = '';
+    fMemo.value = '';
+  }
+
+  // 모달
+  function showModal(){ modal.classList.add('show'); }
+  function hideModal(){ modal.classList.remove('show'); }
+
+  // 전역 edit/del
+  window.editRow = (id)=>{
+    const tr = document.querySelector(`tr[data-id="${id}"]`);
+    const tds = tr.querySelectorAll('td');
+    editId.value = id;
+    const dueAtRaw = tds[1].textContent.trim();
+    // Parse ISO8601: YYYY-MM-DDTHH:mm:ss+09:00
+    const match = dueAtRaw.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    document.getElementById('fYear').value  = match ? match[1] : '';
+    document.getElementById('fMonth').value = match ? match[2] : '';
+    document.getElementById('fDay').value   = match ? match[3] : '';
+    document.getElementById('fTime').value  = match ? `${match[4]}:${match[5]}` : '';
+    fTitle.value = tds[2].textContent.trim();
+    fMemo.value  = tds[3].textContent.trim();
+
+    // 수정 모드로 표시
+    document.getElementById('btnCreate').style.display = 'none';
+    document.getElementById('btnUpdate').style.display = '';
+    showModal();
+  };
+
+  window.delRow = async (id)=>{
+    if(!confirm('삭제하시겠습니까?')) return;
+    try{
+      await api('DELETE', `/api/calendar/events/${id}`);
+      await loadEvents();
+      alert('삭제 완료!');
+    }catch(e){ alert('삭제 실패: ' + e.message); }
+  };
+
+  // ISO8601 변환 (백엔드 포맷 요구 대응)
+  function toISODateString(dateStr, isEnd) {
+    if (!dateStr) return '';
+    return isEnd
+      ? `${dateStr}T23:59:59+09:00`
+      : `${dateStr}T00:00:00+09:00`;
+  }
+
+  // 초기 로드
+  loadEvents();
+
+  // 캘린더 렌더 / 월 이동
+  let currentDate = new Date();
+  function getMonthInfo(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    return { year, month, firstDay, lastDay };
+  }
+  function renderCalendar(events = []) {
+    const { year, month, firstDay, lastDay } = getMonthInfo(currentDate);
+    // 헤더 월 표시
+    document.getElementById('headMonth').textContent = `${year}년 ${month+1}월`;
+    // 캘린더 셀 생성
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+    const startDayOfWeek = firstDay.getDay();
+    const daysInMonth = lastDay.getDate();
+    // 이전달 마지막 며칠
+    for(let i=0; i<startDayOfWeek; i++) {
+      const prevDate = new Date(year, month, -startDayOfWeek + i + 1);
+      grid.innerHTML += `<div class="cell muted"><div class="day">${prevDate.getDate()}</div></div>`;
+    }
+    // 이번달 날짜
+    for(let d=1; d<=daysInMonth; d++) {
+      const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dayEvents = events.filter(ev => (ev.dueAt ?? ev.due_at ?? '').startsWith(dateStr));
+      let slots = '';
+      dayEvents.forEach(ev => {
+        const time = (ev.dueAt ?? ev.due_at ?? '').split('T')[1]?.slice(0,5) || '';
+        const id = ev.eventId ?? ev.event_id;
+        slots += `<div class="slot" onclick="showEventModal(${id})">
+          <span class="badge-dot dot-orange"></span>
+          <span class="slot-time">${time}</span>
+          <span class="slot-title">${ev.title ?? ''}</span>
+        </div>`;
+      });
+      grid.innerHTML += `<div class="cell"><div class="day">${d}</div>${slots}</div>`;
+    }
+    // 다음달 첫 주 빈칸
+    const totalCells = startDayOfWeek + daysInMonth;
+    const nextBlanks = (7 - (totalCells % 7)) % 7;
+    for(let i=0; i<nextBlanks; i++) {
+      grid.innerHTML += `<div class="cell muted"><div class="day"></div></div>`;
+    }
+  }
+  // 이벤트 모달 표시 (셀 클릭)
+  window.showEventModal = function(id) {
+    const items = window._calendarEvents || [];
+    const ev = items.find(e => (e.eventId ?? e.event_id) == id);
+    if(!ev) return;
+    editId.value = ev.eventId ?? ev.event_id;
+    const dueAtRaw = ev.dueAt ?? ev.due_at ?? '';
+    const match = dueAtRaw.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    document.getElementById('fYear').value  = match ? match[1] : '';
+    document.getElementById('fMonth').value = match ? match[2] : '';
+    document.getElementById('fDay').value   = match ? match[3] : '';
+    document.getElementById('fTime').value  = match ? `${match[4]}:${match[5]}` : '';
+    fTitle.value = ev.title ?? '';
+    fMemo.value  = ev.memo ?? '';
+
+    // 수정 모드
+    document.getElementById('btnCreate').style.display = 'none';
+    document.getElementById('btnUpdate').style.display = '';
+    showModal();
+  };
+
+  function changeMonth(offset) {
+    currentDate.setMonth(currentDate.getMonth() + offset);
+    loadEvents();
+  }
+  document.getElementById('prevMonthBtn').onclick = ()=>changeMonth(-1);
+  document.getElementById('nextMonthBtn').onclick = ()=>changeMonth(1);
 </script>
-
-<script>
-(function() {
-  const works = [
-    { title: "Project Alpha", contest: "Innovation Challenge", progressClass: "green", remaining: "5 days remaining" },
-    { title: "Project Beta", contest: "Startup Contest", progressClass: "blue", remaining: "15 days remaining" }
-  ];
-
-  const worksList = document.getElementById('works-list');
-  works.forEach(work => {
-    worksList.insertAdjacentHTML('beforeend', `
-      <div class="work-card">
-        <h3>${work.title}</h3>
-        <p>Contest: ${work.contest}</p>
-        <div class="progress-bar"><div class="progress ${work.progressClass}"></div></div>
-        <div class="remaining">${work.remaining}</div>
-      </div>
-    `);
-  });
-})();
-</script>
-
 </body>
 </html>
