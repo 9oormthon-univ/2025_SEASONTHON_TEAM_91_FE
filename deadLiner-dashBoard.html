@@ -20,7 +20,7 @@
     .nav a.active{opacity:1;font-weight:700}
     /* head */
     .head{grid-area:head;display:flex;align-items:center;padding:0 28px}
-    .title{font-size:40px;font-weight:800;font-style:italic;margin-left:24px}
+    .title{font-size:40px;font-weight:800;font-style:italic;margin-left:-900px}
     .sp{flex:1}
     .btn{border:1;border-radius:10px;padding:10px 14px;font-weight:700;background: transparent;color:var(--accent);cursor:pointer}
     #loginResult{margin-left:8px;color:#ffffff;font-size:12px}
@@ -56,41 +56,57 @@
     /* toast */
     .toast{position:fixed;right:20px;bottom:20px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(6px);transition:.25s}
     .toast.show{opacity:1;transform:none}
+    /* auth modals */
+    .modal{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.18);align-items:center;justify-content:center;display:none}
+    .panel{background:#fff;padding:32px 32px 24px 32px;border-radius:16px;max-width:380px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);position:relative;display:flex;flex-direction:column;gap:18px;}
+    .panel h3{margin:0;text-align:center;font-size:22px;font-weight:700}
+    .panel .x{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;}
+    .panel form{display:flex;flex-direction:column;gap:12px;}
+    .panel input{width:100%;padding:12px;border-radius:8px;border:1px solid #eee;font-size:16px;}
+    .panel .submit{width:100%;background:#232B44;color:#fff;border-radius:8px;border:none;padding:12px 0;font-size:16px;font-weight:700;cursor:pointer;}
+    .panel .link{color:#232B44;text-decoration:underline;text-align:center}
+    .hint{font-size:14px;color:#888;text-align:center}
   </style>
 </head>
 <body>
 <div class="app">
 
-<!-- Login Modal -->
-<div id="loginModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.18);align-items:center;justify-content:center;">
-  <div style="background:#fff;padding:32px 32px 24px 32px;border-radius:16px;max-width:380px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);position:relative;display:flex;flex-direction:column;gap:18px;">
-    <button id="loginModalClose" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
-    <div style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px;">Log in</div>
-    <hr style="margin:0 0 8px 0;border:0;border-top:2px solid #eee;">
-    <form id="loginForm" style="display:flex;flex-direction:column;gap:12px;">
-      <div style="position:relative;">
-        <input type="email" id="loginEmail" placeholder="Email" style="width:100%;padding:12px 36px 12px 12px;border-radius:8px;border:1px solid #eee;font-size:16px;">
-        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#aaa;font-size:18px;">&#x2709;</span>
-      </div>
-      <div style="position:relative;">
-        <input type="password" id="loginPassword" placeholder="Password" style="width:100%;padding:12px 36px 12px 12px;border-radius:8px;border:1px solid #eee;font-size:16px;">
-        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#aaa;font-size:18px;">&#x1F512;</span>
-      </div>
-      <button type="submit" style="width:100%;background:#232B44;color:#fff;border-radius:8px;border:none;padding:12px 0;font-size:16px;font-weight:700;cursor:pointer;">Log in</button>
-    </form>
-    <div style="text-align:center;margin:8px 0 0 0;font-size:15px;">
-      <a href="#" id="loginSignup" style="color:#232B44;text-decoration:underline;">계정이 없으신가요?</a>
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="panel">
+      <button id="loginModalClose" class="x">&times;</button>
+      <h3>Log in</h3>
+      <hr style="margin:0 0 8px 0;border:0;border-top:2px solid #eee;">
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button type="submit" class="submit">Log in</button>
+      </form>
+      <div><a href="#" id="loginSignup" class="link">계정이 없으신가요?</a></div>
+      <hr style="margin:12px 0 8px 0;border:0;border-top:1px solid #eee;">
+      <div class="hint">OR</div>
+      <button id="loginKakao" class="submit" style="background:#fee500;color:#3c1e1e;margin-bottom:8px;">Continue with Kakao</button>
+      <button id="loginGoogle" class="submit" style="background:#4285F4;">Continue with Google</button>
     </div>
-    <hr style="margin:12px 0 8px 0;border:0;border-top:1px solid #eee;">
-    <div style="text-align:center;font-size:14px;color:#888;margin-bottom:8px;">OR</div>
-    <button id="loginKakao" style="width:100%;background:#fee500;color:#3c1e1e;border-radius:8px;border:none;padding:12px 0;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;margin-bottom:8px;">
-      <img src="/public/icons/login-icon.svg" style="width:20px;height:20px;" alt="Kakao"/>Continue with Kakao
-    </button>
-    <button id="loginGoogle" style="width:100%;background:#4285F4;color:#fff;border-radius:8px;border:none;padding:12px 0;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">
-      <img src="/public/icons/login-icon.svg" style="width:20px;height:20px;" alt="Google"/>Continue with Google
-    </button>
   </div>
-</div>
+
+  <!-- Sign Up Modal -->
+  <div id="signupModal" class="modal">
+    <div class="panel">
+      <button id="signupModalClose" class="x">&times;</button>
+      <h3>Create account</h3>
+      <hr style="margin:0 0 8px 0;border:0;border-top:2px solid #eee;">
+      <form id="signupForm">
+        <input type="text" id="signupName" placeholder="Name">
+        <input type="email" id="signupEmail" placeholder="Email">
+        <input type="password" id="signupPassword" placeholder="Password">
+        <input type="password" id="signupPassword2" placeholder="Confirm password">
+        <button type="submit" class="submit">Sign up</button>
+      </form>
+      <div><a href="#" id="signupToLogin" class="link">이미 계정이 있으신가요?</a></div>
+    </div>
+  </div>
+
   <!-- Side -->
   <aside class="side">
     <div class="brand">
@@ -99,7 +115,7 @@
     </div>
     <nav class="nav">
       <a class="active" href="#"><img src="/public/icons/home-icon.svg" alt="Home" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Home</a>
-      <a href="/calender.html"><img src="/public/icons/calendar-icon.svg" alt="Calender" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Calender</a>
+      <a href="/calender.html"><img src="/public/icons/calendar-icon.svg" alt="Calendar" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Calendar</a>
       <a href="/ongoingworks.html"><img src="/public/icons/ongoingworks-icon.svg" alt="Ongoing Works" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Ongoing Works</a>
       <a href="/idea-board.html"><img src="/public/icons/idea-icon.svg" alt="Idea" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Idea</a>
       <a href="/main.html"><img src="/public/icons/proofticket-icon.svg" alt="Proof ticket" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Proof ticket</a>
@@ -115,9 +131,9 @@
   <!-- Head -->
   <header class="head">
     <div class="sp"></div>
-  <div class="title">Monthly Calendar</div>
-  <div class="sp"></div>
-      <!-- Bell button (top-right) -->
+    <div class="title">Monthly Calendar</div>
+    <div class="sp"></div>
+    <!-- Bell button (top-right) -->
     <div id="bellBtnWrap" style="margin-left:auto; margin-right:8px; position:relative;">
       <button id="bellBtn" aria-label="Today alerts"
         style="all:unset; cursor:pointer; display:inline-grid; place-items:center; width:64px; height:64px;">
@@ -192,6 +208,10 @@ const API_BASE = 'http://13.125.59.4:8080';
 const ENDPOINTS = {
   calendarEvents: '/api/calendar/events',
   deadlines: '/api/deadlines',
+  signup: '/api/users/register',
+  login: '/api/users/login',
+  me: '/api/users/me',
+  logout: '/api/users/logout',
 };
 const token = () => {
   const tk = localStorage.getItem('accessToken')||''; return tk ? (tk.startsWith('Bearer ')?tk:`Bearer ${tk}`) : '';
@@ -216,25 +236,91 @@ async function jfetch(path, {method='GET', headers={}, params, body}={}) {
   }
   return data?.result ?? data;
 }
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
 
-/* ========= Login (temp) ========= */
-
+/* ========= Auth UI wiring ========= */
 const loginBtn = document.getElementById('loginBtn');
 const loginBtnText = document.getElementById('loginBtnText');
-const loginModal = document.getElementById('loginModal');
-document.getElementById('loginModalClose').onclick = () => loginModal.style.display = 'none';
-// Toggle login/logout modal
+
+const loginModal   = document.getElementById('loginModal');
+const loginClose   = document.getElementById('loginModalClose');
+const loginForm    = document.getElementById('loginForm');
+const loginEmail   = document.getElementById('loginEmail');
+const loginPw      = document.getElementById('loginPassword');
+const loginSignup  = document.getElementById('loginSignup');
+
+const signupModal  = document.getElementById('signupModal');
+const signupClose  = document.getElementById('signupModalClose');
+const signupForm   = document.getElementById('signupForm');
+const signupName   = document.getElementById('signupName');
+const signupEmail  = document.getElementById('signupEmail');
+const signupPw     = document.getElementById('signupPassword');
+const signupPw2    = document.getElementById('signupPassword2');
+const signupToLogin= document.getElementById('signupToLogin');
+
+function open(el){ el.style.display='flex'; }
+function close(el){ el.style.display='none'; }
+
 loginBtn.onclick = () => {
-  // If logged in (button text ends with '님')
+  // 이미 로그인 상태라면 로그아웃 확인
   if (loginBtnText.textContent.endsWith('님')) {
     showLogoutConfirm();
   } else {
-    loginModal.style.display = 'flex';
+    open(loginModal);
+  }
+};
+loginClose.onclick = () => close(loginModal);
+signupClose.onclick = () => close(signupModal);
+
+// 로그인 모달 → 회원가입 모달
+loginSignup.onclick = (e)=>{ e.preventDefault(); close(loginModal); open(signupModal); };
+// 회원가입 모달 → 로그인 모달
+signupToLogin.onclick = (e)=>{ e.preventDefault(); close(signupModal); open(loginModal); };
+
+/* ---- 로그인 ---- */
+loginForm.onsubmit = async (e)=>{
+  e.preventDefault();
+  const email = loginEmail.value.trim();
+  const password = loginPw.value.trim();
+  if(!email || !password){ toast('이메일/비밀번호를 입력하세요.'); return; }
+  try{
+    const data = await jfetch(ENDPOINTS.login, { method:'POST', body:{ email, password } });
+    const raw = data?.access_token || data?.accessToken;
+    if(!raw){ toast('로그인 실패'); return; }
+    localStorage.setItem('accessToken', raw.startsWith('Bearer ')?raw.slice(7):raw);
+    let username = data?.me?.name || email.split('@')[0];
+    loginBtnText.textContent = (username||'User') + '님';
+    close(loginModal);
+    toast('로그인 완료');
+    loadAll();
+  }catch(err){
+    toast('로그인 실패: ' + err.message);
   }
 };
 
-// Create and handle logout confirm modal
+/* ---- 회원가입 ---- */
+signupForm.onsubmit = async (e)=>{
+  e.preventDefault();
+  const name = signupName.value.trim();
+  const email = signupEmail.value.trim();
+  const pw = signupPw.value.trim();
+  const pw2 = signupPw2.value.trim();
+  if(!name || !email || !pw || !pw2){ toast('모든 항목을 입력하세요.'); return; }
+  if(pw !== pw2){ toast('비밀번호가 일치하지 않습니다.'); return; }
+  try{
+    await jfetch(ENDPOINTS.signup, { method:'POST', body:{ name, email, password: pw } });
+    toast('회원가입 완료! 이제 로그인 해주세요.');
+    // 로그인 모달로 전환 + 이메일 채워넣기
+    close(signupModal);
+    open(loginModal);
+    loginEmail.value = email;
+    loginPw.focus();
+  }catch(err){
+    toast('회원가입 실패: ' + err.message);
+  }
+};
+
+/* ---- 로그아웃 확인 모달 ---- */
 function showLogoutConfirm() {
   let modal = document.getElementById('logoutModal');
   if (!modal) {
@@ -255,8 +341,7 @@ function showLogoutConfirm() {
           <button id="logoutCancel" style="background:#eee;color:#223044;border-radius:8px;padding:8px 18px;font-weight:700;border:none;cursor:pointer;">취소</button>
           <button id="logoutConfirm" style="background:#232B44;color:#fff;border-radius:8px;padding:8px 18px;font-weight:700;border:none;cursor:pointer;">로그아웃</button>
         </div>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(modal);
     document.getElementById('logoutModalClose').onclick = () => { modal.style.display = 'none'; };
     document.getElementById('logoutCancel').onclick = () => { modal.style.display = 'none'; };
@@ -265,58 +350,23 @@ function showLogoutConfirm() {
       const cancelBtn = document.getElementById('logoutCancel');
       btn.disabled = true; cancelBtn.disabled = true;
       try {
-        // Call API to invalidate token (best-effort)
         try {
-          const res = await fetch(API_BASE + '/api/users/logout', {
+          await fetch(API_BASE + ENDPOINTS.logout, {
             method: 'POST',
-            headers: {
-              'accept':'application/json;charset=UTF-8',
-              ...(token() ? {'Authorization': token()} : {})
-            }
+            headers: { 'accept':'application/json;charset=UTF-8', ...(token() ? {'Authorization': token()} : {}) }
           });
-          // swallow non-200 but try to parse for message
-          const txt = await res.text(); let data = {};
-          try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
-        } catch (e) {
-          // network issues -> proceed to local logout anyway
-        }
+        } catch(e){ /* ignore network error */ }
       } finally {
-        // Always clear local session on client
         localStorage.removeItem('accessToken');
         loginBtnText.textContent = 'Log in';
         modal.style.display = 'none';
         toast('로그아웃 완료');
-        btn.disabled = false; cancelBtn.disabled = false;
       }
     };
   } else {
     modal.style.display = 'flex';
   }
 }
-
-document.getElementById('loginModalClose').onclick = () => {
-  document.getElementById('loginModal').style.display = 'none';
-};
-
-document.getElementById('loginForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value.trim();
-  if(!email || !password) return toast('이메일과 비밀번호를 입력하세요.');
-  try {
-    const res = await fetch(API_BASE + '/api/users/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password})});
-    const data = await res.json();
-    const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
-    if(!raw){ document.getElementById('loginBtnText').textContent='로그인 실패'; return; }
-    localStorage.setItem('accessToken', raw.startsWith('Bearer ')?raw.slice(7):raw);
-    let username = data?.result?.me?.name || email.split('@')[0];
-    document.getElementById('loginBtnText').textContent = username + '님';
-    document.getElementById('loginModal').style.display = 'none';
-    toast('로그인 완료'); loadAll();
-  } catch(e) {
-    toast('로그인 실패');
-  }
-};
 
 /* ========= Simple router buttons ========= */
 document.getElementById('goIdeas').onclick = ()=> location.href='/idea-board.html';
@@ -340,7 +390,7 @@ async function renderCalendar(){
   const start = new Date(y, m, 1);
   const end   = new Date(y, m+1, 0);
   let dots = new Set();           // dates with events
-  let deadlines = new Set();      // dates with deadlines (events that already have deadline)
+  let deadlines = new Set();      // dates with deadlines
   try{
     const res = await jfetch(ENDPOINTS.calendarEvents, { params:{
       from: toISO(start,false), to: toISO(end,true), page:0, size:200
@@ -433,12 +483,11 @@ async function renderWorks(){
     }
     [...groups.entries()].slice(0,6).forEach(([title, list])=>{
       const first = list[0];
-      // 추정: 시작일은 마감일 기준으로 -14일(2주)로 가정, 실제 시작일 있으면 교체
       const dueAt = first.dueAt;
       let startAt = first.startAt;
       if (!startAt && dueAt) {
         const d = new Date(dueAt);
-        d.setDate(d.getDate() - 14); // 2주 전
+        d.setDate(d.getDate() - 14);
         startAt = d.toISOString().slice(0,10);
       }
       const percent = (dueAt && startAt) ? getProgressPercent(startAt, dueAt) : 0;
@@ -465,9 +514,7 @@ const bellPanel = document.getElementById('bellPanel');
 const bellSummary = document.getElementById('bellSummary');
 const bellList = document.getElementById('bellList');
 const bellRefresh = document.getElementById('bellRefresh');
-
-// Resolve endpoint
-const TODAY_ENDPOINT = (typeof ENDPOINTS !== 'undefined' && ENDPOINTS.todayAlerts) ? ENDPOINTS.todayAlerts : '/api/alerts/deadlines/today';
+const TODAY_ENDPOINT = '/api/alerts/deadlines/today';
 
 async function fetchTodayAlerts(){
   try{
@@ -509,33 +556,22 @@ async function loadAll(){
   await Promise.all([renderCalendar(), renderWorks()]);
 }
 loadAll();
-// Show username if already logged in (after refresh)
+
+// 로그인 상태라면 이름 표시
 async function showUsernameIfLoggedIn() {
   const tokenVal = localStorage.getItem('accessToken');
   if (tokenVal) {
     try {
-      const res = await fetch(API_BASE + '/api/users/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': token(),
-          'accept': 'application/json;charset=UTF-8'
-        }
-      });
-      const data = await res.json();
-      let username = data?.result?.name || data?.name || '';
-      if (username) {
-        document.getElementById('loginBtnText').textContent = username + '님';
-      }
+      const data = await jfetch(ENDPOINTS.me, { method: 'GET' });
+      let username = data?.name || data?.result?.name || '';
+      if (username) loginBtnText.textContent = username + '님';
     } catch (e) {
-      // fallback: show Log in
-      document.getElementById('loginBtnText').textContent = 'Log in';
+      loginBtnText.textContent = 'Log in';
     }
   } else {
-    document.getElementById('loginBtnText').textContent = 'Log in';
+    loginBtnText.textContent = 'Log in';
   }
 }
-
-// Run on page load
 showUsernameIfLoggedIn();
 </script>
 </body>

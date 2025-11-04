@@ -217,6 +217,39 @@ async function openTicket(idx) {
   });
 
   dlg.showModal();
+  // 다운로드 버튼 이벤트 연결 (항상 새로 연결)
+  setTimeout(() => {
+    const downloadBtn = document.getElementById('downloadTicketBtn');
+    if (downloadBtn) {
+      downloadBtn.onclick = async () => {
+        try {
+          const token = localStorage.getItem('accessToken');
+          const ticketId = info.ticketId;
+          if (!ticketId) return alert('티켓 정보가 없습니다.');
+          const res = await fetch(`http://13.125.59.4:8080/api/tickets/${ticketId}/download`, {
+            method: 'GET',
+            headers: {
+              'accept': 'application/json;charset=UTF-8',
+              'Authorization': token ? `Bearer ${token}` : ''
+            }
+          });
+          const data = await res.json();
+          const fileUrl = data?.result?.file_url || data?.result?.fileUrl;
+          if (!fileUrl) return alert('다운로드 가능한 파일이 없습니다.');
+          // 실제 PDF 다운로드
+          const a = document.createElement('a');
+          a.href = fileUrl;
+          a.download = '';
+          a.target = '_blank';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (err) {
+          alert('다운로드 실패: ' + (err?.message || err));
+        }
+      };
+    }
+  }, 100);
   
   console.log('✅ Final check:', {
     tFrontSize: `${tFront?.offsetWidth}x${tFront?.offsetHeight}`,

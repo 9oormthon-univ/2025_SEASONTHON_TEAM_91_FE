@@ -33,13 +33,18 @@
     <div class="modal-box">
       <button type="button" class="close" aria-label="닫기">✕</button>
       <div class="tickets">
-        <div class="ticketContainer is-front">
-          <div class="lightOverlay"></div>
-          <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82"></proof-ticket>
-        </div>
-        <div class="ticketContainer is-back">
-          <div class="lightOverlay"></div>
-          <proof-ticket id="tBack" shape-src="./public/images/ticket-shape.svg" side="back" scale="0.82"></proof-ticket>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="display:flex;gap:32px;justify-content:center;align-items:center;">
+            <div class="ticketContainer is-front">
+              <div class="lightOverlay"></div>
+              <proof-ticket id="tFront" shape-src="./public/images/ticket-shape.svg" side="front" scale="0.82"></proof-ticket>
+            </div>
+            <div class="ticketContainer is-back">
+              <div class="lightOverlay"></div>
+              <proof-ticket id="tBack" shape-src="./public/images/ticket-shape.svg" side="back" scale="0.82"></proof-ticket>
+            </div>
+          </div>
+          <button id="downloadTicketBtn" class="wheel-btn" style="background:transparent;color:#fff;border-radius:8px;width:fit-content;padding:12px 28px;font-size:1.1em;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.12);margin-top:-100px;">티켓 원본 PDF 다운로드</button>
         </div>
       </div>
     </div>
