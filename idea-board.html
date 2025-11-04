@@ -1,542 +1,377 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Idea Board</title>
-  <link rel="stylesheet" href="main.css" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Deadliner – Idea Board</title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,italic" rel="stylesheet"/>
   <style>
-    body {
-      background: #fffbe6;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-    }
-    .sidebar {
-      position: fixed;
-      left: 0;
-      top: 0;
-      width: 200px;
-      height: 100vh;
-      background: #223044;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 30px;
-    }
-    .sidebar h2 {
-      font-size: 1.5em;
-      margin-bottom: 40px;
-      font-weight: bold;
-    }
-    .sidebar ul {
-      list-style: none;
-      padding: 0;
-      width: 100%;
-    }
-    .sidebar ul li {
-      padding: 15px 0 15px 30px;
-      font-size: 1em;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .sidebar ul li:hover {
-      background: #2c3e50;
-    }
-    .main {
-      margin-left: 220px;
-      padding: 40px;
-      min-height: 100vh;
-      background: #fffbe6;
-    }
-    .board-header {
-      font-size: 2em;
-      font-weight: bold;
-      margin-bottom: 30px;
-      color: #223044;
-    }
-    .idea-board {
-      position: relative;
-      min-height: 400px;
-    }
-    .idea-card {
-      min-width: 200px;
-      min-height: 120px;
-      padding: 20px;
-      border-radius: 0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      font-size: 1.1em;
-      font-weight: 500;
-      position: absolute;
-      cursor: pointer;
-      word-break: break-word;
-    }
-    .idea-card .delete-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #e74c3c;
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      font-size: 1em;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .add-idea-btn {
-  background: #0099cc;
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 12px 32px;
-  font-size: 1.1em;
-  font-weight: bold;
-  cursor: pointer;
-  margin-bottom: 30px;
-  float: right;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: background 0.2s;
-  z-index: 9999;
-  position: relative;
-    }
-    .add-idea-btn:hover {
-      background: #0077aa;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 5000;
-      left: 0;
-      top: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.2);
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-content {
-      background: #fff;
-      padding: 32px 40px;
-      border-radius: 16px;
-      box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
-      min-width: 350px;
-      max-width: 90vw;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .modal-content label {
-      font-weight: bold;
-      color: #223044;
-    }
-    .modal-content input,
-    .modal-content textarea,
-    .modal-content select {
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1em;
-    }
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .modal-actions button {
-      padding: 8px 20px;
-      border-radius: 8px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .modal-actions .cancel {
-      background: #eee;
-      color: #223044;
-    }
-    .modal-actions .confirm {
-      background: #0099cc;
-      color: #fff;
-    }
+    :root{ --ink:#171F39; --muted:#9B9A9A; --bg:#E5E7E9; --side:#1E2A38; --panel:#fff; --rule:#ECE9E7; --accent:#0A88B4; --ok:#2ecc71; --danger:#e05a5a; --shadow:0 8px 24px rgba(0,0,0,.08); }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family:'Open Sans',Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .app{display:grid;grid-template-columns:201px 1fr;grid-template-rows:80px 1fr;grid-template-areas:"side head" "side main";min-height:100vh}
+    /* side */
+    .side{grid-area:side;background:var(--side);color:#fff}
+    .brand{display:flex;gap:10px;align-items:center;margin:24px 0 28px 24px}
+    .brand .logo{width:30px;height:30px;border-radius:6px;}
+    .brand .name{font-weight:700;font-style:italic;font-size:24px}
+    .nav{display:flex;flex-direction:column;gap:22px;margin:10px 0 0 48px}
+    .nav a{color:#fff;text-decoration:none;opacity:.9;font-size:16px}
+    .nav a.active{opacity:1;font-weight:700}
+    /* head */
+    .head{grid-area:head;display:flex;align-items:center;padding:0 28px}
+    .title{font-size:40px;font-weight:800;font-style:italic;margin-left:24px}
+    .sp{flex:1}
+    .btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;background: transparent;color:var(--accent);cursor:pointer}
+    /* main */
+    .main{grid-area:main;display:block;padding:24px 28px 40px 28px}
+    .board{background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:20px;min-height:70vh;position:relative}
+    .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+    .pill{background:#e9f7ff;color:#0A88B4;border:0;border-radius:999px;padding:10px 16px;font-weight:800;cursor:pointer}
+    .add{background:#fff3e9;color:#9f6b3d}
+    /* idea cards */
+    .idea-card{min-width:200px;min-height:120px;padding:18px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);font-size:1.05em;font-weight:600;position:absolute;cursor:pointer;word-break:break-word}
+    .idea-card .delete-btn{position:absolute;top:8px;right:8px;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:1em;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .resize-handle{position:absolute;right:2px;bottom:2px;width:16px;height:16px;background:#ccc;border-radius:4px;cursor:nwse-resize}
+    /* Login Modal (dashboard clone) */
+    #loginModal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.18);align-items:center;justify-content:center;}
+    #loginModal .panel{background:#fff;padding:32px 32px 24px 32px;border-radius:16px;max-width:380px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);position:relative;display:flex;flex-direction:column;gap:18px;}
+    #loginModalClose{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;}
+    #loginModal form{display:flex;flex-direction:column;gap:12px;}
+    #loginModal input{width:100%;padding:12px;border-radius:8px;border:1px solid #eee;font-size:16px;}
+    #loginModal .submit{width:100%;background:#232B44;color:#fff;border-radius:8px;border:none;padding:12px 0;font-size:16px;font-weight:700;cursor:pointer;}
+    .toast{position:fixed;right:20px;bottom:20px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transform:translateY(6px);transition:.25s}
+    .toast.show{opacity:1;transform:none}
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h2>🪶 Deadliner</h2>
-    <ul>
-      <li onclick="location.href='main.html'">Home</li>
-      <li onclick="location.href='deadLiner-dashBoard.html'">Calender</li>
-      <li onclick="location.href='idea-board.html'" style="background:#2c3e50;">Idea</li>
-      <li onclick="location.href='myproofticket.html'">Proof ticket</li>
-      <li onclick="location.href='my-page.html'">My Page</li>
-    </ul>
-  </div>
-
-  <!-- Main -->
-  <div class="main">
-    <div class="board-header">Idea Board</div>
-    <button class="add-idea-btn" id="addIdeaOpenBtn">+ Add Idea</button>
-    <div id="colorBar" style="position:relative;width:132px;height:34px;margin:16px 0 24px 0;">
-      <div style="width:132px;height:34px;position:absolute;left:0;top:0;background:#BABABA;border-radius:78px;"></div>
-      <div class="color-icon" data-color="#CCE5FF" style="width:24px;height:24px;position:absolute;left:8px;top:5px;background:#CCE5FF;border-radius:9999px;cursor:pointer;"></div>
-      <div class="color-icon" data-color="#B2F2C9" style="width:24px;height:24px;position:absolute;left:38px;top:5px;background:#B2F2C9;border-radius:9999px;cursor:pointer;"></div>
-      <div class="color-icon" data-color="#FFE066" style="width:24px;height:24px;position:absolute;left:68px;top:5px;background:#FFE066;border-radius:9999px;cursor:pointer;"></div>
-      <div class="color-icon" data-color="#FFD6E0" style="width:24px;height:24px;position:absolute;left:98px;top:5px;background:#FFD6E0;border-radius:9999px;cursor:pointer;"></div>
-    </div>
-    <button class="add-idea-btn" id="loginOpenBtn" style="background:#223044;margin-right:10px;float:left;">Login</button>
-    <div class="idea-board" id="ideaBoard"></div>
-    <button id="saveAllBtn"
-      style="position:fixed;bottom:32px;right:32px;z-index:2000;background:#0099cc;color:#fff;border:none;border-radius:16px;padding:16px 32px;font-size:1.2em;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;">
-      저장
-    </button>
-  </div>
-
-  <!-- Add Idea Modal -->
-  <div class="modal" id="ideaModal">
-    <div class="modal-content">
-      <h2>Add New Idea</h2>
-      <label for="detail">Detail</label>
-      <textarea id="detail" rows="3" placeholder="Enter your idea..."></textarea>
-      <div class="modal-actions">
-        <button class="cancel" id="addIdeaCancelBtn">Cancel</button>
-        <button class="confirm" id="addIdeaBtn">Confirm</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Modal -->
-  <div class="modal" id="editModal">
-    <div class="modal-content">
-      <h2>Edit Idea</h2>
-      <label for="editColor">Color</label>
-      <select id="editColor">
-        <option value="#b2f2c9">Mint</option>
-        <option value="#ffe066">Yellow</option>
-        <option value="#ffd6e0">Pink</option>
-        <option value="#cce5ff">Blue</option>
-      </select>
-      <label for="editDetail">Detail</label>
-      <textarea id="editDetail" rows="3"></textarea>
-      <div class="modal-actions">
-        <button class="cancel" id="editCancelBtn">Cancel</button>
-        <button class="confirm" id="editConfirmBtn">Save</button>
-      </div>
-    </div>
-  </div>
+<div class="app">
 
   <!-- Login Modal -->
-  <div class="modal" id="loginModal">
-    <div class="modal-content">
-      <h2>Login</h2>
-      <label for="loginEmail">Email</label>
-      <input type="email" id="loginEmail" placeholder="Enter email">
-      <label for="loginPassword">Password</label>
-      <input type="password" id="loginPassword" placeholder="Enter password">
-      <div class="modal-actions">
-        <button class="cancel" id="loginCancelBtn">Cancel</button>
-        <button class="confirm" id="loginConfirmBtn">Login</button>
-      </div>
+  <div id="loginModal">
+    <div class="panel">
+      <button id="loginModalClose">&times;</button>
+      <div style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px;">Log in</div>
+      <hr style="margin:0 0 8px 0;border:0;border-top:2px solid #eee;">
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button type="submit" class="submit">Log in</button>
+      </form>
+      <hr style="margin:12px 0 8px 0;border:0;border-top:1px solid #eee;">
+      <div style="text-align:center;font-size:14px;color:#888;margin-bottom:8px;">OR</div>
+      <button id="loginKakao" class="submit" style="background:#fee500;color:#3c1e1e;margin-bottom:8px;">Continue with Kakao</button>
+      <button id="loginGoogle" class="submit" style="background:#4285F4;">Continue with Google</button>
     </div>
   </div>
 
-  <script type="module">
-    import { listIdeas, addIdeaBoard, deleteIdeaBoard, loginUser, updateIdeaBoard } from './js/apiClient.js';
+  <!-- Side (dashboard clone) -->
+  <aside class="side">
+    <div class="brand">
+      <img src="/public/icons/deadlinear-icon.svg" class="logo" alt="Deadliner"/>
+      <div class="name">Deadliner</div>
+    </div>
+    <nav class="nav">
+      <a href="/deadLiner-dashBoard.html"><img src="/public/icons/home-icon.svg" alt="Home" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Home</a>
+      <a href="/calender.html"><img src="/public/icons/calendar-icon.svg" alt="Calender" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Calender</a>
+      <a href="/ongoingworks.html"><img src="/public/icons/ongoingworks-icon.svg" alt="Ongoing Works" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Ongoing Works</a>
+      <a class="active" href="/idea-board.html"><img src="/public/icons/idea-icon.svg" alt="Idea" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Idea</a>
+      <a href="/main.html"><img src="/public/icons/proofticket-icon.svg" alt="Proof ticket" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Proof ticket</a>
+    </nav>
+    <div style="margin:32px 0 0 48px">
+      <button id="loginBtn" class="btn" style="width:120px;display:flex;align-items:center;gap:8px;">
+        <img src="/public/icons/login-icon.svg" alt="Login" style="width:20px;height:20px;vertical-align:middle;"/>
+        <span id="loginBtnText">Log in</span>
+      </button>
+    </div>
+  </aside>
 
-    let _modifiedIdeas = {};
-    let _lastIdeas = [];
+  <!-- Head -->
+  <header class="head">
+    <div class="title">Idea Board</div>
+    <div class="sp"></div>
+    <button class="pill add" id="addIdeaOpenBtn">+ Add Idea</button>
+  </header>
 
-    const ideaBoard = document.getElementById('ideaBoard');
-    const ideaModal = document.getElementById('ideaModal');
-    const loginModal = document.getElementById('loginModal');
-    const editModal = document.getElementById('editModal');
+  <!-- Main -->
+  <main class="main">
+    <div class="board">
+      <div id="colorBar" style="position:absolute;left:20px;top:20px;width:132px;height:34px;">
+        <div style="width:132px;height:34px;position:absolute;left:0;top:0;background:#BABABA;border-radius:78px;"></div>
+        <div class="color-icon" data-color="#CCE5FF" style="width:24px;height:24px;position:absolute;left:8px;top:5px;background:#CCE5FF;border-radius:9999px;cursor:pointer;"></div>
+        <div class="color-icon" data-color="#B2F2C9" style="width:24px;height:24px;position:absolute;left:38px;top:5px;background:#B2F2C9;border-radius:9999px;cursor:pointer;"></div>
+        <div class="color-icon" data-color="#FFE066" style="width:24px;height:24px;position:absolute;left:68px;top:5px;background:#FFE066;border-radius:9999px;cursor:pointer;"></div>
+        <div class="color-icon" data-color="#FFD6E0" style="width:24px;height:24px;position:absolute;left:98px;top:5px;background:#FFD6E0;border-radius:9999px;cursor:pointer;"></div>
+      </div>
+      <div id="ideaBoard" style="min-height:60vh;"></div>
+      <button id="saveAllBtn"
+        style="position:fixed;bottom:32px;right:32px;z-index:2000;background:#0099cc;color:#fff;border:none;border-radius:16px;padding:16px 32px;font-size:1.2em;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;">
+        저장
+      </button>
+    </div>
+  </main>
+</div>
 
-    // ✅ 모달 열기/닫기
-    const openModal = () => (ideaModal.style.display = 'flex');
-    const closeModal = () => {
-      ideaModal.style.display = 'none';
-      document.getElementById('detail').value = '';
-    };
+<!-- Add Idea Modal -->
+<div class="modal" id="ideaModal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+  <div class="panel" style="background:#fff;padding:32px 40px;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,0.15);min-width:350px;max-width:90vw;display:flex;flex-direction:column;gap:18px;">
+    <h2 style="margin:0;">Add New Idea</h2>
+    <label for="detail">Detail</label>
+    <textarea id="detail" rows="3" placeholder="Enter your idea..." style="padding:8px;border-radius:8px;border:1px solid #ccc;font-size:1em;"></textarea>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
+      <button class="btn" id="addIdeaCancelBtn" style="background:#eee;color:#223044;border-radius:8px;">Cancel</button>
+      <button class="btn" id="addIdeaBtn" style="background:#0099cc;color:#fff;border-radius:8px;">Confirm</button>
+    </div>
+  </div>
+</div>
 
-    const openLoginModal = () => (loginModal.style.display = 'flex');
-    const closeLoginModal = () => {
+<div id="toast" class="toast"></div>
+
+<script type="module">
+  // keep using existing API client for idea board
+  import { listIdeas, addIdeaBoard, deleteIdeaBoard, loginUser, updateIdeaBoard } from './js/apiClient.js';
+
+  /* ========= Shared helpers (login + toast) ========= */
+  const API_BASE = 'http://13.125.59.4:8080';
+  const token = () => {
+    const tk = localStorage.getItem('accessToken')||''; return tk ? (tk.startsWith('Bearer ')?tk:`Bearer ${tk}`) : '';
+  };
+  function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
+
+  // Login modal behavior (dashboard clone)
+  const loginBtn = document.getElementById('loginBtn');
+  const loginBtnText = document.getElementById('loginBtnText');
+  const loginModal = document.getElementById('loginModal');
+  document.getElementById('loginModalClose').onclick = () => loginModal.style.display = 'none';
+  // Toggle login/logout modal
+  loginBtn.onclick = () => {
+    if (loginBtnText.textContent.endsWith('님')) {
+      showLogoutConfirm();
+    } else {
+      loginModal.style.display = 'flex';
+    }
+  };
+
+  // Create and handle logout confirm modal
+  function showLogoutConfirm() {
+    let modal = document.getElementById('logoutModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'logoutModal';
+      modal.style.position = 'fixed';
+      modal.style.inset = '0';
+      modal.style.zIndex = '9999';
+      modal.style.background = 'rgba(0,0,0,0.18)';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.innerHTML = `
+        <div style="background:#fff;padding:32px 32px 24px 32px;border-radius:16px;max-width:320px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);position:relative;display:flex;flex-direction:column;gap:18px;">
+          <button id="logoutModalClose" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
+          <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px;">로그아웃 하시겠습니까?</div>
+          <div style="display:flex;gap:12px;justify-content:center;margin-top:12px;">
+            <button id="logoutCancel" style="background:#eee;color:#223044;border-radius:8px;padding:8px 18px;font-weight:700;border:none;cursor:pointer;">취소</button>
+            <button id="logoutConfirm" style="background:#232B44;color:#fff;border-radius:8px;padding:8px 18px;font-weight:700;border:none;cursor:pointer;">로그아웃</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      document.getElementById('logoutModalClose').onclick = () => { modal.style.display = 'none'; };
+      document.getElementById('logoutCancel').onclick = () => { modal.style.display = 'none'; };
+      document.getElementById('logoutConfirm').onclick = () => {
+        localStorage.removeItem('accessToken');
+        loginBtnText.textContent = 'Log in';
+        modal.style.display = 'none';
+        toast('로그아웃 완료');
+      };
+    } else {
+      modal.style.display = 'flex';
+    }
+  }
+  document.getElementById('loginForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if(!email || !password) return toast('이메일과 비밀번호를 입력하세요.');
+    try {
+      const res = await fetch(API_BASE + '/api/users/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password})});
+      const data = await res.json();
+      const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
+      if(!raw){ loginBtnText.textContent='로그인 실패'; return; }
+      localStorage.setItem('accessToken', raw.startsWith('Bearer ')?raw.slice(7):raw);
+      let username = data?.result?.me?.name || email.split('@')[0];
+      loginBtnText.textContent = username + '님';
       loginModal.style.display = 'none';
-      document.getElementById('loginEmail').value = '';
-      document.getElementById('loginPassword').value = '';
-    };
-
-    const openEditModal = (idea) => {
-      editModal.style.display = 'flex';
-      document.getElementById('editColor').value = idea.color;
-      document.getElementById('editDetail').value = idea.detail;
-      editModal.dataset.ideaId = idea.idea_id;
-    };
-
-    const closeEditModal = () => {
-      editModal.style.display = 'none';
-      document.getElementById('editDetail').value = '';
-    };
-
-    // ✅ 이벤트 등록
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('addIdeaOpenBtn').onclick = openModal;
-      document.getElementById('addIdeaCancelBtn').onclick = closeModal;
-      document.getElementById('addIdeaBtn').onclick = addIdea;
-      document.getElementById('loginOpenBtn').onclick = openLoginModal;
-      document.getElementById('loginCancelBtn').onclick = closeLoginModal;
-      document.getElementById('loginConfirmBtn').onclick = loginUserAction;
-      document.getElementById('editCancelBtn').onclick = closeEditModal;
-      document.getElementById('editConfirmBtn').onclick = saveEditIdea;
-      document.getElementById('saveAllBtn').onclick = saveAllIdeas;
+      toast('로그인 완료');
       fetchIdeas();
+    } catch(e) { toast('로그인 실패'); }
+  };
+
+    // Show username if already logged in (after refresh)
+    async function showUsernameIfLoggedIn() {
+      const tokenVal = localStorage.getItem('accessToken');
+      if (tokenVal) {
+        try {
+          const res = await fetch(API_BASE + '/api/users/me', {
+            method: 'GET',
+            headers: {
+              'Authorization': token(),
+              'accept': 'application/json;charset=UTF-8'
+            }
+          });
+          const data = await res.json();
+          let username = data?.result?.name || data?.name || '';
+          if (username) {
+            loginBtnText.textContent = username + '님';
+          }
+        } catch (e) {
+          loginBtnText.textContent = 'Log in';
+        }
+      } else {
+        loginBtnText.textContent = 'Log in';
+      }
+    }
+
+    showUsernameIfLoggedIn();
+
+  /* ========= Idea board original logic (kept) ========= */
+  let _modifiedIdeas = {};
+  let _lastIdeas = [];
+
+  const ideaBoard = document.getElementById('ideaBoard');
+  const ideaModal = document.getElementById('ideaModal');
+
+  const openModal = () => (ideaModal.style.display = 'flex');
+  const closeModal = () => { ideaModal.style.display = 'none'; document.getElementById('detail').value=''; };
+
+  document.getElementById('addIdeaOpenBtn').onclick = openModal;
+  document.getElementById('addIdeaCancelBtn').onclick = closeModal;
+  document.getElementById('addIdeaBtn').onclick = addIdea;
+  document.getElementById('saveAllBtn').onclick = saveAllIdeas;
+
+  async function fetchIdeas() {
+    try {
+      const res = await listIdeas();
+      _lastIdeas = res?.result?.result ?? [];
+      renderIdeas(_lastIdeas);
+    } catch (err) {
+      ideaBoard.innerHTML = `<div style="color:red;">${err.message}</div>`;
+    }
+  }
+
+  function renderIdeas(ideas) {
+    ideaBoard.innerHTML = '';
+    ideas.forEach((idea) => {
+      const card = document.createElement('div');
+      card.className = 'idea-card';
+      card.style.background = idea.color;
+      card.style.left = (idea.x ?? idea.position_x ?? 100) + 'px';
+      card.style.top = (idea.y ?? idea.position_y ?? 100) + 'px';
+      card.style.width = (idea.w ?? idea.width ?? 200) + 'px';
+      card.style.height = (idea.h ?? idea.height ?? 120) + 'px';
+      card.innerHTML = `
+        <span class="card-text">${idea.detail}</span>
+        <button class="delete-btn" data-id="${idea.idea_id}">&times;</button>
+        <div class="resize-handle"></div>
+      `;
+      card.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); deleteIdea(idea.idea_id); };
+
+      // text edit
+      let editing = false;
+      card.querySelector('.card-text').addEventListener('dblclick', function(e) {
+        if (editing) return;
+        editing = true;
+        const span = e.target;
+        const input = document.createElement('input');
+        input.type = 'text'; input.value = span.textContent; input.style.width='90%'; input.style.fontSize='1em'; input.style.borderRadius='8px'; input.style.border='1px solid #ccc';
+        span.replaceWith(input);
+        input.focus();
+        input.addEventListener('blur', finishEdit);
+        input.addEventListener('keydown', function(ev) { if (ev.key === 'Enter') finishEdit(); });
+        function finishEdit() {
+          const newText = input.value;
+          idea.detail = newText;
+          _modifiedIdeas[idea.idea_id] = { ...( _modifiedIdeas[idea.idea_id] || {} ), detail: newText };
+          input.replaceWith(span);
+          span.textContent = newText;
+          editing = false;
+        }
+      });
+
+      // drag
+      let isDragging=false, dx=0, dy=0;
+      function onMove(e){ if(!isDragging) return; card.style.left = (e.clientX - dx) + 'px'; card.style.top = (e.clientY - dy) + 'px'; }
+      function onUp(){ if(!isDragging) return; isDragging=false; document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp);
+        idea.x = parseInt(card.style.left); idea.y = parseInt(card.style.top);
+        _modifiedIdeas[idea.idea_id] = { ...( _modifiedIdeas[idea.idea_id] || {} ), x:idea.x, y:idea.y };
+      }
+      card.addEventListener('mousedown', function(e){ if (e.target.classList.contains('resize-handle')) return; isDragging=true; dx=e.clientX-card.offsetLeft; dy=e.clientY-card.offsetTop; document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp); });
+
+      // resize
+      let resizing=false, sw=0, sh=0, sx=0, sy=0;
+      function rMove(e){ if(!resizing) return; card.style.width = Math.max(100, sw + (e.clientX - sx)) + 'px'; card.style.height = Math.max(60, sh + (e.clientY - sy)) + 'px'; }
+      function rUp(){ if(!resizing) return; resizing=false; document.removeEventListener('mousemove', rMove); document.removeEventListener('mouseup', rUp);
+        idea.w = parseInt(card.style.width); idea.h = parseInt(card.style.height);
+        _modifiedIdeas[idea.idea_id] = { ...( _modifiedIdeas[idea.idea_id] || {} ), w:idea.w, h:idea.h };
+      }
+      card.querySelector('.resize-handle').addEventListener('mousedown', function(e){ resizing=true; sw=card.offsetWidth; sh=card.offsetHeight; sx=e.clientX; sy=e.clientY; e.stopPropagation(); document.addEventListener('mousemove', rMove); document.addEventListener('mouseup', rUp); });
+
+      // color click
+      card.addEventListener('click', function(e) {
+        if (window._selectedColor && !e.target.classList.contains('delete-btn') && !e.target.classList.contains('resize-handle')) {
+          card.style.background = window._selectedColor;
+          idea.color = window._selectedColor;
+          _modifiedIdeas[idea.idea_id] = { ...( _modifiedIdeas[idea.idea_id] || {} ), color: window._selectedColor };
+        }
+      });
+
+      ideaBoard.appendChild(card);
     });
 
-    // ✅ 함수 정의
-    async function fetchIdeas() {
-      try {
-        const res = await listIdeas();
-        _lastIdeas = res?.result?.result ?? [];
-        renderIdeas(_lastIdeas);
-      } catch (err) {
-        ideaBoard.innerHTML = `<div style="color:red;">${err.message}</div>`;
-      }
-    }
-
-    function renderIdeas(ideas) {
-      ideaBoard.innerHTML = '';
-      ideas.forEach((idea) => {
-        const card = document.createElement('div');
-        card.className = 'idea-card';
-        card.style.background = idea.color;
-        card.style.left = (idea.x ?? idea.position_x) + 'px';
-        card.style.top = (idea.y ?? idea.position_y) + 'px';
-        card.style.width = (idea.w ?? idea.width ?? 200) + 'px';
-        card.style.height = (idea.h ?? idea.height ?? 120) + 'px';
-        card.innerHTML = `
-          <span class="card-text">${idea.detail}</span>
-          <button class="delete-btn" data-id="${idea.idea_id}">&times;</button>
-          <div class="resize-handle" style="position:absolute;right:2px;bottom:2px;width:16px;height:16px;background:#ccc;border-radius:4px;cursor:nwse-resize;"></div>
-        `;
-        card.querySelector('.delete-btn').onclick = (e) => {
-          e.stopPropagation();
-          deleteIdea(idea.idea_id);
-        };
-        // --- Double click for text edit ---
-        let editing = false;
-        card.querySelector('.card-text').addEventListener('dblclick', function(e) {
-          if (editing) return;
-          editing = true;
-          const span = e.target;
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.value = span.textContent;
-          input.style.width = '90%';
-          input.style.fontSize = '1em';
-          input.style.borderRadius = '8px';
-          input.style.border = '1px solid #ccc';
-          span.replaceWith(input);
-          input.focus();
-          input.addEventListener('blur', finishEdit);
-          input.addEventListener('keydown', function(ev) {
-            if (ev.key === 'Enter') finishEdit();
-          });
-          function finishEdit() {
-            const newText = input.value;
-            idea.detail = newText;
-            _modifiedIdeas[idea.idea_id] = {
-              ...( _modifiedIdeas[idea.idea_id] || {} ),
-              detail: newText
-            };
-            input.replaceWith(span);
-            span.textContent = newText;
-            editing = false;
-          }
-        });
-        // --- Drag logic ---
-        let isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
-        function onMouseMove(e) {
-          if (!isDragging) return;
-          const newX = e.clientX - dragOffsetX;
-          const newY = e.clientY - dragOffsetY;
-          card.style.left = newX + 'px';
-          card.style.top = newY + 'px';
-        }
-        function onMouseUp(e) {
-          if (isDragging) {
-            isDragging = false;
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-            idea.x = parseInt(card.style.left);
-            idea.y = parseInt(card.style.top);
-            _modifiedIdeas[idea.idea_id] = {
-              ...( _modifiedIdeas[idea.idea_id] || {} ),
-              x: idea.x,
-              y: idea.y
-            };
-          }
-        }
-        card.addEventListener('mousedown', function(e) {
-          if (e.target.classList.contains('resize-handle') || editing) return;
-          isDragging = true;
-          dragOffsetX = e.clientX - card.offsetLeft;
-          dragOffsetY = e.clientY - card.offsetTop;
-          card.style.zIndex = 1001;
-          document.addEventListener('mousemove', onMouseMove);
-          document.addEventListener('mouseup', onMouseUp);
-        });
-        // --- Resize logic ---
-        let isResizing = false, resizeStartW = 0, resizeStartH = 0, resizeStartX = 0, resizeStartY = 0;
-        function onResizeMove(e) {
-          if (!isResizing) return;
-          const newW = Math.max(100, resizeStartW + (e.clientX - resizeStartX));
-          const newH = Math.max(60, resizeStartH + (e.clientY - resizeStartY));
-          card.style.width = newW + 'px';
-          card.style.height = newH + 'px';
-        }
-        function onResizeUp(e) {
-          if (isResizing) {
-            isResizing = false;
-            document.removeEventListener('mousemove', onResizeMove);
-            document.removeEventListener('mouseup', onResizeUp);
-            idea.w = parseInt(card.style.width);
-            idea.h = parseInt(card.style.height);
-            _modifiedIdeas[idea.idea_id] = {
-              ...( _modifiedIdeas[idea.idea_id] || {} ),
-              w: idea.w,
-              h: idea.h
-            };
-          }
-        }
-        const resizeHandle = card.querySelector('.resize-handle');
-        resizeHandle.addEventListener('mousedown', function(e) {
-          isResizing = true;
-          resizeStartW = card.offsetWidth;
-          resizeStartH = card.offsetHeight;
-          resizeStartX = e.clientX;
-          resizeStartY = e.clientY;
-          e.stopPropagation();
-          document.addEventListener('mousemove', onResizeMove);
-          document.addEventListener('mouseup', onResizeUp);
-        });
-        // --- Color change ---
-        card.addEventListener('click', function(e) {
-          if (window._selectedColor && !editing && !e.target.classList.contains('delete-btn') && !e.target.classList.contains('resize-handle')) {
-            card.style.background = window._selectedColor;
-            idea.color = window._selectedColor;
-            _modifiedIdeas[idea.idea_id] = {
-              ...( _modifiedIdeas[idea.idea_id] || {} ),
-              color: window._selectedColor
-            };
-          }
-        });
-        ideaBoard.appendChild(card);
+    window._selectedColor = null;
+    document.querySelectorAll('.color-icon').forEach(icon => {
+      icon.addEventListener('click', function() {
+        window._selectedColor = this.dataset.color;
+        document.querySelectorAll('.color-icon').forEach(i => i.style.outline = 'none');
+        this.style.outline = '3px solid #333';
       });
-      // Color bar logic
-      window._selectedColor = null;
-      document.querySelectorAll('.color-icon').forEach(icon => {
-        icon.addEventListener('click', function() {
-          window._selectedColor = this.dataset.color;
-          document.querySelectorAll('.color-icon').forEach(i => i.style.outline = 'none');
-          this.style.outline = '3px solid #333';
-        });
-      });
-    }
-
-    async function addIdea() {
-      const detail = document.getElementById('detail').value;
-      if (!detail.trim()) return alert('내용을 입력하세요.');
-      try {
-        const res = await addIdeaBoard({ x: 100, y: 100, w: 200, h: 120, color: "#ffe066", detail });
-        closeModal();
-        alert('아이디어가 추가되었습니다!');
-        fetchIdeas();
-      } catch (err) {
-        alert('추가 실패: ' + err.message);
-      }
-    }
-
-    async function deleteIdea(id) {
-      if (!confirm('삭제하시겠습니까?')) return;
-      try {
-        await deleteIdeaBoard(id);
-        alert('삭제 완료!');
-        fetchIdeas();
-      } catch (err) {
-        alert('삭제 실패: ' + err.message);
-      }
-    }
-
-    async function loginUserAction() {
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      if (!email || !password) return alert('이메일과 비밀번호를 입력하세요.');
-      try {
-        await loginUser({ email, password });
-        closeLoginModal();
-        alert('로그인 성공!');
-        fetchIdeas();
-      } catch (err) {
-        alert('로그인 실패: ' + err.message);
-      }
-    }
-
-    function saveEditIdea() {
-      const ideaId = Number(editModal.dataset.ideaId);
-      const newDetail = document.getElementById('editDetail').value;
-      const newColor = document.getElementById('editColor').value;
-      _modifiedIdeas[ideaId] = { detail: newDetail, color: newColor };
-      closeEditModal();
-      alert('임시 수정 완료. 저장 버튼을 눌러 반영하세요.');
-    }
-
-async function saveAllIdeas() {
-  if (Object.keys(_modifiedIdeas).length === 0) {
-    return alert('수정된 내용이 없습니다.');
+    });
   }
 
-  let count = 0;
-
-  for (const idea of _lastIdeas) {
-    const ideaId = idea.idea_id;
-    const edited = _modifiedIdeas[ideaId] ?? {};
-
-    const newX = Number.isFinite(idea.x) ? Math.floor(idea.x) : Math.floor(idea.position_x ?? 100);
-    const newY = Number.isFinite(idea.y) ? Math.floor(idea.y) : Math.floor(idea.position_y ?? 100);
-    const newW = Number.isFinite(idea.w) && idea.w > 0 ? Math.floor(idea.w) : Math.floor(idea.width ?? 200);
-    const newH = Number.isFinite(idea.h) && idea.h > 0 ? Math.floor(idea.h) : Math.floor(idea.height ?? 120);
-
-    // ✅ 서버 스펙에 맞게 필드명 수정
-    const payload = {
-      x: newX,
-      y: newY,
-      w: newW,
-      h: newH,
-      color: edited.color ?? idea.color,
-      detail: edited.detail ?? idea.detail
-    };
-
-    console.log('[PATCH]', ideaId, payload);
-
+  async function addIdea() {
+    const detail = document.getElementById('detail').value;
+    if (!detail.trim()) return alert('내용을 입력하세요.');
     try {
-      const res = await updateIdeaBoard(ideaId, payload);
-      console.log('[PATCH OK]', res);
-      if (res.isSuccess) count++;
-      else console.warn('[PATCH FAIL]', res.message);
-    } catch (err) {
-      console.error('[PATCH ERROR]', ideaId, err);
-    }
+      await addIdeaBoard({ x: 100, y: 100, w: 200, h: 120, color: "#ffe066", detail });
+      closeModal();
+      alert('아이디어가 추가되었습니다!');
+      fetchIdeas();
+    } catch (err) { alert('추가 실패: ' + err.message); }
+  }
+  async function deleteIdea(id) {
+    if (!confirm('삭제하시겠습니까?')) return;
+    try { await deleteIdeaBoard(id); alert('삭제 완료!'); fetchIdeas(); }
+    catch (err) { alert('삭제 실패: ' + err.message); }
   }
 
-  _modifiedIdeas = {};
+  async function saveAllIdeas() {
+    if (Object.keys(_modifiedIdeas).length === 0) return alert('수정된 내용이 없습니다.');
+    let count = 0;
+    for (const idea of _lastIdeas) {
+      const ideaId = idea.idea_id;
+      const edited = _modifiedIdeas[ideaId] ?? {};
+      const newX = Number.isFinite(idea.x) ? Math.floor(idea.x) : Math.floor(idea.position_x ?? 100);
+      const newY = Number.isFinite(idea.y) ? Math.floor(idea.y) : Math.floor(idea.position_y ?? 100);
+      const newW = Number.isFinite(idea.w) && idea.w > 0 ? Math.floor(idea.w) : Math.floor(idea.width ?? 200);
+      const newH = Number.isFinite(idea.h) && idea.h > 0 ? Math.floor(idea.h) : Math.floor(idea.height ?? 120);
+      const payload = { x:newX, y:newY, w:newW, h:newH, color: edited.color ?? idea.color, detail: edited.detail ?? idea.detail };
+      try { const res = await updateIdeaBoard(ideaId, payload); if (res.isSuccess) count++; } catch (err) { console.error('[PATCH ERROR]', ideaId, err); }
+    }
+    _modifiedIdeas = {}; fetchIdeas(); alert(`${count}개의 아이디어가 저장되었습니다!`);
+  }
+
+  // boot
   fetchIdeas();
-  alert(`${count}개의 아이디어가 저장되었습니다!`);
-}
-
-
-  </script>
+</script>
 </body>
 </html>

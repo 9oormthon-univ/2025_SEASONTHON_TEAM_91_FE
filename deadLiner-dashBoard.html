@@ -13,7 +13,7 @@
     /* side */
     .side{grid-area:side;background:var(--side);color:#fff}
     .brand{display:flex;gap:10px;align-items:center;margin:24px 0 28px 24px}
-    .brand .logo{width:30px;height:30px;border-radius:6px;background:#fff}
+    .brand .logo{width:30px;height:30px;border-radius:6px;}
     .brand .name{font-weight:700;font-style:italic;font-size:24px}
     .nav{display:flex;flex-direction:column;gap:22px;margin:10px 0 0 48px}
     .nav a{color:#fff;text-decoration:none;opacity:.9;font-size:16px}
@@ -22,8 +22,8 @@
     .head{grid-area:head;display:flex;align-items:center;padding:0 28px}
     .title{font-size:40px;font-weight:800;font-style:italic;margin-left:24px}
     .sp{flex:1}
-    .btn{border:0;border-radius:10px;padding:10px 14px;font-weight:700;background:#eaf6fb;color:var(--accent);cursor:pointer}
-    #loginResult{margin-left:8px;color:#8B8F9C;font-size:12px}
+    .btn{border:1;border-radius:10px;padding:10px 14px;font-weight:700;background: transparent;color:var(--accent);cursor:pointer}
+    #loginResult{margin-left:8px;color:#ffffff;font-size:12px}
     /* main layout */
     .main{grid-area:main;display:grid;grid-template-columns:1fr 420px;gap:28px;padding:24px 28px 40px 28px}
     /* calendar card */
@@ -48,7 +48,7 @@
     .meta{font-size:12px;color:#8a919f;margin-bottom:8px}
     .bar{height:10px;background:#eef1f4;border-radius:99px;overflow:hidden}
     .bar i{display:block;height:100%;background:#1aa3d9;width:40%}
-    .days-left{float:right;color:#6e778a;font-size:12px;margin-top:-18px}
+    .days-left{float:right;color:#6e778a;font-size:12px;margin-top:-30px}
     .new-rail{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:12px;margin:12px 6px;text-align:center;color:#8b8f9c}
     .cta{display:block;background:#e9f7ff;color:#0A88B4;border:0;border-radius:999px;padding:16px 18px;font-weight:800;width:100%;margin:16px 6px 0 6px;cursor:pointer}
     .cta.peach{background:#fff3e9;color:#9f6b3d}
@@ -60,25 +60,100 @@
 </head>
 <body>
 <div class="app">
+
+<!-- Login Modal -->
+<div id="loginModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.18);align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:32px 32px 24px 32px;border-radius:16px;max-width:380px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);position:relative;display:flex;flex-direction:column;gap:18px;">
+    <button id="loginModalClose" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
+    <div style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px;">Log in</div>
+    <hr style="margin:0 0 8px 0;border:0;border-top:2px solid #eee;">
+    <form id="loginForm" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="position:relative;">
+        <input type="email" id="loginEmail" placeholder="Email" style="width:100%;padding:12px 36px 12px 12px;border-radius:8px;border:1px solid #eee;font-size:16px;">
+        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#aaa;font-size:18px;">&#x2709;</span>
+      </div>
+      <div style="position:relative;">
+        <input type="password" id="loginPassword" placeholder="Password" style="width:100%;padding:12px 36px 12px 12px;border-radius:8px;border:1px solid #eee;font-size:16px;">
+        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#aaa;font-size:18px;">&#x1F512;</span>
+      </div>
+      <button type="submit" style="width:100%;background:#232B44;color:#fff;border-radius:8px;border:none;padding:12px 0;font-size:16px;font-weight:700;cursor:pointer;">Log in</button>
+    </form>
+    <div style="text-align:center;margin:8px 0 0 0;font-size:15px;">
+      <a href="#" id="loginSignup" style="color:#232B44;text-decoration:underline;">계정이 없으신가요?</a>
+    </div>
+    <hr style="margin:12px 0 8px 0;border:0;border-top:1px solid #eee;">
+    <div style="text-align:center;font-size:14px;color:#888;margin-bottom:8px;">OR</div>
+    <button id="loginKakao" style="width:100%;background:#fee500;color:#3c1e1e;border-radius:8px;border:none;padding:12px 0;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;margin-bottom:8px;">
+      <img src="/public/icons/login-icon.svg" style="width:20px;height:20px;" alt="Kakao"/>Continue with Kakao
+    </button>
+    <button id="loginGoogle" style="width:100%;background:#4285F4;color:#fff;border-radius:8px;border:none;padding:12px 0;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">
+      <img src="/public/icons/login-icon.svg" style="width:20px;height:20px;" alt="Google"/>Continue with Google
+    </button>
+  </div>
+</div>
   <!-- Side -->
   <aside class="side">
-    <div class="brand"><div class="logo"></div><div class="name">Deadliner</div></div>
+    <div class="brand">
+        <img src="/public/icons/deadlinear-icon.svg" class="logo" alt="Deadliner"/>
+        <div class="name">Deadliner</div>
+    </div>
     <nav class="nav">
-      <a class="active" href="#">Home</a>
-      <a href="/calendar.html">Calender</a>
-      <a href="/ongoing.html">Ongoing Works</a>
-      <a href="/idea.html">Idea</a>
-      <a href="/proof.html">Proof ticket</a>
-      <a href="/mypage.html">My Page</a>
+      <a class="active" href="#"><img src="/public/icons/home-icon.svg" alt="Home" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Home</a>
+      <a href="/calender.html"><img src="/public/icons/calendar-icon.svg" alt="Calender" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Calender</a>
+      <a href="/ongoingworks.html"><img src="/public/icons/ongoingworks-icon.svg" alt="Ongoing Works" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Ongoing Works</a>
+      <a href="/idea-board.html"><img src="/public/icons/idea-icon.svg" alt="Idea" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Idea</a>
+      <a href="/main.html"><img src="/public/icons/proofticket-icon.svg" alt="Proof ticket" style="width:20px;height:20px;vertical-align:middle;margin-right:8px;"/>Proof ticket</a>
     </nav>
+    <div style="margin:32px 0 0 48px">
+      <button id="loginBtn" class="btn" style="width:120px;display:flex;align-items:center;gap:8px;">
+        <img src="/public/icons/login-icon.svg" alt="Login" style="width:20px;height:20px;vertical-align:middle;"/>
+        <span id="loginBtnText">Log in</span>
+      </button>
+    </div>
   </aside>
 
   <!-- Head -->
   <header class="head">
-    <div class="title">Monthly Calendar</div>
     <div class="sp"></div>
-    <button id="loginBtn" class="btn">Login</button>
-    <span id="loginResult"></span>
+  <div class="title">Monthly Calendar</div>
+  <div class="sp"></div>
+      <!-- Bell button (top-right) -->
+    <div id="bellBtnWrap" style="margin-left:auto; margin-right:8px; position:relative;">
+      <button id="bellBtn" aria-label="Today alerts"
+        style="all:unset; cursor:pointer; display:inline-grid; place-items:center; width:64px; height:64px;">
+        <svg width="64" height="64" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g filter="url(#filter0_d_11_2)">
+            <path d="M75 35C75 18.4315 61.5685 5 45 5C28.4315 5 15 18.4315 15 35C15 51.5685 28.4315 65 45 65C61.5685 65 75 51.5685 75 35Z" fill="#1E2A38"/>
+            <path d="M75 35C75 18.4315 61.5685 5 45 5C28.4315 5 15 18.4315 15 35C15 51.5685 28.4315 65 45 65C61.5685 65 75 51.5685 75 35Z" stroke="#E5E7EB"/>
+          </g>
+          <g clip-path="url(#clip0_11_2)">
+            <path d="M37.6338 21.7998L35.2505 19.4165C31.2505 22.4665 28.6171 27.1665 28.3838 32.4998H31.7171C31.8352 30.3862 32.4285 28.3264 33.4529 26.4738C34.4773 24.6212 35.9064 23.0236 37.6338 21.7998ZM58.2838 32.4998H61.6171C61.3671 27.1665 58.7338 22.4665 54.7505 19.4165L52.3838 21.7998C54.1038 23.0296 55.5265 24.629 56.5475 26.4806C57.5684 28.3322 58.1617 30.3889 58.2838 32.4998ZM55.0005 33.3332C55.0005 28.2165 52.2671 23.9332 47.5005 22.7998V21.6665C47.5005 20.2832 46.3838 19.1665 45.0005 19.1665C43.6171 19.1665 42.5005 20.2832 42.5005 21.6665V22.7998C37.7171 23.9332 35.0005 28.1998 35.0005 33.3332V41.6665L31.6671 44.9998V46.6665H58.3338V44.9998L55.0005 41.6665V33.3332ZM45.0005 51.6665C45.2338 51.6665 45.4505 51.6498 45.6671 51.5998C46.7505 51.3665 47.6338 50.6332 48.0671 49.6332C48.2338 49.2332 48.3171 48.7998 48.3171 48.3332H41.6505C41.6671 50.1665 43.1505 51.6665 45.0005 51.6665Z" fill="white"/>
+          </g>
+          <defs>
+            <filter id="filter0_d_11_2" x="0" y="0" width="90" height="90" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+              <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+              <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+              <feOffset dy="10"/>
+              <feGaussianBlur stdDeviation="7.5"/>
+              <feComposite in2="hardAlpha" operator="out"/>
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"/>
+              <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_11_2"/>
+              <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_11_2" result="shape"/>
+            </filter>
+            <clipPath id="clip0_11_2"><rect width="40" height="40" fill="white" transform="translate(25 15)"/></clipPath>
+          </defs>
+        </svg>
+      </button>
+      <div id="bellPanel" style="display:none; position:absolute; right:0; top:76px; width:min(420px, 86vw); background:#fff; border:1px solid #eef0f4; border-radius:14px; box-shadow:0 12px 24px rgba(0,0,0,.12); padding:12px 14px; z-index:9999;">
+        <div style="display:flex; align-items:center; gap:8px; margin:6px 4px 8px 4px;">
+          <div style="font-size:18px; font-weight:800; font-style:italic;">Today's Alerts</div>
+          <div class="sp"></div>
+          <button id="bellRefresh" class="btn" style="padding:6px 10px;">Reload</button>
+        </div>
+        <div id="bellSummary" class="muted" style="margin:0 6px 8px 6px;"></div>
+        <div id="bellList" style="max-height:52vh; overflow:auto;"></div>
+      </div>
+    </div>
   </header>
 
   <!-- Main -->
@@ -144,16 +219,103 @@ async function jfetch(path, {method='GET', headers={}, params, body}={}) {
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
 
 /* ========= Login (temp) ========= */
-document.getElementById('loginBtn').onclick = async () => {
-  const email = prompt('이메일?'); if(!email) return;
-  const password = prompt('비밀번호?'); if(!password) return;
-  const res = await fetch(API_BASE + '/api/users/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password})});
-  const data = await res.json();
-  const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
-  if(!raw){ document.getElementById('loginResult').textContent='로그인 실패'; return; }
-  localStorage.setItem('accessToken', raw.startsWith('Bearer ')?raw.slice(7):raw);
-  document.getElementById('loginResult').textContent='로그인 성공';
-  toast('로그인 완료'); loadAll();
+
+const loginBtn = document.getElementById('loginBtn');
+const loginBtnText = document.getElementById('loginBtnText');
+const loginModal = document.getElementById('loginModal');
+document.getElementById('loginModalClose').onclick = () => loginModal.style.display = 'none';
+// Toggle login/logout modal
+loginBtn.onclick = () => {
+  // If logged in (button text ends with '님')
+  if (loginBtnText.textContent.endsWith('님')) {
+    showLogoutConfirm();
+  } else {
+    loginModal.style.display = 'flex';
+  }
+};
+
+// Create and handle logout confirm modal
+function showLogoutConfirm() {
+  let modal = document.getElementById('logoutModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'logoutModal';
+    modal.style.position = 'fixed';
+    modal.style.inset = '0';
+    modal.style.zIndex = '9999';
+    modal.style.background = 'rgba(0,0,0,0.18)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.innerHTML = `
+      <div style="background:#fff;padding:32px 32px 24px 32px;border-radius:16px;max-width:320px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);position:relative;display:flex;flex-direction:column;gap:18px;">
+        <button id="logoutModalClose" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
+        <div style="font-size:18px;font-weight:700;text-align:center;margin-bottom:8px;">로그아웃 하시겠습니까?</div>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:12px;">
+          <button id="logoutCancel" style="background:#eee;color:#223044;border-radius:8px;padding:8px 18px;font-weight:700;border:none;cursor:pointer;">취소</button>
+          <button id="logoutConfirm" style="background:#232B44;color:#fff;border-radius:8px;padding:8px 18px;font-weight:700;border:none;cursor:pointer;">로그아웃</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('logoutModalClose').onclick = () => { modal.style.display = 'none'; };
+    document.getElementById('logoutCancel').onclick = () => { modal.style.display = 'none'; };
+    document.getElementById('logoutConfirm').onclick = async () => {
+      const btn = document.getElementById('logoutConfirm');
+      const cancelBtn = document.getElementById('logoutCancel');
+      btn.disabled = true; cancelBtn.disabled = true;
+      try {
+        // Call API to invalidate token (best-effort)
+        try {
+          const res = await fetch(API_BASE + '/api/users/logout', {
+            method: 'POST',
+            headers: {
+              'accept':'application/json;charset=UTF-8',
+              ...(token() ? {'Authorization': token()} : {})
+            }
+          });
+          // swallow non-200 but try to parse for message
+          const txt = await res.text(); let data = {};
+          try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
+        } catch (e) {
+          // network issues -> proceed to local logout anyway
+        }
+      } finally {
+        // Always clear local session on client
+        localStorage.removeItem('accessToken');
+        loginBtnText.textContent = 'Log in';
+        modal.style.display = 'none';
+        toast('로그아웃 완료');
+        btn.disabled = false; cancelBtn.disabled = false;
+      }
+    };
+  } else {
+    modal.style.display = 'flex';
+  }
+}
+
+document.getElementById('loginModalClose').onclick = () => {
+  document.getElementById('loginModal').style.display = 'none';
+};
+
+document.getElementById('loginForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  if(!email || !password) return toast('이메일과 비밀번호를 입력하세요.');
+  try {
+    const res = await fetch(API_BASE + '/api/users/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password})});
+    const data = await res.json();
+    const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
+    if(!raw){ document.getElementById('loginBtnText').textContent='로그인 실패'; return; }
+    localStorage.setItem('accessToken', raw.startsWith('Bearer ')?raw.slice(7):raw);
+    let username = data?.result?.me?.name || email.split('@')[0];
+    document.getElementById('loginBtnText').textContent = username + '님';
+    document.getElementById('loginModal').style.display = 'none';
+    toast('로그인 완료'); loadAll();
+  } catch(e) {
+    toast('로그인 실패');
+  }
 };
 
 /* ========= Simple router buttons ========= */
@@ -248,6 +410,8 @@ async function renderWorks(){
       deadlineId: d.deadline_id ?? d.deadlineId ?? d.id,
       title: d.event?.title ?? '(Untitled)',
       dueAt: d.event?.due_at ?? d.event?.dueAt ?? '',
+      startAt: d.event?.start_at ?? d.event?.startAt ?? '',
+      note: d.note ?? '',
     }));
     if(!arr.length){ wrap.innerHTML = `<div class="muted" style="margin:8px 6px">No projects yet.</div>`; return; }
     // group by title
@@ -256,17 +420,37 @@ async function renderWorks(){
       if(!groups.has(d.title)) groups.set(d.title, []);
       groups.get(d.title).push(d);
     });
+    function getProgressPercent(startDate, dueDate) {
+      const start = new Date(startDate);
+      const end = new Date(dueDate);
+      const now = new Date();
+      if (isNaN(start) || isNaN(end)) return 0;
+      if (now < start) return 0;
+      if (now > end) return 100;
+      const total = end - start;
+      const passed = now - start;
+      return Math.round((passed / total) * 100);
+    }
     [...groups.entries()].slice(0,6).forEach(([title, list])=>{
       const first = list[0];
+      // 추정: 시작일은 마감일 기준으로 -14일(2주)로 가정, 실제 시작일 있으면 교체
+      const dueAt = first.dueAt;
+      let startAt = first.startAt;
+      if (!startAt && dueAt) {
+        const d = new Date(dueAt);
+        d.setDate(d.getDate() - 14); // 2주 전
+        startAt = d.toISOString().slice(0,10);
+      }
+      const percent = (dueAt && startAt) ? getProgressPercent(startAt, dueAt) : 0;
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
         <div class="p-ttl">${title}</div>
-        <div class="meta">Contest: Innovation Challenge</div>
-        <div class="bar"><i></i></div>
-        <div class="days-left">${first.dueAt?daysRemaining(first.dueAt):''}</div>
+        <div class="meta">${first.note ? first.note : ''}</div>
+        <div class="bar"><i style="width:${percent}%;"></i></div>
+        <div class="days-left">${dueAt?daysRemaining(dueAt):''}</div>
       `;
-      card.onclick = ()=>{ location.href = '/ongoingworks.html'; }; // 연결만: 페이지 이동
+      card.onclick = ()=>{ location.href = '/ongoingworks.html'; };
       wrap.appendChild(card);
     });
   }catch(e){
@@ -274,11 +458,85 @@ async function renderWorks(){
   }
 }
 
+
+// ===== Bell (Today's Alerts) =====
+const bellBtn = document.getElementById('bellBtn');
+const bellPanel = document.getElementById('bellPanel');
+const bellSummary = document.getElementById('bellSummary');
+const bellList = document.getElementById('bellList');
+const bellRefresh = document.getElementById('bellRefresh');
+
+// Resolve endpoint
+const TODAY_ENDPOINT = (typeof ENDPOINTS !== 'undefined' && ENDPOINTS.todayAlerts) ? ENDPOINTS.todayAlerts : '/api/alerts/deadlines/today';
+
+async function fetchTodayAlerts(){
+  try{
+    const res = await jfetch(TODAY_ENDPOINT, { params:{ tz:'Asia/Seoul' }});
+    const items = res?.items ?? res ?? [];
+    bellSummary.textContent = `${res.date ?? ''} · ${res.count ?? items.length}건`;
+    bellList.innerHTML = items.map(it=>`
+      <div style="margin:8px 0; padding:10px; border:1px solid #eef0f4; border-radius:10px; background:#FCFCE5;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <b style="font-style:italic">${it.title ?? '(Untitled)'}</b>
+          ${it.deadline ? `<span class="badge">progress ${it.deadline.progress ?? 0}%</span>` : `<span class="badge" style="background:#fffbe6;color:#9f6b3d">no deadline</span>`}
+          <div class="sp"></div>
+          <small class="muted">${(it.dueAt ?? '').replace('T',' ')}</small>
+        </div>
+        ${it.memo ? `<div style="margin-top:6px; color:#232B44; white-space:pre-wrap">${it.memo}</div>` : ''}
+      </div>
+    `).join('') || '<div class="muted" style="padding:8px">알림이 없습니다.</div>';
+  }catch(e){
+    bellSummary.textContent = '불러오기 실패: ' + e.message;
+    bellList.innerHTML = '';
+  }
+}
+function toggleBell(e){
+  e?.stopPropagation();
+  const show = bellPanel && bellPanel.style.display !== 'block';
+  if(!bellPanel) return;
+  bellPanel.style.display = show ? 'block' : 'none';
+  if(show) { fetchTodayAlerts(); }
+}
+bellBtn && bellBtn.addEventListener('click', toggleBell);
+bellRefresh && bellRefresh.addEventListener('click', (e)=>{ e.stopPropagation(); fetchTodayAlerts(); });
+document.addEventListener('click', (e)=>{
+  const within = e.target.closest('#bellPanel') || e.target.closest('#bellBtn');
+  if(!within && bellPanel){ bellPanel.style.display = 'none'; }
+});
+
 /* ========= Boot ========= */
 async function loadAll(){
   await Promise.all([renderCalendar(), renderWorks()]);
 }
 loadAll();
+// Show username if already logged in (after refresh)
+async function showUsernameIfLoggedIn() {
+  const tokenVal = localStorage.getItem('accessToken');
+  if (tokenVal) {
+    try {
+      const res = await fetch(API_BASE + '/api/users/me', {
+        method: 'GET',
+        headers: {
+          'Authorization': token(),
+          'accept': 'application/json;charset=UTF-8'
+        }
+      });
+      const data = await res.json();
+      let username = data?.result?.name || data?.name || '';
+      if (username) {
+        document.getElementById('loginBtnText').textContent = username + '님';
+      }
+    } catch (e) {
+      // fallback: show Log in
+      document.getElementById('loginBtnText').textContent = 'Log in';
+    }
+  } else {
+    document.getElementById('loginBtnText').textContent = 'Log in';
+  }
+}
+
+// Run on page load
+showUsernameIfLoggedIn();
 </script>
 </body>
 </html>

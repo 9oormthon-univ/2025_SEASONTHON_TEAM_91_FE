@@ -206,9 +206,10 @@ class ProofTicket extends HTMLElement {
   /** 이미지에서 컬러 2개 추출 → back 그라디언트 적용 */
   _updateBackGradientFromImage(src){
     const img = new Image();
-    img.crossOrigin = "anonymous"; // CORS 허용된 이미지여야 캔버스 읽기 가능
+    img.crossOrigin = "anonymous";
     img.decoding = "async";
     img.onload = () => {
+      // 매번 새로운 canvas 생성, 오염 방지
       const w = 64, h = 64;
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
@@ -218,41 +219,36 @@ class ProofTicket extends HTMLElement {
       try {
         data = ctx.getImageData(0, 0, w, h).data;
       } catch (e) {
-        // CORS 등으로 실패 → 기본값
         this._setDefaultBackGradient();
         return;
       }
-
       // 24개 hue bin으로 간이 양자화
       const bins = Array.from({length:24}, ()=>({count:0,r:0,g:0,b:0}));
       for (let i=0;i<data.length;i+=4){
         const r=data[i], g=data[i+1], b=data[i+2], a=data[i+3];
-        if (a < 128) continue; // 투명은 제외
+        if (a < 128) continue;
         const {h,s,l} = this._rgbToHsl(r,g,b);
-        if (s < 0.2) continue;        // 저채도(회색톤) 제외
-        if (l < 0.12 || l > 0.9) continue; // 너무 어둡거나 밝은 색 제외(외곽/하이라이트)
+        if (s < 0.2) continue;
+        if (l < 0.12 || l > 0.9) continue;
         const bin = Math.floor(h*24)%24;
         const bucket = bins[bin];
         bucket.count++; bucket.r+=r; bucket.g+=g; bucket.b+=b;
       }
-
       const candidates = bins
         .map((b,idx)=> b.count>0 ? {idx, count:b.count, r:Math.round(b.r/b.count), g:Math.round(b.g/b.count), b:Math.round(b.b/b.count)} : null)
         .filter(Boolean)
         .sort((a,b)=> b.count - a.count);
-
       if (candidates.length === 0) { this._setDefaultBackGradient(); return; }
-
       const first = candidates[0];
-      // 최소 60도(= 24bin 기준 4칸) 이상 떨어진 두 번째 후보
       const second = candidates.find(c => this._hueDistance(first.idx, c.idx) >= 4) || candidates[1] || first;
-
-      const c1 = this._tuneLightness(first, +0.08); // 약간 밝게
-      const c2 = this._tuneLightness(second, -0.08); // 약간 어둡게
+      const c1 = this._tuneLightness(first, +0.08);
+      const c2 = this._tuneLightness(second, -0.08);
       this._setBackGradient(c1, c2);
     };
     img.onerror = () => this._setDefaultBackGradient();
-    img.src = src;
+    // 캐시 무효화 쿼리 추가
+    const cacheBuster = (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
+    img.src = src + cacheBuster;
   }
 
   _setBackGradient(c1, c2){
