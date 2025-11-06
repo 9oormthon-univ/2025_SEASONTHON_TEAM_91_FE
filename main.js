@@ -3,8 +3,8 @@ import { verifyFiles, loginUser } from './js/apiClient.js';
 
 // ★ API에 맞춘 버전: 생짜 fetch + Swagger 응답 스키마 반영
 document.addEventListener("DOMContentLoaded", () => {
-  // Always use relative '/api' for Vercel proxy compatibility
   const API_BASE = '/api';
+ // 필요시 '/api' 상대경로로 변경 가능
 
   /* ====== 업로드 영역 ====== */
   const uploadBox  = document.getElementById('uploadBox');
@@ -115,9 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!token) throw new Error('토큰이 응답에 없습니다.');
     
         // 이미 apiClient가 저장했다면 생략 가능. 아닐 경우에는 저장:
-  localStorage.setItem('access_token', token);      // raw token
-  localStorage.setItem('token_type', tokenType);    // 'Bearer'
-  if (me) localStorage.setItem('me', JSON.stringify(me));
+        localStorage.setItem('accessToken', token);      // raw token
+        localStorage.setItem('tokenType', tokenType);    // 'Bearer'
+        if (me) localStorage.setItem('me', JSON.stringify(me));
     
         alert('로그인 성공! 이제 발급/마이페이지 기능을 사용할 수 있어요.');
         location.href = 'register.html';

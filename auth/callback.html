@@ -9,7 +9,7 @@
 <body>
   <div>로그인 처리 중…</div>
   <script>
-    const API_BASE='http://13.125.59.4:8080';
+  const API_BASE='/api';
     const DASHBOARD_PATH='/deadLiner-dashBoard.html';
     function parseHashFragment(h){const q=new URLSearchParams(h.startsWith('#')?h.slice(1):h);const o={};q.forEach((v,k)=>o[k]=v);return o;}
     (async function(){
@@ -21,8 +21,14 @@
       localStorage.setItem('access_token', access);
       history.replaceState({},'',DASHBOARD_PATH);
       try{
-        const r=await fetch(API_BASE+'/api/users/me',{headers:{Authorization:`Bearer ${access}`,accept:'application/json;charset=UTF-8'},credentials:'omit'});
-        location.replace(r.ok?DASHBOARD_PATH:DASHBOARD_PATH+'?error=invalid_token');
+        // Vercel proxy 경로 및 인증 처리
+        import('../js/apiClient.js').then(({ jfetch }) => {
+          jfetch('/users/me', { auth: true }).then(() => {
+            location.replace(DASHBOARD_PATH);
+          }).catch(() => {
+            location.replace(DASHBOARD_PATH+'?error=invalid_token');
+          });
+        });
       }catch{location.replace(DASHBOARD_PATH+'?error=invalid_token');}
     })();
   </script>

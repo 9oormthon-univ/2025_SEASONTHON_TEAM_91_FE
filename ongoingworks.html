@@ -195,9 +195,8 @@ const ENDPOINTS = {
   itemComplete:     (itemId)=>`/api/items/${itemId}/complete`,
   itemDelete:       (itemId)=>`/api/items/${itemId}`,
 };
-// Always use 'access_token' for token storage
 const token = () => {
-  const tk = localStorage.getItem('access_token')||''; return tk ? (tk.startsWith('Bearer ')?tk:`Bearer ${tk}`) : '';
+  const tk = localStorage.getItem('accessToken')||''; return tk ? (tk.startsWith('Bearer ')?tk:`Bearer ${tk}`) : '';
 };
 async function jfetch(path, {method='GET', headers={}, params, body}={}) {
   const url = new URL(API_BASE + path);
@@ -281,20 +280,18 @@ document.getElementById('loginModalClose').onclick = () => loginModal.style.disp
         const cancelBtn = document.getElementById('logoutCancel');
         btn.disabled = true; cancelBtn.disabled = true;
         try {
-          try {
-            const res = await fetch(API_BASE + '/api/users/logout', {
-              method: 'POST',
-              headers: {
-                'accept':'application/json;charset=UTF-8',
-                ...(token() ? {'Authorization': token()} : {})
-              }
+          // Vercel proxy 경로 및 인증 처리
+          import('./js/apiClient.js').then(({ jfetch }) => {
+            jfetch('/users/logout', { method: 'POST', auth: true }).finally(() => {
+              localStorage.removeItem('accessToken');
+              loginBtnText.textContent = 'Log in';
+              modal.style.display = 'none';
+              toast('로그아웃 완료');
+              btn.disabled = false; cancelBtn.disabled = false;
             });
-            const txt = await res.text(); let data = {};
-            try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
-          } catch (e) {
-          }
-        } finally {
-          localStorage.removeItem('access_token');
+          });
+        } catch (e) {
+          localStorage.removeItem('accessToken');
           loginBtnText.textContent = 'Log in';
           modal.style.display = 'none';
           toast('로그아웃 완료');
@@ -313,9 +310,9 @@ document.getElementById('loginForm').onsubmit = async (e) => {
   try {
     const res = await fetch(API_BASE + '/api/users/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password})});
     const data = await res.json();
-  const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
-  if(!raw){ loginBtnText.textContent='로그인 실패'; return; }
-  localStorage.setItem('access_token', raw.startsWith('Bearer ')?raw.slice(7):raw);
+    const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
+    if(!raw){ loginBtnText.textContent='로그인 실패'; return; }
+    localStorage.setItem('accessToken', raw.startsWith('Bearer ')?raw.slice(7):raw);
     let username = data?.result?.me?.name || email.split('@')[0];
     loginBtnText.textContent = username + '님';
     loginModal.style.display = 'none';

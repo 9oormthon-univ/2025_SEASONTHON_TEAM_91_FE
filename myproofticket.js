@@ -223,17 +223,10 @@ async function openTicket(idx) {
     if (downloadBtn) {
       downloadBtn.onclick = async () => {
         try {
-          const token = localStorage.getItem('accessToken');
           const ticketId = info.ticketId;
           if (!ticketId) return alert('티켓 정보가 없습니다.');
-          const res = await fetch(`http://13.125.59.4:8080/api/tickets/${ticketId}/download`, {
-            method: 'GET',
-            headers: {
-              'accept': 'application/json;charset=UTF-8',
-              'Authorization': token ? `Bearer ${token}` : ''
-            }
-          });
-          const data = await res.json();
+          // Vercel proxy 경로 및 인증 처리
+          const data = await getTicketDetail(ticketId);
           const fileUrl = data?.result?.file_url || data?.result?.fileUrl;
           if (!fileUrl) return alert('다운로드 가능한 파일이 없습니다.');
           // 실제 PDF 다운로드

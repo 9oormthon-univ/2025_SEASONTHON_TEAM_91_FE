@@ -133,9 +133,8 @@
 
   /* ========= Shared helpers (login + toast) ========= */
   const API_BASE = '/api';
-  // Always use 'access_token' for token storage
   const token = () => {
-    const tk = localStorage.getItem('access_token')||''; return tk ? (tk.startsWith('Bearer ')?tk:`Bearer ${tk}`) : '';
+    const tk = localStorage.getItem('accessToken')||''; return tk ? (tk.startsWith('Bearer ')?tk:`Bearer ${tk}`) : '';
   };
   function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
 
@@ -180,7 +179,7 @@
       document.getElementById('logoutModalClose').onclick = () => { modal.style.display = 'none'; };
       document.getElementById('logoutCancel').onclick = () => { modal.style.display = 'none'; };
       document.getElementById('logoutConfirm').onclick = () => {
-  localStorage.removeItem('access_token');
+        localStorage.removeItem('accessToken');
         loginBtnText.textContent = 'Log in';
         modal.style.display = 'none';
         toast('로그아웃 완료');
@@ -195,16 +194,23 @@
     const password = document.getElementById('loginPassword').value.trim();
     if(!email || !password) return toast('이메일과 비밀번호를 입력하세요.');
     try {
-      const res = await fetch(API_BASE + '/api/users/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password})});
-      const data = await res.json();
-  const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
-  if(!raw){ loginBtnText.textContent='로그인 실패'; return; }
-  localStorage.setItem('access_token', raw.startsWith('Bearer ')?raw.slice(7):raw);
-      let username = data?.result?.me?.name || email.split('@')[0];
-      loginBtnText.textContent = username + '님';
-      loginModal.style.display = 'none';
-      toast('로그인 완료');
-      fetchIdeas();
+      // Vercel proxy 경로 및 인증 처리
+      import('./js/apiClient.js').then(({ jfetch }) => {
+        jfetch('/users/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        }).then(data => {
+          const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
+          if (!raw) { loginBtnText.textContent = '로그인 실패'; return; }
+          localStorage.setItem('accessToken', raw.startsWith('Bearer ') ? raw.slice(7) : raw);
+          let username = data?.result?.me?.name || email.split('@')[0];
+          loginBtnText.textContent = username + '님';
+          loginModal.style.display = 'none';
+          toast('로그인 완료');
+          fetchIdeas();
+        }).catch(e => { toast('로그인 실패'); });
+      });
     } catch(e) { toast('로그인 실패'); }
   };
 
@@ -213,18 +219,17 @@
       const tokenVal = localStorage.getItem('accessToken');
       if (tokenVal) {
         try {
-          const res = await fetch(API_BASE + '/api/users/me', {
-            method: 'GET',
-            headers: {
-              'Authorization': token(),
-              'accept': 'application/json;charset=UTF-8'
-            }
+          // Vercel proxy 경로 및 인증 처리
+          import('./js/apiClient.js').then(({ jfetch }) => {
+            jfetch('/users/me', { auth: true }).then(data => {
+              let username = data?.result?.name || data?.name || '';
+              if (username) {
+                loginBtnText.textContent = username + '님';
+              }
+            }).catch(() => {
+              loginBtnText.textContent = 'Log in';
+            });
           });
-          const data = await res.json();
-          let username = data?.result?.name || data?.name || '';
-          if (username) {
-            loginBtnText.textContent = username + '님';
-          }
         } catch (e) {
           loginBtnText.textContent = 'Log in';
         }
