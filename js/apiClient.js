@@ -6,7 +6,7 @@
  * - FormData일 땐 Content-Type 자동 생략
  * ========================================================================= */
 
-export const API_BASE = ''; // Nginx로 /api 프록시되는 구조 권장
+export const API_BASE = 'http://13.125.59.4:8080/api'; // Nginx로 /api 프록시되는 구조 권장
 
 /* ============================== 내부 유틸 =============================== */
 
@@ -54,8 +54,8 @@ async function jfetch(path, { method = 'GET', headers = {}, body, auth = false }
 
 // 로그인 응답 정규화: access_token/token_type vs accessToken/tokenType
 function normalizeLoginResult(result) {
-  const accessToken = result?.access_token ?? result?.accessToken ?? null;
-  const tokenType   = result?.token_type   ?? result?.tokenType   ?? 'Bearer';
+  const accessToken = result?.accessToken ?? result?.access_token ?? null;
+  const tokenType   = result?.tokenType   ?? result?.token_type   ?? 'Bearer';
   const me          = result?.me ?? null;
   return { accessToken, tokenType, me };
 }

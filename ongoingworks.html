@@ -293,7 +293,7 @@ document.getElementById('loginModalClose').onclick = () => loginModal.style.disp
           } catch (e) {
           }
         } finally {
-          localStorage.removeItem('accessToken');
+          localStorage.removeItem('access_token');
           loginBtnText.textContent = 'Log in';
           modal.style.display = 'none';
           toast('로그아웃 완료');
@@ -312,9 +312,9 @@ document.getElementById('loginForm').onsubmit = async (e) => {
   try {
     const res = await fetch(API_BASE + '/api/users/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password})});
     const data = await res.json();
-    const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
+  const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
     if(!raw){ loginBtnText.textContent='로그인 실패'; return; }
-    localStorage.setItem('accessToken', raw.startsWith('Bearer ')?raw.slice(7):raw);
+  localStorage.setItem('accessToken', raw.startsWith('Bearer ')?raw.slice(7):raw);
     let username = data?.result?.me?.name || email.split('@')[0];
     loginBtnText.textContent = username + '님';
     loginModal.style.display = 'none';

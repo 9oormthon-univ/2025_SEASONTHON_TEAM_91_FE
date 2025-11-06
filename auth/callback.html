@@ -18,7 +18,7 @@
       const p=parseHashFragment(h);
       const access=p.access_token||p.token;
       if(!access){location.replace(DASHBOARD_PATH+'?error=missing_token');return;}
-      localStorage.setItem('access_token', access);
+  localStorage.setItem('accessToken', access);
       history.replaceState({},'',DASHBOARD_PATH);
       try{
         const r=await fetch(API_BASE+'/api/users/me',{headers:{Authorization:`Bearer ${access}`,accept:'application/json;charset=UTF-8'},credentials:'omit'});
