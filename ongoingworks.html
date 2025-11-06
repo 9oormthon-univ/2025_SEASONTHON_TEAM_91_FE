@@ -50,10 +50,13 @@
     .boards-drawer .xbtn{ border:0; background:#fff; width:36px; height:36px; border-radius:10px; cursor:pointer; font-size:18px }
     .board-card{ border-radius:24px; padding:28px 34px; min-height:150px; background:#fff; width:100%; margin:0 0 24px 0; box-shadow:var(--shadow) }
     .board-title{ font-size:26px; font-style:italic; font-weight:800; color:#232B44; margin:0 0 18px 0 }
-    .item-row{ display:flex; align-items:center; gap:18px; font-size:18px; font-style:italic; font-weight:700; color:#232B44; margin:12px 0 }
+    .item-row{ display:flex; align-items:center; gap:12px; font-size:18px; font-style:italic; font-weight:700; color:#232B44; margin:12px 0 }
     .item-row input[type="checkbox"]{ width:28px; height:22px; border-radius:14px; border:2px solid #CACBD1; background:#fff; appearance:none; position:relative; cursor:pointer }
     .item-row input[type="checkbox"]:checked{ background:#232B44; border-color:#232B44 }
     .item-row input[type="checkbox"]:checked::after{ content:''; position:absolute; left:8px; top:4px; width:12px; height:12px; border-radius:50%; background:#fff }
+    .row-actions{ margin-left:auto; display:flex; gap:6px }
+    .icon-btn{ border:0; background:#fff; width:28px; height:28px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,.12); }
+    .icon-btn.danger{ background:#ffecec; color:#b42222 }
 
     .ck-group{margin:10px 0 18px 0; padding:12px 14px; border:1px solid #ECE9E7; border-radius:14px; background:#fff;}
     .ck-hd{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
@@ -140,8 +143,10 @@
   <div id="boardsBackdrop" class="boards-backdrop"></div>
   <aside id="boardsDrawer" class="boards-drawer" aria-hidden="true">
     <div class="close"><button class="xbtn" id="closeDrawer">×</button></div>
-    <!-- Checklist add buttons for each board section will be added dynamically -->
-    <div class="drawer-toolbar"></div>
+    <!-- Toolbar: add checklist & delete deadline -->
+    <div class="drawer-toolbar">
+      <button id="btnDeleteDeadline" class="mini-btn" style="background:#ffecec;color:#b42222;border:1px solid #f2c6c6;">데드라인 삭제</button>
+    </div>
     <div class="board-card">
       <div class="board-title">Today</div>
       <div id="listToday"></div>
@@ -159,7 +164,7 @@
 
 <!-- Deadline Modal -->
 <div id="deadlineModal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.18);align-items:center;justify-content:center;">
-  <div class="box" style="background:#fff;padding:28px 32px;border-radius:16px;max-width:430px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,.12)">
+  <div class="box" style="background:#fff;padding:28px 32px;border-radius:16px;max-width:430px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12)">
     <h3 style="margin-top:0">이벤트 선택</h3>
     <div id="eventListWrap" style="max-height:240px;overflow-y:auto;margin-bottom:16px;"></div>
     <div style="margin-bottom:10px">
@@ -181,8 +186,10 @@ const API_BASE = 'http://13.125.59.4:8080';
 const ENDPOINTS = {
   deadlinesList:    '/api/deadlines',
   deadlineCreate:   '/api/deadlines',
+  deadlineDelete:   (deadlineId)=>`/api/deadlines/${deadlineId}`,
   dlChecklistsList: (deadlineId)=>`/api/deadlines/${deadlineId}/checklists`,
   dlChecklistAdd:   (deadlineId)=>`/api/deadlines/${deadlineId}/checklists`,
+  dlChecklistDelete:(deadlineId, checklistId)=>`/api/deadlines/${deadlineId}/checklists/${checklistId}`,
   itemsList:        (checklistId)=>`/api/checklists/${checklistId}/items`,
   itemAdd:          (checklistId)=>`/api/checklists/${checklistId}/items`,
   itemComplete:     (itemId)=>`/api/items/${itemId}/complete`,
@@ -226,6 +233,7 @@ const mapDeadline = (dl) => ({
     title: dl.event?.title ?? '',
     memo:  dl.event?.memo ?? '',
     dueAt: dl.event?.due_at ?? dl.event?.dueAt ?? '',
+    startAt: dl.event?.start_at ?? dl.event?.startAt ?? ''
   }
 });
 
@@ -236,16 +244,12 @@ const loginModal = document.getElementById('loginModal');
 document.getElementById('loginModalClose').onclick = () => loginModal.style.display = 'none';
   // Toggle login/logout modal
   loginBtn.onclick = () => {
-    // If logged in (button text ends with '님')
     if (loginBtnText.textContent.endsWith('님')) {
-      // Show logout confirm modal
       showLogoutConfirm();
     } else {
       loginModal.style.display = 'flex';
     }
   };
-	
-  // Create and handle logout confirm modal
   function showLogoutConfirm() {
     let modal = document.getElementById('logoutModal');
     if (!modal) {
@@ -276,7 +280,6 @@ document.getElementById('loginModalClose').onclick = () => loginModal.style.disp
         const cancelBtn = document.getElementById('logoutCancel');
         btn.disabled = true; cancelBtn.disabled = true;
         try {
-          // Call API to invalidate token (best-effort)
           try {
             const res = await fetch(API_BASE + '/api/users/logout', {
               method: 'POST',
@@ -285,14 +288,11 @@ document.getElementById('loginModalClose').onclick = () => loginModal.style.disp
                 ...(token() ? {'Authorization': token()} : {})
               }
             });
-            // swallow non-200 but try to parse for message
             const txt = await res.text(); let data = {};
             try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
           } catch (e) {
-            // network issues -> proceed to local logout anyway
           }
         } finally {
-          // Always clear local session on client
           localStorage.removeItem('accessToken');
           loginBtnText.textContent = 'Log in';
           modal.style.display = 'none';
@@ -322,7 +322,6 @@ document.getElementById('loginForm').onsubmit = async (e) => {
   } catch(e) { toast('로그인 실패'); }
 };
 
-// Show username if already logged in (after refresh)
 async function showUsernameIfLoggedIn() {
   const tokenVal = localStorage.getItem('accessToken');
   if (tokenVal) {
@@ -346,12 +345,25 @@ async function showUsernameIfLoggedIn() {
     loginBtnText.textContent = 'Log in';
   }
 }
-
 showUsernameIfLoggedIn();
 
 /* ===== Projects list ===== */
 async function fetchDeadlines(){ const res = await jfetch(ENDPOINTS.deadlinesList); const arr = res?.deadlines ?? []; return arr.map(mapDeadline); }
 function renderProjects(deadlines){
+  // Hide passed deadlines (due date < today) and sort by due date ascending
+  const today0 = new Date(); today0.setHours(0,0,0,0);
+  deadlines = (deadlines||[])
+    .filter(d => {
+      const dueAt = d?.event?.dueAt;
+      if(!dueAt) return false; // hide items without due date
+      const due = new Date(dueAt);
+      return !isNaN(due) && due >= today0;
+    })
+    .sort((a, b) => {
+      const aDue = new Date(a?.event?.dueAt);
+      const bDue = new Date(b?.event?.dueAt);
+      return aDue - bDue;
+    });
   const wrap = document.getElementById('projectList'); wrap.innerHTML = '';
   if(!deadlines.length){ wrap.innerHTML = '<div class="muted">No projects yet.</div>'; return; }
   const groups = new Map();
@@ -370,29 +382,35 @@ function renderProjects(deadlines){
   }
 
   let selectedCard = null;
+  function getBarColor(dueAt) {
+    if (!dueAt) return '#1aa3d9'; // default blue
+    const today = new Date(); today.setHours(0,0,0,0);
+    const due = new Date(dueAt); due.setHours(0,0,0,0);
+    const diff = Math.ceil((due - today) / (1000*60*60*24));
+    if (diff === 0) return '#e05a5a'; // today: red
+    if (diff > 0 && diff <= 3) return '#f7b731'; // <=3 days: yellow
+    if (diff >= 4 && diff <= 7) return '#f5cd79'; // 4-7 days: light yellow
+    if (diff >= 14) return '#2ecc71'; // >=14 days: green
+    return '#1aa3d9'; // default blue
+  }
   for(const [title, list] of groups.entries()){
     const d0 = list[0];
-    // 추정: 시작일은 마감일 기준으로 -14일(2주)로 가정, 실제 시작일 있으면 교체
     const dueAt = d0?.event?.dueAt;
-    let startAt = '';
-    if (d0.event && (d0.event.startAt || d0.event.start_at)) {
-      startAt = d0.event.startAt || d0.event.start_at;
-    } else if (dueAt) {
-      const d = new Date(dueAt);
-      d.setDate(d.getDate() - 14); // 2주 전
-      startAt = d.toISOString().slice(0,10);
+    let startAt = d0?.event?.startAt;
+    if (!startAt && dueAt) {
+      const d = new Date(dueAt); d.setDate(d.getDate() - 14); startAt = d.toISOString().slice(0,10);
     }
     const percent = (dueAt && startAt) ? getProgressPercent(startAt, dueAt) : 0;
+    const barColor = getBarColor(dueAt);
     const el = document.createElement('div');
     el.className = 'proj-card';
     el.innerHTML = `
       <div class="ttl">${title}</div>
       <div class="meta">${d0.note ? d0.note : ''}</div>
-      <div class="bar"><i style="width:${percent}%;"></i></div>
+      <div class="bar"><i style="width:${percent}%;background:${barColor};"></i></div>
       <div class="days">${d0?.event?.dueAt ? daysRemaining(d0.event.dueAt) : ''}</div>
     `;
     el.onclick = () => {
-      // Remove selected from previous
       if(selectedCard) selectedCard.classList.remove('selected');
       el.classList.add('selected');
       selectedCard = el;
@@ -405,6 +423,7 @@ function renderProjects(deadlines){
 /* ===== Drawer & Boards ===== */
 const drawer = document.getElementById('boardsDrawer');
 const backdrop = document.getElementById('boardsBackdrop');
+const btnDeleteDeadline = document.getElementById('btnDeleteDeadline');
 document.getElementById('closeDrawer').onclick = closeBoardsDrawer;
 backdrop.onclick = closeBoardsDrawer;
 
@@ -424,26 +443,52 @@ function closeBoardsDrawer(){
   ['listToday','listTomorrow','listWeek'].forEach(id=>document.getElementById(id).innerHTML='');
 }
 
+btnDeleteDeadline.onclick = async () => {
+  if(!currentDeadline) return;
+  const ok = confirm('이 데드라인을 삭제할까요?\n(하위 체크리스트 및 아이템은 정책에 따라 함께 제거될 수 있습니다)');
+  if(!ok) return;
+  try{
+    await jfetch(ENDPOINTS.deadlineDelete(currentDeadline.deadlineId), { method:'DELETE' });
+    toast('데드라인 삭제 성공');
+    closeBoardsDrawer();
+    loadAll();
+  }catch(e){ toast(e.message); }
+};
 
-function renderItem({itemId, content, done}){
+function renderItem({itemId, content, done}, onRemoved){
   const row = document.createElement('div'); row.className='item-row';
   const cb = document.createElement('input'); cb.type='checkbox'; cb.checked=!!done;
   const label = document.createElement('span'); label.textContent = content;
+  const actions = document.createElement('div'); actions.className='row-actions';
+  const delBtn = document.createElement('button'); delBtn.className='icon-btn danger'; delBtn.title='아이템 삭제'; delBtn.innerHTML='🗑';
+
   cb.onchange = async (e)=>{
     const want = e.target.checked;
     try{ await jfetch(ENDPOINTS.itemComplete(itemId), { method:'PATCH', body:{ done: want } }); }
     catch(err){ e.target.checked = !want; toast(err.message); }
   };
-  row.appendChild(cb); row.appendChild(label);
+
+  delBtn.onclick = async ()=>{
+    const ok = confirm('이 아이템을 삭제할까요?');
+    if(!ok) return;
+    try{
+      await jfetch(ENDPOINTS.itemDelete(itemId), { method:'DELETE' });
+      toast('체크리스트 아이템 삭제 성공');
+      row.remove();
+      onRemoved?.();
+    }catch(e){ toast(e.message); }
+  };
+
+  row.appendChild(cb); row.appendChild(label); actions.appendChild(delBtn); row.appendChild(actions);
   return row;
 }
 
 function renderChecklistGroup(deadlineTitle, ck, items){
+  const ckId = ck.checklist_id ?? ck.checklistId ?? ck.id;
   const group = document.createElement('div'); group.className='ck-group';
   const hd = document.createElement('div'); hd.className='ck-hd';
 
   const title = document.createElement('div'); title.className='ck-title';
-  // prefix([오늘], [내일], [이번주]) 제거
   let rawTitle = ck.title ?? '';
   rawTitle = rawTitle.replace(/^\[(오늘|내일|이번주)\]\s*/, '');
   title.textContent = `${deadlineTitle} · ${rawTitle}`;
@@ -451,43 +496,92 @@ function renderChecklistGroup(deadlineTitle, ck, items){
   const count = document.createElement('span'); count.className='ck-count';
   count.textContent = `(아이템 ${items.length})`;
 
-  const addItemBtn = document.createElement('button'); addItemBtn.className='mini-btn ghost';
-  addItemBtn.textContent = '＋';
+  // Improved UI: Modal for item creation
+  const addItemBtn = document.createElement('button');
+  addItemBtn.className = 'mini-btn ghost';
+  addItemBtn.innerHTML = '<span style="font-size:1.2em;">＋</span> 아이템 추가';
+  addItemBtn.title = '아이템 추가';
 
-  const itemsBox = document.createElement('div'); itemsBox.className='ck-items';
+  const delCkBtn = document.createElement('button');
+  delCkBtn.className = 'mini-btn';
+  delCkBtn.style.background = '#ffecec';
+  delCkBtn.style.color = '#b42222';
+  delCkBtn.style.border = '1px solid #f2c6c6';
+  delCkBtn.innerHTML = '<span style="font-size:1em;">🗑</span> 삭제';
+  delCkBtn.title = '체크리스트 삭제';
 
-  if(items.length){
-    items.forEach(it=>{
+  const itemsBox = document.createElement('div'); itemsBox.className = 'ck-items';
+
+  function refreshCount() { const n = itemsBox.querySelectorAll('.item-row').length; count.textContent = `(아이템 ${n})`; }
+
+  if (items.length) {
+    items.forEach(it => {
       itemsBox.appendChild(renderItem({
         itemId: it.item_id ?? it.itemId ?? it.id,
         content: it.content ?? it.text ?? '',
         done: !!(it.done ?? it.completed ?? false),
-      }));
+      }, refreshCount));
     });
-  }else{
-    const empty = document.createElement('div'); empty.className='empty';
-    empty.textContent = '아이템이 없습니다. ＋ Item으로 추가하세요.';
+  } else {
+    const empty = document.createElement('div'); empty.className = 'empty';
+    empty.textContent = '아이템이 없습니다. 아래 버튼으로 추가하세요.';
     itemsBox.appendChild(empty);
   }
 
-  addItemBtn.onclick = async ()=>{
-    const txt = prompt('아이템 내용을 입력하세요'); if(!txt) return;
-    try{
-      const created = await jfetch(ENDPOINTS.itemAdd(ck.checklist_id ?? ck.checklistId ?? ck.id), { method:'POST', body:{ content: txt } });
-      toast('아이템이 추가되었습니다.');
-      const newly = created.result ?? created;
-      const emptyEl = itemsBox.querySelector('.empty'); if(emptyEl) emptyEl.remove();
-      itemsBox.appendChild(renderItem({
-        itemId: newly.item_id ?? newly.itemId ?? newly.id,
-        content: newly.content ?? txt,
-        done: !!(newly.done),
-      }));
-      const nowCount = itemsBox.querySelectorAll('.item-row').length;
-      count.textContent = `(아이템 ${nowCount})`;
-    }catch(e){ toast(e.message); }
+  // Modal for item creation
+  let itemModal = null;
+  addItemBtn.onclick = () => {
+    if (itemModal) itemModal.remove();
+    itemModal = document.createElement('div');
+    itemModal.style.position = 'fixed';
+    itemModal.style.inset = '0';
+    itemModal.style.zIndex = '9999';
+    itemModal.style.background = 'rgba(0,0,0,0.18)';
+    itemModal.style.display = 'flex';
+    itemModal.style.alignItems = 'center';
+    itemModal.style.justifyContent = 'center';
+    itemModal.innerHTML = `
+      <div style="background:#fff;padding:28px 32px;border-radius:16px;max-width:340px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);display:flex;flex-direction:column;gap:16px;">
+        <h3 style="margin:0;font-size:20px;text-align:center;">아이템 추가</h3>
+        <input id="newItemContent" style="width:100%;border:1px solid #E5E7EB;border-radius:10px;padding:10px;font-size:16px;" placeholder="아이템 내용을 입력하세요" />
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="mini-btn ghost" id="cancelAddItem">취소</button>
+          <button class="mini-btn" id="confirmAddItem" style="background:#232B44;color:#fff;">추가</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(itemModal);
+    document.getElementById('cancelAddItem').onclick = () => { itemModal.remove(); };
+    document.getElementById('confirmAddItem').onclick = async () => {
+      const txt = document.getElementById('newItemContent').value.trim();
+      if (!txt) return toast('내용을 입력하세요.');
+      try {
+        const created = await jfetch(ENDPOINTS.itemAdd(ckId), { method: 'POST', body: { content: txt } });
+        toast('아이템이 추가되었습니다.');
+        const newly = created.result ?? created;
+        const emptyEl = itemsBox.querySelector('.empty'); if (emptyEl) emptyEl.remove();
+        itemsBox.appendChild(renderItem({
+          itemId: newly.item_id ?? newly.itemId ?? newly.id,
+          content: newly.content ?? txt,
+          done: !!(newly.done),
+        }, refreshCount));
+        refreshCount();
+        itemModal.remove();
+      } catch (e) { toast(e.message); }
+    };
   };
 
-  hd.appendChild(title); hd.appendChild(count); hd.appendChild(addItemBtn);
+  delCkBtn.onclick = async () => {
+    const ok = confirm('이 체크리스트를 삭제할까요?');
+    if (!ok) return;
+    try {
+      await jfetch(ENDPOINTS.dlChecklistDelete(currentDeadline.deadlineId, ckId), { method: 'DELETE' });
+      toast('체크리스트 삭제 성공');
+      group.remove();
+    } catch (e) { toast(e.message); }
+  };
+
+  hd.appendChild(title); hd.appendChild(count); hd.appendChild(addItemBtn); hd.appendChild(delCkBtn);
   group.appendChild(hd); group.appendChild(itemsBox);
   return group;
 }
@@ -510,31 +604,54 @@ async function loadBoardsForDeadline(deadline){
   else if(due.toDateString()===t1.toDateString()) bucket='tomorrow';
   else if(!(due>=t0 && due<=t7)) bucket='week';
 
-  // 각 섹션별로 checklist 추가 버튼 생성, prefix 붙여 저장
   ['today','tomorrow','week'].forEach(key => {
     const btnId = `addChecklistBtn_${key}`;
     let btn = document.getElementById(btnId);
     if (!btn) {
       btn = document.createElement('button');
-      btn.id = btnId;
-      btn.className = 'mini-btn';
-      btn.textContent = '＋';
+      btn.id = btnId; btn.className = 'mini-btn'; btn.innerHTML = '<span style="font-size:1.2em;">＋</span> 체크리스트 추가'; btn.title = `${key} 체크리스트 추가`;
       btn.style.margin = '8px 0';
       dom[key].parentElement.insertBefore(btn, dom[key]);
-      btn.onclick = async ()=>{
-        if(!currentDeadline) return;
-        const title = prompt('새 체크리스트 제목을 입력하세요');
-        if(!title) return;
-        // prefix 붙여서 저장
-        let prefix = '';
-        if(key==='today') prefix = '[오늘] ';
-        else if(key==='tomorrow') prefix = '[내일] ';
-        else if(key==='week') prefix = '[이번주] ';
-        try{
-          await jfetch(ENDPOINTS.dlChecklistAdd(currentDeadline.deadlineId), { method:'POST', body:{ title: prefix + title } });
-          toast('체크리스트가 생성되었습니다.');
-          loadBoardsForDeadline(currentDeadline);
-        }catch(e){ toast(e.message); }
+      btn.onclick = () => {
+        // Modal for checklist creation
+        let checklistModal = document.getElementById('checklistCreateModal');
+        if (checklistModal) checklistModal.remove();
+        checklistModal = document.createElement('div');
+        checklistModal.id = 'checklistCreateModal';
+        checklistModal.style.position = 'fixed';
+        checklistModal.style.inset = '0';
+        checklistModal.style.zIndex = '9999';
+        checklistModal.style.background = 'rgba(0,0,0,0.18)';
+        checklistModal.style.display = 'flex';
+        checklistModal.style.alignItems = 'center';
+        checklistModal.style.justifyContent = 'center';
+        checklistModal.innerHTML = `
+          <div style="background:#fff;padding:28px 32px;border-radius:16px;max-width:340px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);display:flex;flex-direction:column;gap:16px;">
+            <h3 style="margin:0;font-size:20px;text-align:center;">체크리스트 추가</h3>
+            <input id="newChecklistTitle" style="width:100%;border:1px solid #E5E7EB;border-radius:10px;padding:10px;font-size:16px;" placeholder="체크리스트 제목을 입력하세요" />
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <button class="mini-btn ghost" id="cancelAddChecklist">취소</button>
+              <button class="mini-btn" id="confirmAddChecklist" style="background:#232B44;color:#fff;">추가</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(checklistModal);
+        document.getElementById('cancelAddChecklist').onclick = () => { checklistModal.remove(); };
+        document.getElementById('confirmAddChecklist').onclick = async () => {
+          if(!currentDeadline) return;
+          const title = document.getElementById('newChecklistTitle').value.trim();
+          if(!title) return toast('제목을 입력하세요.');
+          let prefix = '';
+          if(key==='today') prefix = '[오늘] ';
+          else if(key==='tomorrow') prefix = '[내일] ';
+          else if(key==='week') prefix = '[이번주] ';
+          try{
+            await jfetch(ENDPOINTS.dlChecklistAdd(currentDeadline.deadlineId), { method:'POST', body:{ title: prefix + title } });
+            toast('체크리스트가 생성되었습니다.');
+            checklistModal.remove();
+            loadBoardsForDeadline(currentDeadline);
+          }catch(e){ toast(e.message); }
+        };
       };
     }
   });
@@ -542,16 +659,14 @@ async function loadBoardsForDeadline(deadline){
   try{
     const ckRes = await jfetch(ENDPOINTS.dlChecklistsList(deadline.deadlineId));
     const cks = ckRes.checklists ?? [];
-    // 각 섹션별로 checklist 분류
     const buckets = { today: [], tomorrow: [], week: [] };
     for(const ck of cks){
       const title = ck.title ?? '';
       if(title.startsWith('[오늘]')) buckets.today.push(ck);
       else if(title.startsWith('[내일]')) buckets.tomorrow.push(ck);
       else if(title.startsWith('[이번주]')) buckets.week.push(ck);
-      else buckets.week.push(ck); // prefix 없으면 기본적으로 이번주로
+      else buckets.week.push(ck);
     }
-    // 각 섹션에 checklist 표시
     ['today','tomorrow','week'].forEach(key => {
       const list = buckets[key];
       const el = dom[key];

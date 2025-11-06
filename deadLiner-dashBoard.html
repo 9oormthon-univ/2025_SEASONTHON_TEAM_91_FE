@@ -38,7 +38,11 @@
     .d.muted{color:#c8ced9}
     .d .num{position:absolute;top:8px;left:10px;font-weight:700}
     .d.dot::after{content:'';position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#9bb8ff}
-    .d.today{outline:2px solid #ff8f8f; outline-offset:-2px}
+    .d.today{
+  position:relative; background:#fff;
+  box-shadow: inset 0 0 0 2px rgba(10,136,180,.35);
+}
+.d.today .num{ color:#0A88B4; }
     .d.deadline::after{background:#ff7b7b}
     /* right rail */
     .rail{padding-right:8px}
@@ -193,7 +197,6 @@
     <aside class="rail">
       <h3>Ongoing Works</h3>
       <div id="works"></div>
-      <div class="new-rail">＋</div>
       <button class="cta" id="goIdeas">Manage My Ideas</button>
       <button class="cta peach" id="goProof">Proof Ticket</button>
     </aside>
@@ -239,6 +242,7 @@ async function jfetch(path, {method='GET', headers={}, params, body}={}) {
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
 
 /* ========= Auth UI wiring ========= */
+
 const loginBtn = document.getElementById('loginBtn');
 const loginBtnText = document.getElementById('loginBtnText');
 
@@ -276,6 +280,13 @@ signupClose.onclick = () => close(signupModal);
 loginSignup.onclick = (e)=>{ e.preventDefault(); close(loginModal); open(signupModal); };
 // 회원가입 모달 → 로그인 모달
 signupToLogin.onclick = (e)=>{ e.preventDefault(); close(signupModal); open(loginModal); };
+
+// ====== OAuth2 Social Login Button Handlers ======
+const OAUTH_BASE = "http://ec2-13-125-59-4.ap-northeast-2.compute.amazonaws.com:8080";
+const kakaoBtn  = document.getElementById('loginKakao');
+const googleBtn = document.getElementById('loginGoogle');
+if (kakaoBtn)  kakaoBtn.onclick  = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/kakao`; };
+if (googleBtn) googleBtn.onclick = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/google`; };
 
 /* ---- 로그인 ---- */
 loginForm.onsubmit = async (e)=>{
@@ -456,13 +467,30 @@ async function renderWorks(){
   wrap.innerHTML = '';
   try{
     const res = await jfetch(ENDPOINTS.deadlines);
-    const arr = (res?.deadlines ?? []).map(d => ({
-      deadlineId: d.deadline_id ?? d.deadlineId ?? d.id,
-      title: d.event?.title ?? '(Untitled)',
-      dueAt: d.event?.due_at ?? d.event?.dueAt ?? '',
-      startAt: d.event?.start_at ?? d.event?.startAt ?? '',
-      note: d.note ?? '',
-    }));
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    let arr = (res?.deadlines ?? [])
+      .map(d => ({
+        deadlineId: d.deadline_id ?? d.deadlineId ?? d.id,
+        title: d.event?.title ?? '(Untitled)',
+        dueAt: d.event?.due_at ?? d.event?.dueAt ?? '',
+        startAt: d.event?.start_at ?? d.event?.startAt ?? '',
+        note: d.note ?? '',
+      }))
+      .filter(d => {
+        if (!d.dueAt) return true; // keep if no due date
+        const dueDate = new Date(d.dueAt);
+        dueDate.setHours(0,0,0,0);
+        return dueDate >= today;
+      });
+    // Sort by due date ascending (most urgent first)
+    arr = arr.sort((a, b) => {
+      if (!a.dueAt && !b.dueAt) return 0;
+      if (!a.dueAt) return 1;
+      if (!b.dueAt) return -1;
+      return new Date(a.dueAt) - new Date(b.dueAt);
+    });
+    
     if(!arr.length){ wrap.innerHTML = `<div class="muted" style="margin:8px 6px">No projects yet.</div>`; return; }
     // group by title
     const groups = new Map();
@@ -481,6 +509,17 @@ async function renderWorks(){
       const passed = now - start;
       return Math.round((passed / total) * 100);
     }
+    function getBarColor(dueAt) {
+      if (!dueAt) return '#1aa3d9'; // default blue
+      const today = new Date(); today.setHours(0,0,0,0);
+      const due = new Date(dueAt); due.setHours(0,0,0,0);
+      const diff = Math.ceil((due - today) / (1000*60*60*24));
+      if (diff === 0) return '#e05a5a'; // today: red
+      if (diff > 0 && diff <= 3) return '#f7b731'; // <=3 days: yellow
+      if (diff >= 4 && diff <= 7) return '#f5cd79'; // 4-7 days: light yellow
+      if (diff >= 14) return '#2ecc71'; // >=14 days: green
+      return '#1aa3d9'; // default blue
+    }
     [...groups.entries()].slice(0,6).forEach(([title, list])=>{
       const first = list[0];
       const dueAt = first.dueAt;
@@ -491,12 +530,13 @@ async function renderWorks(){
         startAt = d.toISOString().slice(0,10);
       }
       const percent = (dueAt && startAt) ? getProgressPercent(startAt, dueAt) : 0;
+      const barColor = getBarColor(dueAt);
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
         <div class="p-ttl">${title}</div>
         <div class="meta">${first.note ? first.note : ''}</div>
-        <div class="bar"><i style="width:${percent}%;"></i></div>
+        <div class="bar"><i style="width:${percent}%;background:${barColor};"></i></div>
         <div class="days-left">${dueAt?daysRemaining(dueAt):''}</div>
       `;
       card.onclick = ()=>{ location.href = '/ongoingworks.html'; };

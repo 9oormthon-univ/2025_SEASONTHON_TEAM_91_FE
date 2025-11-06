@@ -10,6 +10,7 @@
     *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;font-family:'Open Sans',Arial,sans-serif;background:var(--bg);color:var(--ink)}
     .app{display:grid;grid-template-columns:201px 1fr;grid-template-rows:80px 1fr;grid-template-areas:"side head" "side main";min-height:100vh}
+
     /* side */
     .side{grid-area:side;background:var(--side);color:#fff}
     .brand{display:flex;gap:10px;align-items:center;margin:24px 0 28px 24px}
@@ -18,25 +19,64 @@
     .nav{display:flex;flex-direction:column;gap:22px;margin:10px 0 0 48px}
     .nav a{color:#fff;text-decoration:none;opacity:.9;font-size:16px}
     .nav a.active{opacity:1;font-weight:700}
+
     /* head */
     .head{grid-area:head;display:flex;align-items:center;padding:0 28px}
     .title{font-size:40px;font-weight:800;font-style:italic;margin-left:24px}
     .sp{flex:1}
     .btn{border:2px solid #3a465e;border-radius:10px;padding:10px 14px;font-weight:700;background:rgba(30,42,56,0.98);color:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.18);transition:box-shadow 0.18s;}
     #loginResult{margin-left:8px;color:#ffffff;font-size:12px}
+
     /* main layout */
     .main{grid-area:main;display:block;padding:24px 28px 40px 28px}
-    /* calendar card */
+
+    /* calendar card (polished) */
     .calendar-card{background:#fff;border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
-    .calendar-head{display:grid;grid-template-columns:repeat(7,1fr);padding:16px 0 10px}
-    .calendar-head div{text-align:center;font-size:12px;color:var(--ink);letter-spacing:.3px}
-    .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:138px;border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
-    .cell{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:12px 10px 8px;position:relative;font-size:12px}
-    .cell .day{font-style:italic;font-weight:700;opacity:.95}
+    .calendar-head{display:grid;grid-template-columns:repeat(7,1fr);padding:14px 0 10px;background:#fafbfc}
+    .calendar-head div{ text-align:center;font-size:12px;color:#6f7c92;letter-spacing:.3px;font-weight:700 }
+    .calendar-grid{
+      display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:138px;
+      border-top:1px solid var(--rule);border-left:1px solid var(--rule);
+      background:linear-gradient(180deg,#ffffff 0%,#fbfcff 100%);
+    }
+    .cell{
+      position:relative;padding:12px 10px 8px;font-size:12px;
+      border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
+      background:#fff; transition:background .15s ease, box-shadow .15s ease;
+    }
+    .cell:hover{ background:#fbfdff }
+    .cell .day{
+      position:absolute;top:10px;left:10px;
+      font-style:italic;font-weight:800;opacity:.95;color:#2b3951
+    }
     .cell.muted .day{color:#8B8F9C}
-    .slot{position:relative;display:flex;align-items:center;gap:6px;width:fit-content;margin-top:8px;background:#FCFCE5;border-radius:4px;padding:4px 8px;cursor:pointer}
-    .slot-time{min-width:42px;text-align:left}
-    .slot-title{font-style:italic;font-weight:700}
+
+    /* 오늘: 소프트 인셋 링 + 글로우 */
+    .cell.today{
+      background:linear-gradient(180deg,#ffffff 0%, #f9fbff 100%);
+      box-shadow: inset 0 0 0 2px #e6f3fb, 0 6px 18px rgba(10,136,180,.06);
+    }
+    .cell.today::before{
+      box-shadow:0 0 0 2px rgba(10,136,180,.22); pointer-events:none;
+    }
+    .cell.today .day{ color:var(--accent) }
+
+    /* 이벤트 점(있음 표시) */
+    .cell.has-events::after{
+      content:""; position:absolute; top:10px; right:10px;
+      width:8px;height:8px;border-radius:50%; background:#9bb8ff;
+    }
+
+    /* 이벤트 슬롯(칩) */
+    .slot{
+      position:relative; display:flex; align-items:center; gap:6px; width:fit-content;
+      margin-top:26px; background:#f5f9ff; border:1px solid #e7f0fb; border-radius:8px;
+      padding:6px 10px; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .slot:hover{ transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.06) }
+    .slot-time{ min-width:42px; text-align:left; color:#6e7a90; font-variant-numeric:tabular-nums }
+    .slot-title{ font-style:italic; font-weight:800; color:#1f2a3c }
+
     .floating{position:fixed;right:26px;bottom:26px;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--accent);box-shadow:0 10px 15px rgba(0,0,0,.10);color:#fff;font-size:28px;user-select:none;z-index:10000;cursor:pointer}
     .section{margin-top:18px;background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:16px 18px}
     .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -49,21 +89,38 @@
     .right{text-align:right}
     .link-action{background:none;border:none;padding:0;margin-left:14px;color:#171F39;font-weight:700;font-style:italic;cursor:pointer}
     .link-danger{color:#c23c3c}
-    /* modal (bottom sheet style) */
-    .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;pointer-events:none}
-    .modal.show{display:flex;pointer-events:auto;z-index:9999}
-    .modal .sheet{width:min(680px, 92vw);background:#FCFCE5;border-radius:16px;box-shadow:0 10px 15px rgba(0,0,0,.10);padding:24px 26px 18px}
-    .sheet h4{margin:0 0 18px;font-size:24px;font-style:italic;font-weight:700}
+
+    /* ===== Centered modal (backdrop + animation) ===== */
+    .modal{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(15,20,30,.28); backdrop-filter:saturate(1.15) blur(3px);
+      pointer-events:none; opacity:0; transition:opacity .2s ease;
+    }
+    .modal.show{ display:flex; pointer-events:auto; opacity:1; z-index:9999; }
+    .modal .sheet{
+      width:min(680px, 92vw);
+      background:linear-gradient(180deg,#fff 0%, #fcfcff 100%);
+      border:1px solid #eef0f4; border-radius:16px;
+      box-shadow:0 14px 36px rgba(0,0,0,.16);
+      padding:24px 26px 18px;
+      transform:translateY(10px) scale(.985); opacity:0;
+      transition:transform .22s cubic-bezier(.2,.8,.2,1), opacity .22s ease;
+    }
+    .modal.show .sheet{ transform:none; opacity:1; }
+    .sheet h4{ margin:0 0 12px; font-size:24px; font-style:italic; font-weight:800; color:#2b3951; letter-spacing:.2px; text-align:center; }
     .frow{display:flex;flex-direction:column;gap:8px;margin:12px 0}
-    .ipt,.txt{width:100%;background:#F7F5F4;border:1px solid #E5E7EB;border-radius:8px;padding:12px 14px;font-size:14px;color:var(--ink)}
+    .ipt,.txt{ width:100%; background:#fbfbfe; border:1px solid #e8ecf2; border-radius:10px; padding:12px 14px; font-size:14px; color:var(--ink) }
     .txt{min-height:100px}
-    .sheet-foot{display:flex;align-items:center;gap:14px;margin-top:10px}
-    .btn-ghost{background:#F7F5F4;color:#8B8F9C;font-style:italic}
-    .btn-primary{background:#eaf6fb;color:var(--accent);font-style:italic}
+    .sheet-foot{display:flex;align-items:center;gap:14px;margin-top:10px; justify-content:center}
+    .btn-ghost{background:#f4f6fb;color:#6f7c92;font-style:italic}
+    .btn-primary{background:var(--accent);color:#fff;font-style:italic}
     .muted{color:var(--muted)}
     .badge{display:inline-block;background:#eef7ff;color:#2a77c8;border-radius:999px;padding:2px 8px;font-size:12px}
+    #detailTitle{ background:linear-gradient(90deg, #eef6ff 0%, #f8fbff 100%); border:1px solid #e8f0ff; padding:8px 12px; border-radius:10px; display:inline-block; }
+    #detailEditBtn{ background:#3aa7df !important; color:#fff !important; }
+    #detailDeleteBtn{ background:#e05a5a !important; color:#fff !important; }
 
-    /* Login Modal (same as dashboard) */
+    /* Login Modal (dashboard clone) */
     #loginModal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.18);align-items:center;justify-content:center;}
     #loginModal .panel{background:#fff;padding:32px 32px 24px 32px;border-radius:16px;max-width:380px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);position:relative;display:flex;flex-direction:column;gap:18px;}
     #loginModalClose{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;}
@@ -77,7 +134,7 @@
 <body>
 <div class="app">
 
-  <!-- Login Modal (dashboard clone) -->
+  <!-- Login Modal -->
   <div id="loginModal">
     <div class="panel">
       <button id="loginModalClose">&times;</button>
@@ -95,7 +152,7 @@
     </div>
   </div>
 
-  <!-- Side (dashboard clone) -->
+  <!-- Side -->
   <aside class="side">
     <div class="brand">
       <img src="/public/icons/deadlinear-icon.svg" class="logo" alt="Deadliner"/>
@@ -121,30 +178,25 @@
     <div class="sp"></div>
     <div class="title">Calendar</div>
     <div class="sp"></div>
-        <!-- Bell button (top-right) -->
+
+    <!-- Bell -->
     <div id="bellBtnWrap" style="margin-left:auto; margin-right:8px; position:relative;">
       <button id="bellBtn" aria-label="Today alerts"
         style="all:unset; cursor:pointer; display:inline-grid; place-items:center; width:64px; height:64px;">
         <svg width="64" height="64" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g filter="url(#filter0_d_11_2)">
-            <path d="M75 35C75 18.4315 61.5685 5 45 5C28.4315 5 15 18.4315 15 35C15 51.5685 28.4315 65 45 65C61.5685 65 75 51.5685 75 35Z" fill="#1E2A38"/>
-            <path d="M75 35C75 18.4315 61.5685 5 45 5C28.4315 5 15 18.4315 15 35C15 51.5685 28.4315 65 45 65C61.5685 65 75 51.5685 75 35Z" stroke="#E5E7EB"/>
+          <g filter="url(#f0)">
+            <path d="M75 35C75 18.4 61.6 5 45 5S15 18.4 15 35s13.4 30 30 30 30-13.4 30-30Z" fill="#1E2A38" stroke="#E5E7EB"/>
           </g>
-          <g clip-path="url(#clip0_11_2)">
-            <path d="M37.6338 21.7998L35.2505 19.4165C31.2505 22.4665 28.6171 27.1665 28.3838 32.4998H31.7171C31.8352 30.3862 32.4285 28.3264 33.4529 26.4738C34.4773 24.6212 35.9064 23.0236 37.6338 21.7998ZM58.2838 32.4998H61.6171C61.3671 27.1665 58.7338 22.4665 54.7505 19.4165L52.3838 21.7998C54.1038 23.0296 55.5265 24.629 56.5475 26.4806C57.5684 28.3322 58.1617 30.3889 58.2838 32.4998ZM55.0005 33.3332C55.0005 28.2165 52.2671 23.9332 47.5005 22.7998V21.6665C47.5005 20.2832 46.3838 19.1665 45.0005 19.1665C43.6171 19.1665 42.5005 20.2832 42.5005 21.6665V22.7998C37.7171 23.9332 35.0005 28.1998 35.0005 33.3332V41.6665L31.6671 44.9998V46.6665H58.3338V44.9998L55.0005 41.6665V33.3332ZM45.0005 51.6665C45.2338 51.6665 45.4505 51.6498 45.6671 51.5998C46.7505 51.3665 47.6338 50.6332 48.0671 49.6332C48.2338 49.2332 48.3171 48.7998 48.3171 48.3332H41.6505C41.6671 50.1665 43.1505 51.6665 45.0005 51.6665Z" fill="white"/>
+          <g clip-path="url(#c0)">
+            <path d="M37.6 21.8 35.25 19.42C31.25 22.47 28.62 27.17 28.38 32.5h3.33c.12-2.11.71-4.17 1.74-6.02 1.02-1.85 2.45-3.45 4.15-4.68Zm20.65 10.7H61.6c-.25-5.33-2.88-10.03-6.86-13.09l-2.37 2.38c1.72 1.23 3.14 2.83 4.16 4.68 1.02 1.85 1.62 3.94 1.79 6.03ZM55 33.33c0-5.12-2.73-9.4-7.5-10.53v-1.13c0-1.38-1.12-2.5-2.5-2.5s-2.5 1.12-2.5 2.5v1.13C37.7 23.93 35 28.2 35 33.33v8.33l-3.33 3.33v1.67h26.67v-1.67L55 41.66v-8.33ZM45 51.66c.23 0 .45-.02.67-.06 1.08-.23 1.96-.96 2.4-1.96.16-.4.25-.83.25-1.37h-6.67c.02 1.83 1.5 3.33 3.35 3.33Z" fill="#fff"/>
           </g>
           <defs>
-            <filter id="filter0_d_11_2" x="0" y="0" width="90" height="90" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-              <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-              <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-              <feOffset dy="10"/>
-              <feGaussianBlur stdDeviation="7.5"/>
-              <feComposite in2="hardAlpha" operator="out"/>
+            <filter id="f0" x="0" y="0" width="90" height="90" color-interpolation-filters="sRGB">
+              <feOffset dy="10"/><feGaussianBlur stdDeviation="7.5"/><feComposite in2="SourceAlpha" operator="out"/>
               <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0"/>
-              <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_11_2"/>
-              <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_11_2" result="shape"/>
+              <feBlend in="SourceGraphic"/>
             </filter>
-            <clipPath id="clip0_11_2"><rect width="40" height="40" fill="white" transform="translate(25 15)"/></clipPath>
+            <clipPath id="c0"><rect width="40" height="40" fill="#fff" transform="translate(25 15)"/></clipPath>
           </defs>
         </svg>
       </button>
@@ -173,81 +225,72 @@
       <div class="calendar-grid" id="calendarGrid"></div>
     </section>
 
-    <!-- Today Alerts -->
-        <section class="section" style="display:none">
-          <div class="row">
-            <!-- <h3 style="margin-right:8px">Today Alerts</h3> -->
-            <!-- <div class="sp"></div> -->
-            <button class="btn" id="btnLoadToday"></button>
-          </div>
-          <div id="todaySummary" class="muted" style="margin-top:6px"></div>
-          <div id="todayList" style="margin-top:8px"></div>
-        </section>
+    <!-- Today Alerts (optional) -->
+    <section class="section" style="display:none">
+      <div class="row"><button class="btn" id="btnLoadToday"></button></div>
+      <div id="todaySummary" class="muted" style="margin-top:6px"></div>
+      <div id="todayList" style="margin-top:8px"></div>
+    </section>
 
-    <!-- 조회 + 목록 -->
-        <section class="section" style="display:none">
-          <div class="row">
-            <!-- <h3 style="margin-right:8px">Calendar Events</h3> -->
-            <!-- <div class="sp"></div> -->
-            <label>From</label><input type="date" id="qFrom"/>
-            <label>To</label><input type="date" id="qTo"/>
-            <button class="btn" id="btnLoad">조회</button>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <!-- <th>ID</th><th>DueAt</th><th>Title</th><th>Memo</th><th>Deadline</th> -->
-                <!-- <th class="right">Actions</th> -->
-              </tr>
-            </thead>
-            <tbody id="tblBody">
-              <!-- <tr><td colspan="6" class="muted">데이터가 없습니다. 위의 From/To를 설정 후 [조회]를 눌러주세요.</td></tr> -->
-            </tbody>
-          </table>
-        </section>
+    <!-- 조회 + 목록 (optional) -->
+    <section class="section" style="display:none">
+      <div class="row">
+        <label>From</label><input type="date" id="qFrom"/>
+        <label>To</label><input type="date" id="qTo"/>
+        <button class="btn" id="btnLoad">조회</button>
+      </div>
+      <table>
+        <thead><tr></tr></thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </section>
 
     <!-- Event Detail Modal -->
     <div class="modal" id="eventDetailModal">
-      <div class="sheet" style="background:#FCFCE5; min-width:340px; position:relative; margin-bottom:120px;">
-        <div style="font-size:22px;font-weight:800;font-style:italic; margin-bottom:8px;"> <span id="detailTitle"></span> </div>
-        <div style="font-size:15px; color:#232B44; margin-bottom:8px;">📅 Deadline: <span id="detailDeadline"></span></div>
-        <div id="detailMemo" style="font-size:15px; color:#222; white-space:pre-line; margin-bottom:18px;"></div>
-        <div style="position:absolute; top:24px; right:24px; display:flex; gap:12px;">
-          <button class="btn" id="detailDeleteBtn" style="color:var(--danger); font-weight:700; background:none;">delete</button>
-          <button class="btn" id="detailEditBtn" style="font-weight:700; background:none;">Edit</button>
+      <div class="sheet" style="min-width:250px; position:relative; padding:32px 36px 28px 36px;">
+        <div style="font-size:26px;font-weight:800;font-style:italic; margin-bottom:10px; color:var(--accent); text-align:center; letter-spacing:0.5px;">
+          <span id="detailTitle"></span>
         </div>
-        <div style="margin-top:38px; text-align:left;">
-          <button class="btn btn-ghost" id="detailCloseBtn" style="font-size:16px; padding:8px 24px;">Close</button>
+        <div style="font-size:16px; color:#232B44; margin-bottom:12px; text-align:center;">
+          <span style="font-size:18px;">📅</span> <span id="detailDeadline" style="font-weight:700;"></span>
+        </div>
+        <div id="detailMemo" style="font-size:15px; color:#555; white-space:pre-line; margin-bottom:22px; text-align:center; background:#f7f7fa; border-radius:10px; padding:12px 16px;"></div>
+        <div style="display:flex; justify-content:center; gap:18px; margin-bottom:4px;">
+          <button class="btn" id="detailEditBtn" style="border-radius:8px; padding:8px 22px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">Edit</button>
+          <button class="btn" id="detailDeleteBtn" style="border-radius:8px; padding:8px 22px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">Delete</button>
+        </div>
+        <div style="text-align:center; margin-top:10px;">
+          <button class="btn btn-ghost" id="detailCloseBtn" style="font-size:16px; padding:8px 32px; border-radius:8px;">Close</button>
         </div>
       </div>
     </div>
+
     <!-- Add/Edit Modal -->
     <div class="modal" id="editModal">
-      <div class="sheet">
-        <h4>Edit deadline</h4>
-        <div class="frow">
-          <label>Deadline Date</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <input id="fYear" class="ipt" type="number" min="2020" max="2100" placeholder="Year" style="width:80px"/>
-            <input id="fMonth" class="ipt" type="number" min="1" max="12" placeholder="Month" style="width:60px"/>
-            <input id="fDay" class="ipt" type="number" min="1" max="31" placeholder="Day" style="width:60px"/>
-            <input id="fTime" class="ipt" type="time" placeholder="Time" style="width:110px"/>
+      <div class="sheet" style="padding:32px 36px 28px 36px; min-width:340px;">
+        <h4>Edit Deadline</h4>
+        <div class="frow" style="margin-bottom:14px;">
+          <label style="font-size:14px; color:var(--muted); margin-bottom:6px;">Deadline Date</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap; justify-content:center;">
+            <input id="fYear" class="ipt" type="number" min="2020" max="2100" placeholder="Year" style="width:80px;"/>
+            <input id="fMonth" class="ipt" type="number" min="1" max="12" placeholder="Month" style="width:60px;"/>
+            <input id="fDay" class="ipt" type="number" min="1" max="31" placeholder="Day" style="width:60px;"/>
+            <input id="fTime" class="ipt" type="time" placeholder="Time" style="width:110px;"/>
           </div>
         </div>
-        <div class="frow">
-          <label>Deadline Title</label>
+        <div class="frow" style="margin-bottom:14px;">
+          <label style="font-size:14px; color:var(--muted); margin-bottom:6px;">Deadline Title</label>
           <input id="fTitle" class="ipt" placeholder="000 공모전"/>
         </div>
-        <div class="frow">
-          <label>Notes</label>
-          <textarea id="fMemo" class="txt" placeholder="워드로 제출, 자유주제"></textarea>
+        <div class="frow" style="margin-bottom:18px;">
+          <label style="font-size:14px; color:var(--muted); margin-bottom:6px;">Notes</label>
+          <textarea id="fMemo" class="txt" placeholder="워드로 제출, 자유주제" style="min-height:80px;"></textarea>
         </div>
         <input id="editId" type="hidden"/>
         <div class="sheet-foot">
           <button class="btn btn-ghost" id="btnReset">Close</button>
-          <div class="sp"></div>
-          <button class="btn btn-primary" id="btnUpdate">confirm</button>
-          <button class="btn" id="btnCreate" style="display:none">+ Add</button>
+          <button class="btn btn-primary" id="btnUpdate" style="font-weight:700;">Confirm</button>
+          <button class="btn" id="btnCreate" style="display:none; background:var(--ok); color:#fff; font-weight:700;">+ Add</button>
         </div>
       </div>
     </div>
@@ -289,34 +332,18 @@ async function jfetch(path, {method='GET', headers={}, params, body}={}) {
 }
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600); }
 
-/* ========= Login Modal ========= */
+/* ========= Login ========= */
 const loginBtn = document.getElementById('loginBtn');
 const loginBtnText = document.getElementById('loginBtnText');
 const loginModal = document.getElementById('loginModal');
 document.getElementById('loginModalClose').onclick = () => loginModal.style.display = 'none';
-// Toggle login/logout modal
-loginBtn.onclick = () => {
-  // If logged in (button text ends with '님')
-  if (loginBtnText.textContent.endsWith('님')) {
-    showLogoutConfirm();
-  } else {
-    loginModal.style.display = 'flex';
-  }
-};
-
-// Create and handle logout confirm modal
+loginBtn.onclick = () => { if (loginBtnText.textContent.endsWith('님')) showLogoutConfirm(); else loginModal.style.display = 'flex'; };
 function showLogoutConfirm() {
   let modal = document.getElementById('logoutModal');
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'logoutModal';
-    modal.style.position = 'fixed';
-    modal.style.inset = '0';
-    modal.style.zIndex = '9999';
-    modal.style.background = 'rgba(0,0,0,0.18)';
-    modal.style.display = 'flex';
-    modal.style.alignItems = 'center';
-    modal.style.justifyContent = 'center';
+    modal.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;";
     modal.innerHTML = `
       <div style="background:#fff;padding:32px 32px 24px 32px;border-radius:16px;max-width:320px;width:96vw;box-shadow:0 4px 24px rgba(0,0,0,0.12);position:relative;display:flex;flex-direction:column;gap:18px;">
         <button id="logoutModalClose" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
@@ -325,50 +352,22 @@ function showLogoutConfirm() {
           <button id="logoutCancel" style="background:#eee;color:#223044;border-radius:8px;padding:8px 18px;font-weight:700;border:none;cursor:pointer;">취소</button>
           <button id="logoutConfirm" style="background:#232B44;color:#fff;border-radius:8px;padding:8px 18px;font-weight:700;border:none;cursor:pointer;">로그아웃</button>
         </div>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(modal);
-    document.getElementById('logoutModalClose').onclick = () => { modal.style.display = 'none'; };
-    document.getElementById('logoutCancel').onclick = () => { modal.style.display = 'none'; };
+    document.getElementById('logoutModalClose').onclick = () => { modal.style.display='none'; };
+    document.getElementById('logoutCancel').onclick = () => { modal.style.display='none'; };
     document.getElementById('logoutConfirm').onclick = async () => {
-      const btn = document.getElementById('logoutConfirm');
-      const cancelBtn = document.getElementById('logoutCancel');
-      btn.disabled = true; cancelBtn.disabled = true;
-      try {
-        // Call API to invalidate token (best-effort)
-        try {
-          const res = await fetch(API_BASE + '/api/users/logout', {
-            method: 'POST',
-            headers: {
-              'accept':'application/json;charset=UTF-8',
-              ...(token() ? {'Authorization': token()} : {})
-            }
-          });
-          // swallow non-200 but try to parse for message
-          const txt = await res.text(); let data = {};
-          try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
-        } catch (e) {
-          // network issues -> proceed to local logout anyway
-        }
-      } finally {
-        // Always clear local session on client
-        localStorage.removeItem('accessToken');
-        loginBtnText.textContent = 'Log in';
-        modal.style.display = 'none';
-        toast('로그아웃 완료');
-        btn.disabled = false; cancelBtn.disabled = false;
-      }
+      try { await fetch(API_BASE + '/api/users/logout',{method:'POST',headers:{'accept':'application/json;charset=UTF-8',...(token()?{'Authorization':token()}: {})}}); } catch(e){}
+      localStorage.removeItem('accessToken'); loginBtnText.textContent='Log in'; modal.style.display='none'; toast('로그아웃 완료');
     };
-  } else {
-    modal.style.display = 'flex';
-  }
+  } else modal.style.display='flex';
 }
 document.getElementById('loginForm').onsubmit = async (e) => {
   e.preventDefault();
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value.trim();
   if(!email || !password) return toast('이메일과 비밀번호를 입력하세요.');
-  try {
+  try{
     const res = await fetch(API_BASE + '/api/users/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email,password})});
     const data = await res.json();
     const raw = data?.result?.access_token || data?.result?.accessToken || data?.access_token || data?.accessToken;
@@ -378,34 +377,19 @@ document.getElementById('loginForm').onsubmit = async (e) => {
     loginBtnText.textContent = username + '님';
     loginModal.style.display = 'none';
     toast('로그인 완료'); loadAll();
-  } catch(e) { toast('로그인 실패'); }
+  }catch(e){ toast('로그인 실패'); }
 };
-
-// Show username if already logged in (after refresh)
 async function showUsernameIfLoggedIn() {
   const tokenVal = localStorage.getItem('accessToken');
   if (tokenVal) {
     try {
-      const res = await fetch(API_BASE + '/api/users/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': token(),
-          'accept': 'application/json;charset=UTF-8'
-        }
-      });
+      const res = await fetch(API_BASE + '/api/users/me', { method:'GET', headers:{ 'Authorization': token(), 'accept':'application/json;charset=UTF-8' }});
       const data = await res.json();
       let username = data?.result?.name || data?.name || '';
-      if (username) {
-        loginBtnText.textContent = username + '님';
-      }
-    } catch (e) {
-      loginBtnText.textContent = 'Log in';
-    }
-  } else {
-    loginBtnText.textContent = 'Log in';
-  }
+      loginBtnText.textContent = username ? (username+'님') : 'Log in';
+    } catch { loginBtnText.textContent = 'Log in'; }
+  } else loginBtnText.textContent = 'Log in';
 }
-
 showUsernameIfLoggedIn();
 
 /* ========= Calendar & Events ========= */
@@ -413,21 +397,25 @@ const qFrom = document.getElementById('qFrom');
 const qTo = document.getElementById('qTo');
 const tblBody = document.getElementById('tblBody');
 const grid = document.getElementById('calendarGrid');
-let currentDate = new Date();
-currentDate.setDate(1);
+let currentDate = new Date(); currentDate.setDate(1);
 
 (function setDefaultRange(){
   const now = new Date();
   const y = now.getFullYear(), m = now.getMonth();
   const first = new Date(y, m, 1);
   const last  = new Date(y, m+1, 0);
-  qFrom.value = first.toISOString().slice(0,10);
-  qTo.value   = last.toISOString().slice(0,10);
+  if(qFrom) qFrom.value = first.toISOString().slice(0,10);
+  if(qTo)   qTo.value   = last.toISOString().slice(0,10);
 })();
 
-document.getElementById('btnLoad').onclick = loadEvents;
-document.getElementById('floatingAdd').onclick = () => { resetForm(); editId.value=''; document.getElementById('btnCreate').style.display=''; document.getElementById('btnUpdate').style.display='none'; showModal(); };
-document.getElementById('btnLoadToday').onclick = loadToday;
+document.getElementById('btnLoad')?.addEventListener('click', loadEvents);
+document.getElementById('floatingAdd').onclick = () => {
+  resetForm(); editId.value='';
+  document.getElementById('btnCreate').style.display='';
+  document.getElementById('btnUpdate').style.display='none';
+  showModal();
+};
+document.getElementById('btnLoadToday')?.addEventListener('click', loadToday);
 
 function toISODateString(dateStr, isEnd) {
   if (!dateStr) return '';
@@ -439,7 +427,7 @@ async function loadToday(){
     const result = await jfetch(ENDPOINTS.todayAlerts, { params:{ tz:'Asia/Seoul' }});
     const items = result?.items ?? result ?? [];
     document.getElementById('todaySummary').textContent = `${result.date ?? '-'} · ${result.count ?? items.length}건`;
-    document.getElementById('todayList').innerHTML = (items).map(item=>`
+    document.getElementById('todayList').innerHTML = items.map(item=>`
       <div style="margin:8px 0;padding:10px;border:1px solid #eef0f4;border-radius:10px;background:#fff">
         <div><b>${item.title}</b> <span class="badge">${item.deadline ? ('progress ' + (item.deadline.progress ?? 0) + '%') : 'no deadline'}</span></div>
         <div class="muted">${item.dueAt}</div>
@@ -452,14 +440,15 @@ async function loadToday(){
 }
 
 async function loadEvents(){
-  tblBody.innerHTML = '<tr><td colspan="6" class="muted">Loading...</td></tr>';
+  if(tblBody) tblBody.innerHTML = '<tr><td colspan="6" class="muted">Loading...</td></tr>';
   try{
-    const from = toISODateString(qFrom.value, false);
-    const to   = toISODateString(qTo.value, true);
+    const from = toISODateString(qFrom?.value, false);
+    const to   = toISODateString(qTo?.value, true);
     const resp = await jfetch(ENDPOINTS.calendarEvents, { params:{ from, to, page:0, size:200 }});
     const items = resp?.items ?? (Array.isArray(resp) ? resp : []);
     window._calendarEvents = items;
     renderCalendar(items);
+    if(!tblBody) return;
     if(!items.length){
       tblBody.innerHTML = '<tr><td colspan="6" class="muted">결과가 없습니다.</td></tr>';
       return;
@@ -482,7 +471,7 @@ async function loadEvents(){
       </tr>`;
     }).join('');
   }catch(e){
-    tblBody.innerHTML = `<tr><td colspan="6" class="muted">오류: ${e.message}</td></tr>`;
+    if(tblBody) tblBody.innerHTML = `<tr><td colspan="6" class="muted">오류: ${e.message}</td></tr>`;
     renderCalendar([]);
   }
 }
@@ -495,11 +484,15 @@ function renderCalendar(events = []) {
   grid.innerHTML = '';
   const startDayOfWeek = firstDay.getDay();
   const daysInMonth = lastDay.getDate();
+  const todayStr = new Date().toISOString().slice(0,10);
 
+  // prev blanks
   for(let i=0; i<startDayOfWeek; i++) {
     const prevDate = new Date(year, month, -startDayOfWeek + i + 1);
     grid.innerHTML += `<div class="cell muted"><div class="day">${prevDate.getDate()}</div></div>`;
   }
+
+  // current month
   for(let d=1; d<=daysInMonth; d++) {
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dayEvents = events.filter(ev => (ev.dueAt ?? ev.due_at ?? '').startsWith(dateStr));
@@ -509,14 +502,19 @@ function renderCalendar(events = []) {
       const id = ev.eventId ?? ev.event_id;
       slots += `<div class="slot" onclick="showEventModal(${id})"><span class="slot-time">${time}</span><span class="slot-title">${ev.title ?? ''}</span></div>`;
     });
-    grid.innerHTML += `<div class="cell"><div class="day">${d}</div>${slots}</div>`;
+    const extra = [];
+    if (dateStr === todayStr) extra.push('today');
+    if (dayEvents.length > 0) extra.push('has-events');
+    grid.innerHTML += `<div class="cell ${extra.join(' ')}"><div class="day">${d}</div>${slots}</div>`;
   }
+
+  // next blanks
   const totalCells = startDayOfWeek + daysInMonth;
   const nextBlanks = (7 - (totalCells % 7)) % 7;
   for(let i=0; i<nextBlanks; i++) grid.innerHTML += `<div class="cell muted"><div class="day"></div></div>`;
 }
 
-/* ===== Add/Edit/Delete (reuse) ===== */
+/* ===== Add/Edit/Delete ===== */
 const fTitle = document.getElementById('fTitle');
 const fMemo  = document.getElementById('fMemo');
 const editId = document.getElementById('editId');
@@ -538,7 +536,7 @@ window.editRow = (id)=>{
   const tds = tr.querySelectorAll('td');
   editId.value = id;
   const dueAtRaw = tds[1].textContent.trim();
-  const match = dueAtRaw.match(/(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})/);
+  const match = dueAtRaw.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
   document.getElementById('fYear').value  = match ? match[1] : '';
   document.getElementById('fMonth').value = match ? match[2] : '';
   document.getElementById('fDay').value   = match ? match[3] : '';
@@ -553,16 +551,9 @@ window.delRow = async (id)=>{
   if(!confirm('삭제하시겠습니까?')) return;
   try{
     await jfetch(`/api/calendar/events/${id}`, { method:'DELETE' });
-    await loadEvents();
-    alert('삭제 완료!');
+    await loadEvents(); alert('삭제 완료!');
   }catch(e){
-    // Try to extract Korean error message from backend response
-    let msg = e.message;
-    // If message looks like a JSON string, try to parse
-    try {
-      const errObj = JSON.parse(msg);
-      if (errObj && errObj.message) msg = errObj.message;
-    } catch {}
+    let msg = e.message; try { const errObj = JSON.parse(msg); if (errObj && errObj.message) msg = errObj.message; } catch {}
     alert('삭제 실패: ' + msg);
   }
 };
@@ -602,20 +593,15 @@ window.showEventModal = function(id) {
   const items = window._calendarEvents || [];
   const ev = items.find(e => (e.eventId ?? e.event_id) == id);
   if(!ev) return;
-  // Fill detail modal
   document.getElementById('detailTitle').textContent = ev.title ?? '';
   const dueAtRaw = ev.dueAt ?? ev.due_at ?? '';
   document.getElementById('detailDeadline').textContent = dueAtRaw ? dueAtRaw.split('T')[0] : '';
   document.getElementById('detailMemo').textContent = ev.memo ?? '';
-  // Show detail modal
   const detailModal = document.getElementById('eventDetailModal');
   detailModal.classList.add('show');
-  // Close button
   document.getElementById('detailCloseBtn').onclick = () => { detailModal.classList.remove('show'); };
-  // Edit button
   document.getElementById('detailEditBtn').onclick = () => {
     detailModal.classList.remove('show');
-    // Fill edit modal fields
     editId.value = ev.eventId ?? ev.event_id;
     const match = dueAtRaw.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     document.getElementById('fYear').value  = match ? match[1] : '';
@@ -628,36 +614,47 @@ window.showEventModal = function(id) {
     document.getElementById('btnUpdate').style.display = '';
     showModal();
   };
-  // Delete button
   document.getElementById('detailDeleteBtn').onclick = async () => {
     if(!confirm('삭제하시겠습니까?')) return;
     try{
       await jfetch(`/api/calendar/events/${ev.eventId ?? ev.event_id}`, { method:'DELETE' });
-      await loadEvents();
-      detailModal.classList.remove('show');
-      alert('삭제 완료!');
+      await loadEvents(); detailModal.classList.remove('show'); alert('삭제 완료!');
     }catch(e){
-      let msg = e.message;
-      try {
-        const errObj = JSON.parse(msg);
-        if (errObj && errObj.message) msg = errObj.message;
-      } catch {}
+      let msg = e.message; try { const errObj = JSON.parse(msg); if (errObj && errObj.message) msg = errObj.message; } catch {}
       alert('삭제 실패: ' + msg);
     }
   };
 };
 
+/* ===== Modal UX: overlay click / ESC close (Close 버튼 없이도) ===== */
+(function attachModalDismissors(){
+  const modalIds = ['editModal', 'eventDetailModal'];
+  modalIds.forEach(id => {
+    const modal = document.getElementById(id);
+    if(!modal) return;
+    modal.addEventListener('mousedown', (e) => {
+      const sheet = modal.querySelector('.sheet');
+      if (!sheet) return;
+      if (!sheet.contains(e.target)) { modal.classList.remove('show'); }
+    });
+  });
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){
+      modalIds.forEach(id=>{
+        const m = document.getElementById(id);
+        if(m && m.classList.contains('show')) m.classList.remove('show');
+      });
+    }
+  });
+})();
 
-// ===== Bell (Today's Alerts) =====
+/* ===== Bell (Today's Alerts) ===== */
 const bellBtn = document.getElementById('bellBtn');
 const bellPanel = document.getElementById('bellPanel');
 const bellSummary = document.getElementById('bellSummary');
 const bellList = document.getElementById('bellList');
 const bellRefresh = document.getElementById('bellRefresh');
-
-// Resolve endpoint
 const TODAY_ENDPOINT = (typeof ENDPOINTS !== 'undefined' && ENDPOINTS.todayAlerts) ? ENDPOINTS.todayAlerts : '/api/alerts/deadlines/today';
-
 async function fetchTodayAlerts(){
   try{
     const res = await jfetch(TODAY_ENDPOINT, { params:{ tz:'Asia/Seoul' }});
