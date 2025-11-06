@@ -231,7 +231,7 @@ function authHeader() {
 
 /* ========= Fetch 래퍼 ========= */
 async function jfetch(path, opt = {}) {
-  const url = new URL(API_BASE + path);
+  const url = new URL(API_BASE + path, window.location.origin);
   const { method = 'GET', headers = {}, params, body } = opt;
   if (params) Object.entries(params).forEach(([k, v]) => v != null && url.searchParams.append(k, v));
   const res = await fetch(url, {
