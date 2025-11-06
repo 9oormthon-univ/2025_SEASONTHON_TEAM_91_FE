@@ -371,25 +371,31 @@
           return;
         }
         try {
-          // Vercel proxy 경로 및 인증 처리
-          import('./js/apiClient.js').then(({ getTicketDetail }) => {
-            getTicketDetail(ticketId).then(data => {
-              const fileUrl = data?.result?.file_url || data?.result?.fileUrl;
-              if (!fileUrl) {
-                alert('원본 파일이 존재하지 않습니다.');
-                return;
-              }
-              // 파일 다운로드 트리거
-              const a = document.createElement('a');
-              a.href = fileUrl;
-              a.download = '';
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-            }).catch(e => {
-              alert('다운로드 실패: ' + (e?.message || e));
-            });
+          const resp = await fetch(`http://13.125.59.4:8080/api/tickets/${ticketId}/download`, {
+            method: 'GET',
+            headers: {
+              'accept': 'application/json;charset=UTF-8',
+              'Authorization': 'Bearer ' + accessToken
+            }
           });
+          const data = await resp.json();
+          if (!resp.ok || data.isSuccess === false) {
+            let msg = data?.message || '원본 파일을 찾을 수 없습니다.';
+            alert(msg);
+            return;
+          }
+          const fileUrl = data.result?.file_url || data.result?.fileUrl;
+          if (!fileUrl) {
+            alert('원본 파일이 존재하지 않습니다.');
+            return;
+          }
+          // 파일 다운로드 트리거
+          const a = document.createElement('a');
+          a.href = fileUrl;
+          a.download = '';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
         } catch (e) {
           alert('다운로드 실패: ' + (e?.message || e));
         }

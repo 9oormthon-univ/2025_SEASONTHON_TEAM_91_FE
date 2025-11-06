@@ -6,7 +6,7 @@
  * - FormData일 땐 Content-Type 자동 생략
  * ========================================================================= */
 
-export const API_BASE = '/api'; // Vercel 프록시 구조에 맞춤
+export const API_BASE = 'http://13.125.59.4:8080/api'; // Nginx로 /api 프록시되는 구조 권장
 
 /* ============================== 내부 유틸 =============================== */
 
@@ -34,12 +34,7 @@ async function jfetch(path, { method = 'GET', headers = {}, body, auth = false }
   if (auth) Object.assign(h, buildAuthHeader());
 
   let res;
-  // Ensure path does not start with /api if API_BASE is /api
-  let apiPath = path;
-  if (API_BASE === '/api' && apiPath.startsWith('/api/')) {
-    apiPath = apiPath.replace(/^\/api\//, '/');
-  }
-  const url = `${API_BASE}${apiPath}`;
+  const url = `${API_BASE}${path}`;
   try {
     res = await fetch(url, { method, headers: h, body });
   } catch (err) {
@@ -252,7 +247,7 @@ export async function addIdeaBoard({ x, y, w, h, color, detail }) {
   const payload = { x, y, w, h, color, detail };
   console.log('[API] addIdeaBoard payload', payload);
   try {
-  const res = await fetch(`${API_BASE}/idea-board/add`, {
+    const res = await fetch(`${API_BASE}/idea-board/add`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=UTF-8',
@@ -315,12 +310,7 @@ function getAccessToken() {
   return localStorage.getItem('accessToken') || '';
 }
 async function request(method, path, { body, params } = {}) {
-  // Ensure path does not start with /api if API_BASE is /api
-  let apiPath2 = path;
-  if (API_BASE === '/api' && apiPath2.startsWith('/api/')) {
-    apiPath2 = apiPath2.replace(/^\/api\//, '/');
-  }
-  const url = new URL(API_BASE + apiPath2, window.location.origin);
+  const url = new URL(API_BASE + path);
   if (params) Object.entries(params).forEach(([k, v]) => v != null && url.searchParams.append(k, v));
   const res = await fetch(url.toString(), {
     method,

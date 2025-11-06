@@ -182,7 +182,7 @@
 
 <script>
 /* ===== API ===== */
-const API_BASE = '/api';
+const API_BASE = 'http://13.125.59.4:8080';
 const ENDPOINTS = {
   deadlinesList:    '/api/deadlines',
   deadlineCreate:   '/api/deadlines',
@@ -280,17 +280,19 @@ document.getElementById('loginModalClose').onclick = () => loginModal.style.disp
         const cancelBtn = document.getElementById('logoutCancel');
         btn.disabled = true; cancelBtn.disabled = true;
         try {
-          // Vercel proxy 경로 및 인증 처리
-          import('./js/apiClient.js').then(({ jfetch }) => {
-            jfetch('/users/logout', { method: 'POST', auth: true }).finally(() => {
-              localStorage.removeItem('accessToken');
-              loginBtnText.textContent = 'Log in';
-              modal.style.display = 'none';
-              toast('로그아웃 완료');
-              btn.disabled = false; cancelBtn.disabled = false;
+          try {
+            const res = await fetch(API_BASE + '/api/users/logout', {
+              method: 'POST',
+              headers: {
+                'accept':'application/json;charset=UTF-8',
+                ...(token() ? {'Authorization': token()} : {})
+              }
             });
-          });
-        } catch (e) {
+            const txt = await res.text(); let data = {};
+            try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
+          } catch (e) {
+          }
+        } finally {
           localStorage.removeItem('accessToken');
           loginBtnText.textContent = 'Log in';
           modal.style.display = 'none';
