@@ -132,7 +132,7 @@
   import { listIdeas, addIdeaBoard, deleteIdeaBoard, loginUser, updateIdeaBoard } from './js/apiClient.js';
 
   /* ========= Shared helpers (login + toast) ========= */
-  const API_BASE = 'http://13.125.59.4:8080';
+  const API_BASE = 'https://api.rightmarks.site';
   const token = () => {
     const tk = localStorage.getItem('accessToken')||''; return tk ? (tk.startsWith('Bearer ')?tk:`Bearer ${tk}`) : '';
   };
