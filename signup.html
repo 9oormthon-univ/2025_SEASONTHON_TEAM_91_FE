@@ -269,15 +269,37 @@
       localStorage.setItem('accessToken', token);
       localStorage.setItem('me', JSON.stringify(login?.result?.me || {}));
 
-      alert(`회원가입${USE_MOCK ? ' (MOCK)' : ''} 및 로그인 완료!`);
-      window.location.href = 'register.html';
+      alert(`회원가입${typeof USE_MOCK !== 'undefined' && USE_MOCK ? ' (MOCK)' : ''} 및 로그인 완료!`);
+      window.location.href = 'main.html#section-3';
     } catch (err) {
       alert('회원가입 및 로그인 완료!');
+      window.location.href = 'main.html#section-3';
     } finally {
       submitBtn.textContent = '회원가입';
       updateSubmitState();
     }
   });
+
+    // 소셜 로그인 버튼 핸들러
+    const googleBtn = document.querySelector('.btn.google');
+    const kakaoBtn = document.querySelector('.btn.kakao');
+
+    // 소셜 로그인 API 엔드포인트
+    const API_BASE = 'https://api.rightmarks.site';
+    function getSocialRedirectUri() {
+      // 회원가입 후 추가 정보 입력을 위해 register.html로 리디렉션
+      return `${window.location.origin}/register.html`;
+    }
+
+    googleBtn.addEventListener('click', () => {
+      const redirectUri = encodeURIComponent(getSocialRedirectUri());
+      window.location.href = `${API_BASE}/api/auth/google?redirect_uri=${redirectUri}`;
+    });
+
+    kakaoBtn.addEventListener('click', () => {
+      const redirectUri = encodeURIComponent(getSocialRedirectUri());
+      window.location.href = `${API_BASE}/api/auth/kakao?redirect_uri=${redirectUri}`;
+    });
 </script>
 
 
