@@ -25,17 +25,54 @@ let RAW = [];
 let TICKETS = [];
 
 /* =========================================================
-   3) 유저 이름 반영 (항상 내 정보만)
+   3) 유저 이름 반영 (API owner_name까지 자동 반영)
 ========================================================= */
-function updateUserTitle() {
+async function updateUserTitle() {
   const titleEl = document.querySelector('.title');
   if (!titleEl) return;
-  const stored = JSON.parse(localStorage.getItem('me') || '{}');
-  const name = stored.name || '익명 사용자';
+
+  let name = '익명 사용자';
+
+  // 1️⃣ localStorage.me.name 우선
+  const me = JSON.parse(localStorage.getItem('me') || '{}');
+  if (me?.name && me.name.trim()) {
+    name = me.name;
+  } 
+  // 2️⃣ fallback: recentTicketOwner
+  else if (localStorage.getItem('recentTicketOwner')) {
+    name = localStorage.getItem('recentTicketOwner');
+  }
+  // 3️⃣ 티켓 목록 불러서 ownerName 확인
+  else {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (token) {
+        const res = await fetch('https://api.rightmarks.site/api/tickets', {
+          headers: {
+            accept: 'application/json;charset=UTF-8',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const firstTicket = data?.result?.items?.[0];
+          const ownerName = firstTicket?.ticket_detail?.owner_name || firstTicket?.ownerName;
+          if (ownerName && ownerName.trim()) {
+            name = ownerName;
+            localStorage.setItem('recentTicketOwner', ownerName);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[updateUserTitle] owner_name 불러오기 실패:', err);
+    }
+  }
+
   titleEl.textContent = `${name}님의 Proof Tickets`;
 }
 
-updateUserTitle();
+await updateUserTitle();
+
 
 
 /* =========================================================
