@@ -25,7 +25,7 @@ let RAW = [];
 let TICKETS = [];
 
 /* =========================================================
-   3) 유저 이름 반영 (API owner_name까지 자동 반영)
+   3) 유저 이름 반영 (API result.user_name 기반)
 ========================================================= */
 async function updateUserTitle() {
   const titleEl = document.querySelector('.title');
@@ -33,17 +33,14 @@ async function updateUserTitle() {
 
   let name = '익명 사용자';
 
-  // 1️⃣ localStorage.me.name 우선
+  // 1️⃣ localStorage.me.name 먼저 확인
   const me = JSON.parse(localStorage.getItem('me') || '{}');
   if (me?.name && me.name.trim()) {
     name = me.name;
-  } 
-  // 2️⃣ fallback: recentTicketOwner
-  else if (localStorage.getItem('recentTicketOwner')) {
-    name = localStorage.getItem('recentTicketOwner');
   }
-  // 3️⃣ 티켓 목록 불러서 ownerName 확인
-  else {
+
+  // 2️⃣ 없으면 /api/tickets 호출해서 user_name 사용
+  if (name === '익명 사용자') {
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
@@ -55,23 +52,28 @@ async function updateUserTitle() {
         });
         if (res.ok) {
           const data = await res.json();
-          const firstTicket = data?.result?.items?.[0];
-          const ownerName = firstTicket?.ticket_detail?.owner_name || firstTicket?.ownerName;
-          if (ownerName && ownerName.trim()) {
-            name = ownerName;
-            localStorage.setItem('recentTicketOwner', ownerName);
+          const apiName = data?.result?.user_name;
+          if (apiName && apiName.trim()) {
+            name = apiName;
+            localStorage.setItem('recentTicketOwner', apiName);
           }
         }
       }
     } catch (err) {
-      console.warn('[updateUserTitle] owner_name 불러오기 실패:', err);
+      console.warn('[updateUserTitle] /api/tickets 불러오기 실패:', err);
     }
+  }
+
+  // 3️⃣ 그래도 없으면 fallback: recentTicketOwner
+  if (name === '익명 사용자' && localStorage.getItem('recentTicketOwner')) {
+    name = localStorage.getItem('recentTicketOwner');
   }
 
   titleEl.textContent = `${name}님의 Proof Tickets`;
 }
 
 await updateUserTitle();
+
 
 
 
