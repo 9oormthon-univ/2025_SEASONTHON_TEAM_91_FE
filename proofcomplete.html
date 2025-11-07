@@ -394,13 +394,10 @@
       다른 작품 검증하러 가기
     </button>
     <script>
-      // '다른 작품 검증하러 가기' 버튼: 로그인 필요
+      // '다른 작품 검증하러 가기' 버튼: main.html의 검증하기(파일 업로드) 섹션으로 이동
       document.getElementById('registerBtn')?.addEventListener('click', function() {
-        if (!localStorage.getItem('accessToken')) {
-          alert('로그인 후 이용 가능합니다.');
-          return;
-        }
-        location.href = 'register.html';
+        // main.html의 section-2(검증하기)로 이동
+        location.href = 'main.html#section-2';
       });
     </script>
   </main>

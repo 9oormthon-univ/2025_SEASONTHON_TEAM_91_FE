@@ -503,14 +503,18 @@ async function loadEvents(){
 }
 
 function renderCalendar(events = []) {
+  // KST 기준으로 연,월,일 계산
+  const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
+  // firstDay, lastDay도 KST 기준으로 생성
+  const firstDay = new Date(Date.UTC(year, month, 1, 0, 0, 0) + 9 * 60 * 60 * 1000);
+  const lastDay = new Date(Date.UTC(year, month + 1, 0, 0, 0, 0) + 9 * 60 * 60 * 1000);
   grid.innerHTML = '';
   const startDayOfWeek = firstDay.getDay();
   const daysInMonth = lastDay.getDate();
-  const todayStr = new Date().toISOString().slice(0,10);
+  // 오늘 날짜를 KST로 계산
+  const todayStr = kstNow.toISOString().slice(0,10);
 
   // prev blanks
   for(let i=0; i<startDayOfWeek; i++) {
@@ -636,11 +640,21 @@ window.showEventModal = function(id) {
   document.getElementById('detailEditBtn').onclick = () => {
     detailModal.classList.remove('show');
     editId.value = ev.eventId ?? ev.event_id;
-    const match = dueAtRaw.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-    document.getElementById('fYear').value  = match ? match[1] : '';
-    document.getElementById('fMonth').value = match ? match[2] : '';
-    document.getElementById('fDay').value   = match ? match[3] : '';
-    document.getElementById('fTime').value  = match ? `${match[4]}:${match[5]}` : '';
+    // dueAtRaw는 ISO8601(UTC/Z) 또는 +09:00일 수 있음. 항상 KST로 변환해서 입력
+    if (dueAtRaw) {
+      const utcDate = new Date(dueAtRaw);
+      // UTC → KST 변환
+      const kst = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+      document.getElementById('fYear').value  = kst.getFullYear();
+      document.getElementById('fMonth').value = String(kst.getMonth()+1).padStart(2,'0');
+      document.getElementById('fDay').value   = String(kst.getDate()).padStart(2,'0');
+      document.getElementById('fTime').value  = kst.toTimeString().slice(0,5);
+    } else {
+      document.getElementById('fYear').value  = '';
+      document.getElementById('fMonth').value = '';
+      document.getElementById('fDay').value   = '';
+      document.getElementById('fTime').value  = '';
+    }
     fTitle.value = ev.title ?? '';
     fMemo.value  = ev.memo ?? '';
     document.getElementById('btnCreate').style.display = 'none';

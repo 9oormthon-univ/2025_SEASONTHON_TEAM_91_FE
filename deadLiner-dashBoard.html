@@ -284,18 +284,23 @@ async function handleOAuthCallback() {
   // 1) 저장 (access_token 키로 고정)
   localStorage.setItem('accessToken', raw);
 
-  // 2) 주소창 정리(해시 제거 + 대시보드 이동)
-  window.history.replaceState({}, '', '/deadLiner-dashBoard.html');
-
-  // 3) 토큰 유효성 확인
+  // 2) 유저 정보 저장
   try {
-    const r = await fetch(API_BASE + ENDPOINTS.me, {
+    const res = await fetch(API_BASE + ENDPOINTS.me, {
       headers: { ...authHeader(), accept: 'application/json;charset=UTF-8' },
       credentials: 'omit',
     });
-    location.replace(r.ok ? '/deadLiner-dashBoard.html'
-                          : '/deadLiner-dashBoard.html?error=invalid_token');
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem('me', JSON.stringify(data?.result ?? data));
+      window.history.replaceState({}, '', '/deadLiner-dashBoard.html');
+      location.replace('/deadLiner-dashBoard.html');
+    } else {
+      window.history.replaceState({}, '', '/deadLiner-dashBoard.html');
+      location.replace('/deadLiner-dashBoard.html?error=invalid_token');
+    }
   } catch {
+    window.history.replaceState({}, '', '/deadLiner-dashBoard.html');
     location.replace('/deadLiner-dashBoard.html?error=invalid_token');
   }
 }
@@ -360,8 +365,16 @@ loginForm.onsubmit = async (e)=>{
     const tokenOnly = raw.startsWith('Bearer ') ? raw.slice(7) : raw;
     localStorage.setItem('accessToken', tokenOnly);
 
-    let username = data?.me?.name || email.split('@')[0];
-    loginBtnText.textContent = (username||'User') + '님';
+    // 유저 정보 저장
+    try {
+      const me = await jfetch(ENDPOINTS.me, { method: 'GET' });
+      localStorage.setItem('me', JSON.stringify(me));
+      let username = me?.name || email.split('@')[0];
+      loginBtnText.textContent = (username||'User') + '님';
+    } catch {
+      localStorage.removeItem('me');
+      loginBtnText.textContent = email.split('@')[0] + '님';
+    }
     close(loginModal);
     toast('로그인 완료');
     loadAll();
@@ -449,7 +462,8 @@ document.getElementById('goProof').onclick = ()=> location.href='/main.html';
 /* ========= 캘린더 ========= */
 const monthLabel = document.getElementById('monthLabel');
 const daysEl = document.getElementById('days');
-let cur = new Date(); cur.setDate(1);
+// KST 기준으로 달력 시작일 계산
+let cur = new Date(Date.now() + 9 * 60 * 60 * 1000); cur.setDate(1);
 
 function pad(n){ return String(n).padStart(2,'0'); }
 function toISO(d, end=false){
@@ -460,9 +474,9 @@ async function renderCalendar(){
   const y = cur.getFullYear(), m = cur.getMonth();
   monthLabel.textContent = cur.toLocaleString('en-US', {month:'long'}) + `, ${y}`;
 
-  // fetch events for visible month
-  const start = new Date(y, m, 1);
-  const end   = new Date(y, m+1, 0);
+  // fetch events for visible month (KST 기준)
+  const start = new Date(Date.UTC(y, m, 1, 0, 0, 0) + 9 * 60 * 60 * 1000);
+  const end   = new Date(Date.UTC(y, m+1, 0, 0, 0, 0) + 9 * 60 * 60 * 1000);
   let dots = new Set();           // dates with events
   let deadlines = new Set();      // dates with deadlines
   try{
@@ -481,10 +495,13 @@ async function renderCalendar(){
 
   // grid
   daysEl.innerHTML = '';
-  const firstDow = new Date(y, m, 1).getDay();
-  const lastDatePrev = new Date(y, m, 0).getDate();
-  const lastDateCur  = new Date(y, m+1, 0).getDate();
-  const todayStr = new Date().toISOString().slice(0,10);
+  // KST 기준으로 달력 날짜 계산
+  const firstDow = new Date(Date.UTC(y, m, 1, 0, 0, 0) + 9 * 60 * 60 * 1000).getDay();
+  const lastDatePrev = new Date(Date.UTC(y, m, 0, 0, 0, 0) + 9 * 60 * 60 * 1000).getDate();
+  const lastDateCur  = new Date(Date.UTC(y, m+1, 0, 0, 0, 0) + 9 * 60 * 60 * 1000).getDate();
+  // 오늘 날짜를 KST로 계산
+  const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const todayStr = kstNow.toISOString().slice(0,10);
 
   // previous month fillers
   for(let i=0;i<firstDow;i++){
@@ -508,7 +525,9 @@ async function renderCalendar(){
 function cell(date, muted=false, dots=new Set(), deadlines=new Set(), todayStr=''){
   const el = document.createElement('div');
   el.className = 'd'+(muted?' muted':'');
-  const dstr = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+  // KST 기준으로 날짜 문자열 생성
+  const kstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+  const dstr = `${kstDate.getFullYear()}-${pad(kstDate.getMonth()+1)}-${pad(kstDate.getDate())}`;
   if(dots.has(dstr)) el.classList.add('dot');
   if(deadlines.has(dstr)) el.classList.add('deadline');
   if(dstr===todayStr) el.classList.add('today');
