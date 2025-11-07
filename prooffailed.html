@@ -122,6 +122,21 @@
           <img src="public/images/map.svg" style="margin-right: 10px;">
           나의 PROOF TICKET 확인하기
         </button>
+        <script>
+        // '나의 PROOF TICKET 확인하기' 버튼: accessToken 없으면 로그인 안내 후 main.html로 이동
+        document.querySelectorAll('.button').forEach(btn => {
+          if (btn.textContent.includes('나의 PROOF TICKET 확인하기')) {
+            btn.onclick = function() {
+              if (!localStorage.getItem('accessToken')) {
+                alert('로그인 후 이용 가능합니다.');
+                location.href = 'main.html';
+                return;
+              }
+              location.href = 'myproofticket.html';
+            };
+          }
+        });
+        </script>
       </div>
     </div>
   </div>
