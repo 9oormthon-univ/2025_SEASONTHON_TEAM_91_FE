@@ -302,6 +302,22 @@
 
 <script>
 /* ========= Config / API helpers ========= */
+
+// Social login API handlers (run after DOM is loaded)
+window.addEventListener('DOMContentLoaded', function() {
+  const loginKakaoBtn = document.getElementById('loginKakao');
+  const loginGoogleBtn = document.getElementById('loginGoogle');
+  if (loginKakaoBtn) {
+    loginKakaoBtn.onclick = () => {
+      window.location.href = 'https://api.rightmarks.site/api/auth/kakao';
+    };
+  }
+  if (loginGoogleBtn) {
+    loginGoogleBtn.onclick = () => {
+      window.location.href = 'https://api.rightmarks.site/api/auth/google';
+    };
+  }
+});
 const API_BASE = 'https://api.rightmarks.site';
 const ENDPOINTS = {
   calendarEvents: '/api/calendar/events',
@@ -359,6 +375,8 @@ function showLogoutConfirm() {
     document.getElementById('logoutConfirm').onclick = async () => {
       try { await fetch(API_BASE + '/api/users/logout',{method:'POST',headers:{'accept':'application/json;charset=UTF-8',...(token()?{'Authorization':token()}: {})}}); } catch(e){}
       localStorage.removeItem('accessToken'); loginBtnText.textContent='Log in'; modal.style.display='none'; toast('로그아웃 완료');
+      // Immediately update UI after logout
+      await loadAll();
     };
   } else modal.style.display='flex';
 }
@@ -410,6 +428,14 @@ let currentDate = new Date(); currentDate.setDate(1);
 
 document.getElementById('btnLoad')?.addEventListener('click', loadEvents);
 document.getElementById('floatingAdd').onclick = () => {
+  // Check if user is logged in before allowing event creation
+  const tokenVal = localStorage.getItem('accessToken');
+  if (!tokenVal) {
+    // Show login modal if not logged in
+    loginModal.style.display = 'flex';
+    toast('로그인이 필요합니다.');
+    return;
+  }
   resetForm(); editId.value='';
   document.getElementById('btnCreate').style.display='';
   document.getElementById('btnUpdate').style.display='none';
@@ -558,6 +584,13 @@ window.delRow = async (id)=>{
   }
 };
 document.getElementById('btnCreate').onclick = async ()=>{
+  // Check if user is logged in before allowing event creation
+  const tokenVal = localStorage.getItem('accessToken');
+  if (!tokenVal) {
+    loginModal.style.display = 'flex';
+    toast('로그인이 필요합니다.');
+    return;
+  }
   const year  = document.getElementById('fYear').value.trim();
   const month = document.getElementById('fMonth').value.trim();
   const day   = document.getElementById('fDay').value.trim();

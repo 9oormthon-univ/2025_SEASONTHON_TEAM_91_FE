@@ -237,7 +237,6 @@ const mapDeadline = (dl) => ({
   }
 });
 
-/* ===== Login Modal (dashboard-like) ===== */
 const loginBtn = document.getElementById('loginBtn');
 const loginBtnText = document.getElementById('loginBtnText');
 const loginModal = document.getElementById('loginModal');
@@ -290,14 +289,16 @@ document.getElementById('loginModalClose').onclick = () => loginModal.style.disp
             });
             const txt = await res.text(); let data = {};
             try { data = txt ? JSON.parse(txt) : {}; } catch { data = {}; }
-          } catch (e) {
-          }
+          } catch (e) {}
         } finally {
           localStorage.removeItem('access_token');
+          localStorage.removeItem('accessToken');
           loginBtnText.textContent = 'Log in';
           modal.style.display = 'none';
           toast('로그아웃 완료');
           btn.disabled = false; cancelBtn.disabled = false;
+          // Immediately refresh UI after logout
+          location.reload();
         }
       };
     } else {
@@ -322,6 +323,19 @@ document.getElementById('loginForm').onsubmit = async (e) => {
   } catch(e) { toast('로그인 실패'); }
 };
 
+// Social login API handlers
+const loginKakaoBtn = document.getElementById('loginKakao');
+const loginGoogleBtn = document.getElementById('loginGoogle');
+if (loginKakaoBtn) {
+  loginKakaoBtn.onclick = () => {
+    window.location.href = API_BASE + '/api/auth/kakao';
+  };
+}
+if (loginGoogleBtn) {
+  loginGoogleBtn.onclick = () => {
+    window.location.href = API_BASE + '/api/auth/google';
+  };
+}
 async function showUsernameIfLoggedIn() {
   const tokenVal = localStorage.getItem('accessToken');
   if (tokenVal) {
@@ -695,6 +709,13 @@ async function loadBoardsForDeadline(deadline){
 /* ===== Deadline 생성 ===== */
 document.getElementById('btnOpenNewDeadline').onclick = openDeadlineModal;
 function openDeadlineModal(){
+  // Check if user is logged in before allowing deadline creation
+  const tokenVal = localStorage.getItem('accessToken');
+  if (!tokenVal) {
+    loginModal.style.display = 'flex';
+    toast('로그인이 필요합니다.');
+    return;
+  }
   const modal = document.getElementById('deadlineModal');
   const listWrap = document.getElementById('eventListWrap');
   const noteIpt = document.getElementById('deadlineNote');

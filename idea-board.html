@@ -131,6 +131,20 @@
   // keep using existing API client for idea board
   import { listIdeas, addIdeaBoard, deleteIdeaBoard, loginUser, updateIdeaBoard } from './js/apiClient.js';
 
+  // Social login API handlers
+  const loginKakaoBtn = document.getElementById('loginKakao');
+  const loginGoogleBtn = document.getElementById('loginGoogle');
+  if (loginKakaoBtn) {
+    loginKakaoBtn.onclick = () => {
+      window.location.href = 'https://api.rightmarks.site/api/auth/kakao';
+    };
+  }
+  if (loginGoogleBtn) {
+    loginGoogleBtn.onclick = () => {
+      window.location.href = 'https://api.rightmarks.site/api/auth/google';
+    };
+  }
+
   /* ========= Shared helpers (login + toast) ========= */
   const API_BASE = 'https://api.rightmarks.site';
   const token = () => {
@@ -180,9 +194,12 @@
       document.getElementById('logoutCancel').onclick = () => { modal.style.display = 'none'; };
       document.getElementById('logoutConfirm').onclick = () => {
         localStorage.removeItem('access_token');
+        localStorage.removeItem('accessToken');
         loginBtnText.textContent = 'Log in';
         modal.style.display = 'none';
         toast('로그아웃 완료');
+        // Immediately refresh UI after logout
+        fetchIdeas();
       };
     } else {
       modal.style.display = 'flex';
@@ -241,7 +258,16 @@
   const ideaBoard = document.getElementById('ideaBoard');
   const ideaModal = document.getElementById('ideaModal');
 
-  const openModal = () => (ideaModal.style.display = 'flex');
+  const openModal = () => {
+    // Check if user is logged in before allowing idea creation
+    const tokenVal = localStorage.getItem('accessToken');
+    if (!tokenVal) {
+      loginModal.style.display = 'flex';
+      toast('로그인이 필요합니다.');
+      return;
+    }
+    ideaModal.style.display = 'flex';
+  };
   const closeModal = () => { ideaModal.style.display = 'none'; document.getElementById('detail').value=''; };
 
   document.getElementById('addIdeaOpenBtn').onclick = openModal;
@@ -339,6 +365,13 @@
   }
 
   async function addIdea() {
+    // Check if user is logged in before allowing idea creation
+    const tokenVal = localStorage.getItem('accessToken');
+    if (!tokenVal) {
+      loginModal.style.display = 'flex';
+      toast('로그인이 필요합니다.');
+      return;
+    }
     const detail = document.getElementById('detail').value;
     if (!detail.trim()) return alert('내용을 입력하세요.');
     try {

@@ -433,6 +433,8 @@ function showLogoutConfirm() {
         loginBtnText.textContent = 'Log in';
         modal.style.display = 'none';
         toast('로그아웃 완료');
+        // Immediately refresh UI after logout
+        location.reload();
       }
     };
   } else {
