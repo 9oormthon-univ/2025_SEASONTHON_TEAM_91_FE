@@ -226,7 +226,7 @@ async function openTicket(idx) {
           const token = localStorage.getItem('accessToken');
           const ticketId = info.ticketId;
           if (!ticketId) return alert('티켓 정보가 없습니다.');
-          const res = await fetch(`http://13.125.59.4:8080/api/tickets/${ticketId}/download`, {
+          const res = await fetch(`https://api.rightmarks.site/api/tickets/${ticketId}/download`, {
             method: 'GET',
             headers: {
               'accept': 'application/json;charset=UTF-8',

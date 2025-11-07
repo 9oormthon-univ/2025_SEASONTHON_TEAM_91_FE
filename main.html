@@ -89,7 +89,7 @@
   <script type="module" src="./main.js"></script>
   <script>
     // ====== OAuth2 Social Login Button Handlers ======
-    const OAUTH_BASE = "http://ec2-13-125-59-4.ap-northeast-2.compute.amazonaws.com:8080";
+    const OAUTH_BASE = "https://api.rightmarks.site";
     const kakaoBtn  = document.querySelector('.social-login .kakao');
     const googleBtn = document.querySelector('.social-login .google');
     if (kakaoBtn)  kakaoBtn.onclick  = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/kakao`; };

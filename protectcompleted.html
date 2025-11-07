@@ -371,7 +371,7 @@
           return;
         }
         try {
-          const resp = await fetch(`http://13.125.59.4:8080/api/tickets/${ticketId}/download`, {
+          const resp = await fetch(`https://api.rightmarks.site/api/tickets/${ticketId}/download`, {
             method: 'GET',
             headers: {
               'accept': 'application/json;charset=UTF-8',
