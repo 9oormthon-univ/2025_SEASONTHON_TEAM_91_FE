@@ -25,14 +25,48 @@ let RAW = [];
 let TICKETS = [];
 
 /* =========================================================
-   3) 유저 이름 반영
+   3) 유저 이름 반영 (owner_name 우선 적용)
 ========================================================= */
-(function updateUserTitle() {
-  const userInfo = JSON.parse(localStorage.getItem('me') || '{}');
-  const name = userInfo.name || '익명 사용자';
+async function updateUserTitle() {
   const titleEl = document.querySelector('.title');
-  if (titleEl) titleEl.textContent = `${name}님의 Proof Tickets`;
-})();
+  if (!titleEl) return;
+
+  // 1️⃣ 기본값: localStorage의 me.name
+  const stored = JSON.parse(localStorage.getItem('me') || '{}');
+  let name = stored.name || '익명 사용자';
+
+  // 2️⃣ 티켓 데이터 중 가장 최근 발급자의 이름을 우선 반영
+  try {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      const res = await fetch('https://api.rightmarks.site/api/tickets/latest', {
+        headers: { 
+          accept: 'application/json;charset=UTF-8',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const owner = data?.result?.ticket_detail?.owner_name;
+        if (owner && owner.trim()) {
+          name = owner;
+          localStorage.setItem('recentTicketOwner', owner);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[updateUserTitle] 최근 티켓 소유자 이름 불러오기 실패:', e);
+    // fallback: localStorage.recentTicketOwner
+    const cachedOwner = localStorage.getItem('recentTicketOwner');
+    if (cachedOwner) name = cachedOwner;
+  }
+
+  // 3️⃣ 최종 반영
+  titleEl.textContent = `${name}님의 Proof Tickets`;
+}
+
+await updateUserTitle();
+
 
 /* =========================================================
    4) 티켓 데이터 로드 (로그인 체크)
