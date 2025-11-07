@@ -35,9 +35,16 @@ let TICKETS = [];
 })();
 
 /* =========================================================
-   4) 티켓 데이터 로드
+   4) 티켓 데이터 로드 (로그인 체크)
 ========================================================= */
 async function loadTickets() {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    // 로그인 안 된 경우: 더미 데이터 + 안내 메시지
+    useFallbackTickets();
+    showLoginRequiredMessage();
+    return;
+  }
   try {
     const data = await getMyTickets();
     console.log('[DEBUG] /api/tickets 응답:', data);
@@ -66,6 +73,25 @@ async function loadTickets() {
   } catch (error) {
     console.warn('[myproofticket] getMyTickets 실패 → fallback mock', error);
     useFallbackTickets();
+  }
+}
+
+// 로그인 필요 메시지 표시 함수
+function showLoginRequiredMessage() {
+  // 타이틀/메시지 변경
+  const titleEl = document.querySelector('.title');
+  if (titleEl) titleEl.textContent = '로그인이 필요합니다';
+  // 티켓 휠 영역에 안내 메시지 추가
+  const wheel = document.getElementById('wheel');
+  if (wheel) {
+    wheel.innerHTML = `<p class="no-ticket-msg">로그인이 필요한 서비스입니다.<br>일부 기능이 제한됩니다.</p>`;
+  }
+  // 신규 티켓 발급 버튼 비활성화
+  const newBtn = document.getElementById('newTicketBtn');
+  if (newBtn) {
+    newBtn.setAttribute('disabled', 'true');
+    newBtn.style.opacity = '0.5';
+    newBtn.style.pointerEvents = 'none';
   }
 }
 

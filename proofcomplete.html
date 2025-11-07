@@ -350,9 +350,20 @@
   </dialog>
 
   <main class="page">
-    <a href="main.html" class="logo-link" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
+    <a href="main.html" class="logo-link" id="logoLink" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
       <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" />
     </a>
+    <a href="deadLiner-dashBoard.html" class="deadliner-link" id="deadlinerLink" style="position: fixed; left: 70px; top: 120px; z-index: 100;">
+      <img src="public/icons/deadliner-mainicon.svg" alt="Go to Deadliner Dashboard" style="width:96px;height:96px;" />
+    </a>
+    <script>
+      // 모든 페이지에서 로고 클릭 시 로그아웃
+      document.getElementById('logoLink')?.addEventListener('click', function(e) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('me');
+        sessionStorage.clear();
+      });
+    </script>
 
   <h1 class="title" id="mainTitle">티켓 검증 완료</h1>
   <p class="subtitle" id="resultSubtitle">검증 결과를 불러오는 중...</p>
@@ -378,10 +389,20 @@
       </table>
     </section>
 
-    <button class="cta" type="button" onclick="location.href='main.html#section-2'">
+    <button class="cta" type="button" id="registerBtn">
       <span class="ico" aria-hidden="true"></span>
       다른 작품 검증하러 가기
     </button>
+    <script>
+      // '다른 작품 검증하러 가기' 버튼: 로그인 필요
+      document.getElementById('registerBtn')?.addEventListener('click', function() {
+        if (!localStorage.getItem('accessToken')) {
+          alert('로그인 후 이용 가능합니다.');
+          return;
+        }
+        location.href = 'register.html';
+      });
+    </script>
   </main>
 
 

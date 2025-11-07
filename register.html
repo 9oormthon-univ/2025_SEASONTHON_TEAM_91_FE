@@ -211,9 +211,19 @@
   </style>
 </head>
 <body>
+  <script>
+    // 페이지 진입 시 로그인 체크
+    if (!localStorage.getItem('accessToken')) {
+      alert('로그인 후 이용 가능합니다.');
+      window.location.replace('main.html#section-3');
+    }
+  </script>
   <div class="main-wrap">
     <div class="content">
-      <img src="public/images/logo.svg" style="position:absolute; left:100px; top:100px;" onclick="location.href='main.html'"/>
+      <img src="public/images/logo.svg" style="position:absolute; left:100px; top:100px; cursor:pointer;" onclick="localStorage.removeItem('accessToken');localStorage.removeItem('me');sessionStorage.clear();location.href='main.html'"/>
+      <a href="deadLiner-dashBoard.html" class="deadliner-link" id="deadlinerLink" style="position:absolute; left:100px; top:170px; z-index:100;">
+        <img src="public/icons/deadliner-mainicon.svg" alt="Go to Deadliner Dashboard" style="width:96px;height:96px;" />
+      </a>
 
       <div class="title">공모전 지원작 등록하기</div>
       <div class="subtitle">

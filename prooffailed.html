@@ -87,9 +87,20 @@
   </style>
 </head>
 <body>
-  <a href="main.html" class="logo-link" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
+  <a href="main.html" class="logo-link" id="logoLink" style="position: fixed; left: 56px; top: 40px; z-index: 100;">
     <img class="logo" src="public/images/logo.svg" alt="Proof Ticket Logo" />
   </a>
+  <a href="deadLiner-dashBoard.html" class="deadliner-link" id="deadlinerLink" style="position: fixed; left: 60px; top: 120px; z-index: 100;">
+    <img src="public/icons/deadliner-mainicon.svg" alt="Go to Deadliner Dashboard" style="width:96px;height:96px;" />
+  </a>
+  <script>
+    // 모든 페이지에서 로고 클릭 시 로그아웃
+    document.getElementById('logoLink')?.addEventListener('click', function(e) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('me');
+      sessionStorage.clear();
+    });
+  </script>
   <div class="container">
     <div class="stamp-area">
         <img src="public/images/failed-stamp.svg" style="margin-right: 10px;">
