@@ -117,6 +117,16 @@
           <img src="public/images/external.svg" style="margin-right: 10px;">
           다른 작품 검증하러 가기
         </button>
+        <script>
+        // '다른 작품 검증하러 가기' 버튼: main.html의 검증하기(파일 업로드) 섹션으로 이동
+        document.querySelectorAll('.button.secondary').forEach(btn => {
+          if (btn.textContent.includes('다른 작품 검증하러 가기')) {
+            btn.onclick = function() {
+              location.href = 'main.html#section-2';
+            };
+          }
+        });
+        </script>
         <button class="button" onclick="location.href='myproofticket.html'">
           <!-- 아이콘(바코드) 예시: -->
           <img src="public/images/map.svg" style="margin-right: 10px;">
