@@ -35,19 +35,22 @@
     .calendar-head{display:grid;grid-template-columns:repeat(7,1fr);padding:14px 0 10px;background:#fafbfc}
     .calendar-head div{ text-align:center;font-size:12px;color:#6f7c92;letter-spacing:.3px;font-weight:700 }
     .calendar-grid{
-      display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:138px;
+      display:grid;grid-template-columns:repeat(7,1fr);
       border-top:1px solid var(--rule);border-left:1px solid var(--rule);
       background:linear-gradient(180deg,#ffffff 0%,#fbfcff 100%);
     }
     .cell{
-      position:relative;padding:12px 10px 8px;font-size:12px;
+      position:relative;padding:12px 16px 30px 10px;font-size:12px;
       border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
       background:#fff; transition:background .15s ease, box-shadow .15s ease;
+      min-height:90px;
+      height:auto+16px; 
+      overflow:visible;
     }
     .cell:hover{ background:#fbfdff }
     .cell .day{
       position:absolute;top:10px;left:10px;
-      font-style:italic;font-weight:800;opacity:.95;color:#2b3951
+      font-style:italic;font-weight:800;opacity:.95;color:#2b3951;
     }
     .cell.muted .day{color:#8B8F9C}
 
@@ -69,13 +72,15 @@
 
     /* 이벤트 슬롯(칩) */
     .slot{
-      position:relative; display:flex; align-items:center; gap:6px; width:fit-content;
-      margin-top:26px; background:#f5f9ff; border:1px solid #e7f0fb; border-radius:8px;
-      padding:6px 10px; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease;
+      top:24px;
+      position:relative; display:flex; align-items:center; gap:12px; width:fit-content;
+      background:#f5f9ff; border:1px solid #e7f0fb; border-radius:8px;
+      padding:6px 16px; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease;
+      margin-bottom: 4px;
     }
     .slot:hover{ transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.06) }
     .slot-time{ min-width:42px; text-align:left; color:#6e7a90; font-variant-numeric:tabular-nums }
-    .slot-title{ font-style:italic; font-weight:800; color:#1f2a3c }
+    .slot-title{ font-weight:800; color:#1f2a3c }
 
     .floating{position:fixed;right:26px;bottom:26px;width:60px;height:60px;border-radius:50%;display:grid;place-items:center;background:var(--accent);box-shadow:0 10px 15px rgba(0,0,0,.10);color:#fff;font-size:28px;user-select:none;z-index:10000;cursor:pointer}
     .section{margin-top:18px;background:#fff;border-radius:16px;box-shadow:var(--shadow);padding:16px 18px}
@@ -632,7 +637,15 @@ window.showEventModal = function(id) {
   if(!ev) return;
   document.getElementById('detailTitle').textContent = ev.title ?? '';
   const dueAtRaw = ev.dueAt ?? ev.due_at ?? '';
-  document.getElementById('detailDeadline').textContent = dueAtRaw ? dueAtRaw.split('T')[0] : '';
+  // Show both date and time in the detail modal
+  if (dueAtRaw) {
+    const kst = new Date(dueAtRaw);
+    const dateStr = `${kst.getFullYear()}-${String(kst.getMonth()+1).padStart(2,'0')}-${String(kst.getDate()).padStart(2,'0')}`;
+    const timeStr = kst.toTimeString().slice(0,5);
+    document.getElementById('detailDeadline').textContent = `${dateStr} ${timeStr}`;
+  } else {
+    document.getElementById('detailDeadline').textContent = '';
+  }
   document.getElementById('detailMemo').textContent = ev.memo ?? '';
   const detailModal = document.getElementById('eventDetailModal');
   detailModal.classList.add('show');
@@ -641,20 +654,18 @@ window.showEventModal = function(id) {
     detailModal.classList.remove('show');
     editId.value = ev.eventId ?? ev.event_id;
     // dueAtRaw는 ISO8601(UTC/Z) 또는 +09:00일 수 있음. 항상 KST로 변환해서 입력
-    if (dueAtRaw) {
-      const utcDate = new Date(dueAtRaw);
-      // UTC → KST 변환
-      const kst = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
-      document.getElementById('fYear').value  = kst.getFullYear();
-      document.getElementById('fMonth').value = String(kst.getMonth()+1).padStart(2,'0');
-      document.getElementById('fDay').value   = String(kst.getDate()).padStart(2,'0');
-      document.getElementById('fTime').value  = kst.toTimeString().slice(0,5);
-    } else {
-      document.getElementById('fYear').value  = '';
-      document.getElementById('fMonth').value = '';
-      document.getElementById('fDay').value   = '';
-      document.getElementById('fTime').value  = '';
-    }
+      if (dueAtRaw) {
+        const kst = new Date(dueAtRaw); // Already handles +09:00 correctly
+        document.getElementById('fYear').value  = kst.getFullYear();
+        document.getElementById('fMonth').value = String(kst.getMonth()+1).padStart(2,'0');
+        document.getElementById('fDay').value   = String(kst.getDate()).padStart(2,'0');
+        document.getElementById('fTime').value  = kst.toTimeString().slice(0,5);
+      } else {
+        document.getElementById('fYear').value  = '';
+        document.getElementById('fMonth').value = '';
+        document.getElementById('fDay').value   = '';
+        document.getElementById('fTime').value  = '';
+      }
     fTitle.value = ev.title ?? '';
     fMemo.value  = ev.memo ?? '';
     document.getElementById('btnCreate').style.display = 'none';

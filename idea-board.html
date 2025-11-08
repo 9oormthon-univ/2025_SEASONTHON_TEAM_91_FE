@@ -357,6 +357,12 @@
     window._selectedColor = null;
     document.querySelectorAll('.color-icon').forEach(icon => {
       icon.addEventListener('click', function() {
+        // 이미 선택된 색상을 다시 클릭하면 선택 취소
+        if (window._selectedColor === this.dataset.color) {
+          window._selectedColor = null;
+          document.querySelectorAll('.color-icon').forEach(i => i.style.outline = 'none');
+          return;
+        }
         window._selectedColor = this.dataset.color;
         document.querySelectorAll('.color-icon').forEach(i => i.style.outline = 'none');
         this.style.outline = '3px solid #333';

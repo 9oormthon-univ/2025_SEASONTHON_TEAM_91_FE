@@ -46,9 +46,9 @@
     .d.deadline::after{background:#ff7b7b}
     /* right rail */
     .rail{padding-right:8px}
-    .rail h3{font-size:28px;font-style:italic;font-weight:800;margin:10px 6px 12px 6px}
+    .rail h3{font-size:28px;font-weight:800;margin:10px 6px 12px 6px}
     .card{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:14px 16px;margin:10px 6px}
-    .p-ttl{font-weight:800;font-style:italic;margin-bottom:6px}
+    .p-ttl{font-weight:800;margin-bottom:6px}
     .meta{font-size:12px;color:#8a919f;margin-bottom:8px}
     .bar{height:10px;background:#eef1f4;border-radius:99px;overflow:hidden}
     .bar i{display:block;height:100%;background:#1aa3d9;width:40%}
@@ -645,7 +645,7 @@ async function fetchTodayAlerts(){
     bellList.innerHTML = items.map(it=>`
       <div style="margin:8px 0; padding:10px; border:1px solid #eef0f4; border-radius:10px; background:#FCFCE5;">
         <div style="display:flex; align-items:center; gap:8px;">
-          <b style="font-style:italic">${it.title ?? '(Untitled)'}</b>
+          <b>${it.title ?? '(Untitled)'}</b>
           ${it.deadline ? `<span class="badge">progress ${it.deadline.progress ?? 0}%</span>` : `<span class="badge" style="background:#fffbe6;color:#9f6b3d">no deadline</span>`}
           <div class="sp"></div>
           <small class="muted">${(it.dueAt ?? '').replace('T',' ')}</small>
