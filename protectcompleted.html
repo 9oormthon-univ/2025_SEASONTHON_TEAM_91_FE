@@ -186,9 +186,6 @@
     </div>
 
     <div class="buttons">
-      <button class="btn" onclick="location.href='myproofticket.html'">
-        ← 뒤로 가기
-      </button>
 
       <button class="btn" onclick="location.href='myproofticket.html'">
         <img src="public/images/map.svg">
@@ -250,14 +247,17 @@
     const tFront = document.getElementById('tFront');
     const tBack  = document.getElementById('tBack');
     function apply(el, r) {
-      el?.setAttribute('front-image', r?.contest?.image_url || './posters/poster7.png');
-      el?.setAttribute('title',       r?.contest?.name || '');
-      el?.setAttribute('proof-code',  r?.human_code || '');
-      el?.setAttribute('timestamp',   r?.issued_at  || '');
-      el?.setAttribute('hash',        r?.sha256     || '');
-      el?.setAttribute('file-name',   r?.file_name_submitted || '');
-      el?.setAttribute('owner',       r?.owner?.name || '');
-      el?.setAttribute('date-right',  fmtDate(r?.issued_at));
+  el?.setAttribute('front-image', r?.contest?.image_url || './posters/poster7.png');
+  el?.setAttribute('title',       r?.contest?.name || '');
+  el?.setAttribute('proof-code',  r?.human_code || '');
+  el?.setAttribute('timestamp',   r?.issued_at  || '');
+  // 해시가 너무 길면 앞부분만 보여주고 뒤는 ...으로 대체
+  const hash = r?.sha256 || '';
+  const shortHash = hash.length > 20 ? hash.slice(0, 20) + '...' : hash;
+  el?.setAttribute('hash',        shortHash);
+  el?.setAttribute('file-name',   r?.file_name_submitted || '');
+  el?.setAttribute('owner',       r?.owner?.name || '');
+  el?.setAttribute('date-right',  fmtDate(r?.issued_at));
     }
   
     // ✅ 커스텀 엘리먼트 준비를 기다리되, 최대 1초만 기다리고 넘김 (API 호출은 선행)

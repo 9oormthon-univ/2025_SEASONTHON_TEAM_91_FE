@@ -120,7 +120,42 @@ document.addEventListener("DOMContentLoaded", () => {
         if (me) localStorage.setItem('me', JSON.stringify(me));
     
         alert('로그인 성공! 이제 발급/마이페이지 기능을 사용할 수 있어요.');
-        location.href = 'register.html';
+        // 관리자라면 manager.html로 이동
+        if (token) {
+          const tokenType = (resp?.normalized?.tokenType ?? resp?.result?.token_type ?? 'Bearer').trim();
+          const authHeader = token.startsWith('Bearer ') ? token : `${tokenType} ${token}`;
+
+          fetch('https://api.rightmarks.site/api/users/me', {
+            headers: { 'Authorization': authHeader }
+          })
+          .then(async res => {
+            const ct = res.headers.get('content-type') || '';
+            if (ct.includes('application/json')) return res.json();
+            const text = await res.text();
+            throw new Error('API 응답이 JSON이 아닙니다: ' + text.slice(0, 120));
+          })
+          .then(data => {
+            // 두 스키마 모두 대응
+            const role =
+              data?.result?.me?.role ??
+              data?.result?.role ??
+              data?.me?.role ??
+              data?.role ??
+              null;
+
+            if (typeof role === 'string' && role.toUpperCase() === 'ADMIN') {
+              alert('관리자님 안녕하세요! 관리자 페이지로 이동합니다.');
+              location.href = 'manager.html';
+            } else {
+              location.href = 'register.html';
+            }
+          })
+          .catch(err => {
+            console.error('[ME API ERROR]', err);
+            // 에러 시에도 그냥 회원 페이지로 보냄
+            location.href = 'register.html';
+          });
+        } 
       } catch (e) {
         console.error(e);
         alert(`로그인 실패: ${e?.message || e}`);
