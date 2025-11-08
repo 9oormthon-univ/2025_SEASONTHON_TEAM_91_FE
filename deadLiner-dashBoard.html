@@ -348,8 +348,9 @@ signupToLogin.onclick = (e)=>{ e.preventDefault(); close(signupModal); open(logi
 /* ====== 소셜 로그인 버튼: EC2 도메인으로 시작 ====== */
 const kakaoBtn  = document.getElementById('loginKakao');
 const googleBtn = document.getElementById('loginGoogle');
-if (kakaoBtn)  kakaoBtn.onclick  = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/kakao`; };
-if (googleBtn) googleBtn.onclick = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/google`; };
+const redirect = encodeURIComponent(window.location.origin + '/auth/callback_deadliner.html');
+if (kakaoBtn)  kakaoBtn.onclick  = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/kakao?redirect_uri=${redirect}`; };
+if (googleBtn) googleBtn.onclick = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/google?redirect_uri=${redirect}`; };
 
 /* ---- 로컬 로그인 ---- */
 loginForm.onsubmit = async (e)=>{

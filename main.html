@@ -94,7 +94,7 @@
   // ====== OAuth2 Social Login Button Handlers ======
   const kakaoBtn  = document.querySelector('.social-login .kakao');
   const googleBtn = document.querySelector('.social-login .google');
-  const redirect = encodeURIComponent(window.location.origin + '/register.html');
+  const redirect = encodeURIComponent(window.location.origin + '/auth/callback_proofticket.html');
   if (kakaoBtn)  kakaoBtn.onclick  = () => { window.location.href = `https://api.rightmarks.site/api/auth/kakao?redirect_uri=${redirect}`; };
   if (googleBtn) googleBtn.onclick = () => { window.location.href = `https://api.rightmarks.site/api/auth/google?redirect_uri=${redirect}`; };
   </script>

@@ -326,14 +326,16 @@ document.getElementById('loginForm').onsubmit = async (e) => {
 // Social login API handlers
 const loginKakaoBtn = document.getElementById('loginKakao');
 const loginGoogleBtn = document.getElementById('loginGoogle');
+const OAUTH_BASE = 'https://api.rightmarks.site';
+const redirect = encodeURIComponent(window.location.origin + '/auth/callback_deadliner.html');
 if (loginKakaoBtn) {
   loginKakaoBtn.onclick = () => {
-    window.location.href = API_BASE + '/api/auth/kakao';
+    window.location.href = `${OAUTH_BASE}/oauth2/authorization/kakao?redirect_uri=${redirect}`;
   };
 }
 if (loginGoogleBtn) {
   loginGoogleBtn.onclick = () => {
-    window.location.href = API_BASE + '/api/auth/google';
+    window.location.href = `${OAUTH_BASE}/oauth2/authorization/google?redirect_uri=${redirect}`;
   };
 }
 async function showUsernameIfLoggedIn() {

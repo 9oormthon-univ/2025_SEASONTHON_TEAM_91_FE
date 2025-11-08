@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>OAuth2 Callback</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#f7f7fa;color:#232B44}</style>
+</head>
+<body>
+  <div>로그인 처리 중…</div>
+  <script>
+    const API_BASE='https://api.rightmarks.site';
+    const DASHBOARD_PATH='/register.html';
+    function parseHashFragment(h){const q=new URLSearchParams(h.startsWith('#')?h.slice(1):h);const o={};q.forEach((v,k)=>o[k]=v);return o;}
+    (async function(){
+      const h=location.hash||'';
+      if(!(h.includes('access_token=')||h.includes('token='))){location.replace(DASHBOARD_PATH+'?error=missing_token');return;}
+      const p=parseHashFragment(h);
+      const access=p.access_token||p.token;
+      if(!access){location.replace(DASHBOARD_PATH+'?error=missing_token');return;}
+      localStorage.setItem('accessToken', access);
+      history.replaceState({},'',DASHBOARD_PATH);
+      try{
+        const r=await fetch(API_BASE+'/api/users/me',{headers:{Authorization:`Bearer ${access}`,accept:'application/json;charset=UTF-8'},credentials:'omit'});
+        location.replace(r.ok?DASHBOARD_PATH:DASHBOARD_PATH+'?error=invalid_token');
+      }catch{location.replace(DASHBOARD_PATH+'?error=invalid_token');}
+    })();
+  </script>
+</body>
+</html>
