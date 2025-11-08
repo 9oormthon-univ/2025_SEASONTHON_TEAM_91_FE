@@ -383,8 +383,10 @@ function renderProjects(deadlines){
   const wrap = document.getElementById('projectList'); wrap.innerHTML = '';
   if(!deadlines.length){ wrap.innerHTML = '<div class="muted">No projects yet.</div>'; return; }
   const groups = new Map();
-  deadlines.forEach(d=>{ const key = d.event.title || '(Untitled)'; if(!groups.has(key)) groups.set(key, []); groups.get(key).push(d); });
-
+  deadlines.forEach(d => {
+    const uniqueKey = `${d.event.title}_${d.deadlineId}`;
+    groups.set(uniqueKey, [d]);
+  });
   function getProgressPercent(startDate, dueDate) {
     const start = new Date(startDate);
     const end = new Date(dueDate);
@@ -421,7 +423,7 @@ function renderProjects(deadlines){
     const el = document.createElement('div');
     el.className = 'proj-card';
     el.innerHTML = `
-      <div class="ttl">${title}</div>
+      <div class="ttl">${d0.event.title || '(Untitled)'}</div>
       <div class="meta">${d0.note ? d0.note : ''}</div>
       <div class="bar"><i style="width:${percent}%;background:${barColor};"></i></div>
       <div class="days">${d0?.event?.dueAt ? daysRemaining(d0.event.dueAt) : ''}</div>
