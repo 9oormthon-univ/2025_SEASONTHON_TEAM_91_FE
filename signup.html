@@ -284,21 +284,15 @@
     const googleBtn = document.querySelector('.btn.google');
     const kakaoBtn = document.querySelector('.btn.kakao');
 
-    // 소셜 로그인 API 엔드포인트
-    const API_BASE = 'https://api.rightmarks.site';
-    function getSocialRedirectUri() {
-      // 회원가입 후 추가 정보 입력을 위해 register.html로 리디렉션
-      return `${window.location.origin}/register.html`;
-    }
+    const OAUTH_BASE = 'https://api.rightmarks.site';
+    const redirect = encodeURIComponent(window.location.origin + '/auth/callback_deadliner.html');
 
     googleBtn.addEventListener('click', () => {
-      const redirectUri = encodeURIComponent(getSocialRedirectUri());
-      window.location.href = `${API_BASE}/api/auth/google?redirect_uri=${redirectUri}`;
+      window.location.href = `${OAUTH_BASE}/oauth2/authorization/google?redirect_uri=${redirect}`;
     });
 
     kakaoBtn.addEventListener('click', () => {
-      const redirectUri = encodeURIComponent(getSocialRedirectUri());
-      window.location.href = `${API_BASE}/api/auth/kakao?redirect_uri=${redirectUri}`;
+      window.location.href = `${OAUTH_BASE}/oauth2/authorization/kakao?redirect_uri=${redirect}`;
     });
 </script>
 

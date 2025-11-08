@@ -444,6 +444,7 @@ function showLogoutConfirm() {
         } catch(e){ /* 네트워크 에러는 무시 */ }
       } finally {
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('me'); // 유저 정보도 함께 삭제
         loginBtnText.textContent = 'Log in';
         modal.style.display = 'none';
         toast('로그아웃 완료');
