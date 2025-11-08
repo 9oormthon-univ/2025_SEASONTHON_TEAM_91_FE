@@ -18,6 +18,7 @@
       const p=parseHashFragment(h);
       const access=p.access_token||p.token;
       if(!access){location.replace(DASHBOARD_PATH+'?error=missing_token');return;}
+      localStorage.removeItem('me'); // 기존 Deadliner 정보 초기화
       localStorage.setItem('accessToken', access);
       history.replaceState({},'',DASHBOARD_PATH);
       try{
