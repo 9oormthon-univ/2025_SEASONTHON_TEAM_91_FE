@@ -81,8 +81,8 @@
         </div>
 
         <div class="social-login">
-          <button class="google" title="구글 로그인"></button>
-          <button class="kakao"  title="카카오 로그인"></button>
+          <button id="loginGoogle" class="google" title="구글 로그인"></button>
+          <button id="loginKakao" class="kakao"  title="카카오 로그인"></button>
         </div>
       </div>
     </section>
@@ -92,11 +92,12 @@
   <script type="module" src="./main.js"></script>
   <script>
   // ====== OAuth2 Social Login Button Handlers ======
-  const kakaoBtn  = document.querySelector('.social-login .kakao');
-  const googleBtn = document.querySelector('.social-login .google');
-  const redirect = encodeURIComponent(window.location.origin + '/auth/callback_proofticket.html');
-  if (kakaoBtn)  kakaoBtn.onclick  = () => { window.location.href = `https://api.rightmarks.site/api/auth/kakao?redirect_uri=${redirect}`; };
-  if (googleBtn) googleBtn.onclick = () => { window.location.href = `https://api.rightmarks.site/api/auth/google?redirect_uri=${redirect}`; };
+    const OAUTH_BASE = "https://api.rightmarks.site";
+    const kakaoBtn  = document.getElementById('loginKakao');
+    const googleBtn = document.getElementById('loginGoogle');
+    const redirect = encodeURIComponent(window.location.origin + '/auth/callback_proofticket.html');
+    if (kakaoBtn)  kakaoBtn.onclick  = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/kakao?redirect_uri=${redirect}`; };
+    if (googleBtn) googleBtn.onclick = () => { window.location.href = `${OAUTH_BASE}/oauth2/authorization/google?redirect_uri=${redirect}`; };
   </script>
 </body>
 </html>
